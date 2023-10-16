@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "pyqt_test"
+version = "0.0.1"
+description = "pyqt test"
+license = "MIT"
+authors = [
+	"Yuchao Li <ycl25@drexel.edu>",
+]
+
+[tool.poetry.dependencies]
+python = "~3.10.1"
+matplotlib = "^3.8.0"
+pyqt6 = "^6.5.3"
+pyqt6-charts = "^6.5.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.9.1"
+pytest = "^7.4.2"
+pyinstaller = "^6.1.0"
+
+[tool.poetry.scripts]
+pyqt-test = "pyqt_test.main:main"
+
+[tool.black]
+max-line-length = 100
