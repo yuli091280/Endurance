@@ -5,15 +5,15 @@ description = "Race walking visualizer"
 license = "MIT"
 authors = [
 	"Yuchao Li <ycl25@drexel.edu>",
+	"Ethan Harriz <ejh336@drexel.edu>",
+	"Manish Patel <mtp75@drexel.edu>",
 ]
 
 [tool.poetry.dependencies]
-python = "~3.10.1"
-matplotlib = "^3.8.0"
+python = "~3.11"
 seaborn = "^0.13.0"
 pandas = "^2.1.1"
 pyqt6 = "^6.5.3"
-pyqt6-charts = "^6.5.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.9.1"
