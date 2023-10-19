@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib import pyplot as plt
 
-from db_stuff import create_connection
+# from db_stuff import create_connection
 
 runner_data = None
 
