@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "cs461-race-walking-visualizer"
+version = "0.0.1"
+description = "Race Walking Visualizer for Senior Project"
+authors = ["Ethan Harriz <ejh336@drexel.edu>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+PyQt6 = "^6.5.3"
+pandas = "^2.1.1"
+seaborn = "^0.13.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.10.0"
+pyinstaller = "^6.1.0"
+
+[tool.black]
+max-line-length = 100
