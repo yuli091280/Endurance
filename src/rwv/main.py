@@ -5,7 +5,7 @@ import sqlite3
 
 from PyQt6.QtWidgets import QApplication, QMainWindow
 
-from pyqt_test.mainWindow import MainWindow
+from rwv.main_window import MainWindow
 
 
 def main():
