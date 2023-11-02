@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow
 from rwv.main_window import MainWindow
 from rwv.judge_data_base import JudgeDatabase
 
+
 def main():
     if len(sys.argv) != 2:
         print("no db file provided")
@@ -19,14 +20,15 @@ def main():
     print(db.raceById(1))
     print(db.getJudgeCallData(2, 2, 111))
 
-'''
+
+"""
     app = QApplication(sys.argv)
 
     window = MainWindow()
     window.show()
 
     return app.exec()
-'''
+"""
 
 
 if __name__ == "__main__":

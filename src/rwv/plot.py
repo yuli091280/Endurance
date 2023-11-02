@@ -13,8 +13,9 @@ from rwv.util import get_data, judge_data
 
 matplotlib.use("QtAgg")
 
+
 class MpWidget(QWidget):
-    def __init__(self, canvas = None):
+    def __init__(self, canvas=None):
         super().__init__()
         toolbar = mlp_backend.NavigationToolbar2QT(canvas, self)
 
@@ -42,7 +43,7 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
 
         selected_runner = args[0]
 
-        if selected_runner != 'all':
+        if selected_runner != "all":
             data = df[["time", "max_loc", selected_runner]]
 
         self.plot(data)
@@ -50,15 +51,31 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
     def plot(self, df):
         self.fig.clear()
 
-        sns.lineplot(data=pd.melt(df, ['time']), x='time', y='value', hue='variable', ax=self.fig.subplots())
+        sns.lineplot(
+            data=pd.melt(df, ["time"]),
+            x="time",
+            y="value",
+            hue="variable",
+            ax=self.fig.subplots(),
+        )
 
         try:
             for _, row in judge_data.iterrows():
                 for item in row[1:]:
-                    if item == '~':
-                        self.fig.axes[0].scatter(x=row.iloc[0], y=df.loc[df['time'] == row.iloc[0]]['runner_1'], color='r', marker='*')
-                    elif item == '>':
-                        self.fig.axes[0].scatter(x=row.iloc[0], y=df.loc[df['time'] == row.iloc[0]]['runner_1'], color='r', marker='>')
+                    if item == "~":
+                        self.fig.axes[0].scatter(
+                            x=row.iloc[0],
+                            y=df.loc[df["time"] == row.iloc[0]]["runner_1"],
+                            color="r",
+                            marker="*",
+                        )
+                    elif item == ">":
+                        self.fig.axes[0].scatter(
+                            x=row.iloc[0],
+                            y=df.loc[df["time"] == row.iloc[0]]["runner_1"],
+                            color="r",
+                            marker=">",
+                        )
         except Exception:
             pass
 
