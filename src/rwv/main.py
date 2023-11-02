@@ -9,18 +9,20 @@ from rwv.main_window import MainWindow
 from rwv.judge_data_base import JudgeDatabase
 
 def main():
-    app = QApplication(sys.argv)
-
     if len(sys.argv) != 2:
         print("no db file provided")
         return 1
 
     JudgeDatabase(sys.argv[1])
 
+'''
+    app = QApplication(sys.argv)
+
     window = MainWindow()
     window.show()
 
     return app.exec()
+'''
 
 
 if __name__ == "__main__":
