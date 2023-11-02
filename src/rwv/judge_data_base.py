@@ -40,21 +40,9 @@ class JudgeDatabase:
         )
         return JudgeDatabase.singleQueryResult(result)
 
-    def getJudgeCallData(self, judge_id, race_id, bib_num):
+    def getJudgeCallData(self, race_id, bib_num):
         result = self.executeLookupQuery(
-            "SELECT * FROM JudgeCall WHERE IDJudge = ? AND IDRace = ? AND BibNumber = ?",
-            (judge_id, race_id, bib_num),
+            "SELECT * FROM JudgeCall WHERE IDRace = ? AND BibNumber = ?",
+            (race_id, bib_num),
         )
         return result
-
-
-def main():
-    db_path = "test.db"
-    db = JudgeDatabase(db_path)
-    judge_id = 1
-    name = db.findJudgeName(judge_id)
-    print(name)
-
-
-if __name__ == "__main__":
-    main()

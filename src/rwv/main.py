@@ -31,7 +31,7 @@ def main():
     print(db.judgeById(2))
     print(db.athleteByBib(111))
     print(db.raceById(1))
-    print(db.getJudgeCallData(2, 2, 111))
+    print(db.getJudgeCallData(3, 111))
 
 
 """
