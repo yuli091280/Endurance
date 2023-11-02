@@ -12,9 +12,32 @@ class JudgeDatabase:
         cursor = self.connection.cursor()
         cursor.execute("SELECT * FROM Judge WHERE IDJudge = ?", (judge_id,))
         result = cursor.fetchall()
-
-
         cursor.close()
+
+        if result:
+            return result[0]
+        else:
+            return None
+
+
+    def athleteByBib(self, bib_num):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM Athlete WHERE BibNumber = ?", (bib_num,))
+        result = cursor.fetchall()
+        cursor.close()
+
+        if result:
+            return result[0]
+        else:
+            return None
+
+
+    def raceById(self, race_id):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM Race WHERE IDRace = ?", (race_id,))
+        result = cursor.fetchall()
+        cursor.close()
+
         if result:
             return result[0]
         else:

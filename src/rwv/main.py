@@ -16,6 +16,7 @@ def main():
     db = JudgeDatabase(sys.argv[1])
     print(db.judgeById(2))
     print(db.athleteByBib(111))
+    print(db.raceById(1))
 
 '''
     app = QApplication(sys.argv)
