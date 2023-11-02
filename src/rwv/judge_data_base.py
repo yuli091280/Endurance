@@ -2,30 +2,21 @@ import sqlite3
 
 class JudgeDatabase:
     def __init__(self, db_path):
-        self.db_path = db_path #set db 
+        self.connection = sqlite3.connect(db_path)
+
+    def __del__(self):
+        self.connection.close()
 
 
-    def createJudgeTable(self):
-        connection = sqlite3.connect(self.db_path) #connection
-        cursor = connection.cursor()
-        cursor.execute("CREATE TABLE JUDGETABLE...")
+    def judgeById(self, judge_id):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM Judge WHERE IDJudge = ?", (judge_id,))
+        result = cursor.fetchall()
+
+
         cursor.close()
-
-
-    def findJudgeName(self, judge_id):
-        connection = sqlite3.connect(self.db_path) #connection
-        cursor = connection.cursor()
-
-        #sql query, the judges table would work if we have another another function where a table is created with the name "JudgeTable". 
-        #self.createJudgeTable()
-        cursor.execute("SELECT name FROM JudgeTable WHERE id = ?", (judge_id,))
-        result = cursor.fetchone()
-        
-        cursor.close()
-        connection.close() #disconnect
-        
         if result:
-            return result[0] #
+            return result[0]
         else:
             return None
 

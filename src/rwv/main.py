@@ -13,7 +13,9 @@ def main():
         print("no db file provided")
         return 1
 
-    JudgeDatabase(sys.argv[1])
+    db = JudgeDatabase(sys.argv[1])
+    print(db.judgeById(2))
+    print(db.athleteByBib(111))
 
 '''
     app = QApplication(sys.argv)
