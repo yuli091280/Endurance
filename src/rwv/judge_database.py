@@ -17,7 +17,7 @@ class JudgeDatabase:
         return result
 
     def singleQueryResult(queryResult):
-        if queryResult:
+        if len(queryResult) > 0:
             return queryResult[0]
         else:
             return None
