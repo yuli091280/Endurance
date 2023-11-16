@@ -7,7 +7,7 @@ import sqlite3
 from PyQt6.QtWidgets import QApplication, QMainWindow
 
 from rwv.main_window import MainWindow
-from rwv.judge_data_base import JudgeDatabase
+from rwv.judge_database import JudgeDatabase
 
 
 def start_db():
