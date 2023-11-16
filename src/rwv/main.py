@@ -32,6 +32,13 @@ def main():
     print(db.athlete_by_bib(111))
     print(db.race_by_id(1))
     print(db.get_judge_call_data(3, 111))
+    print(db.get_judge_infraction_summary())
+    print(db.get_athlete_judge_infraction_summary())
+    print(db.get_athlete_infraction_summary())
+    print(db.get_red_without_yellow_summary())
+    print(db.get_yellow_without_red_summary())
+    print(db.get_judge_consistency_report())
+    print(db.get_per_athlete_calls_summary())
 
 
 """
