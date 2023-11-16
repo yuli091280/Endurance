@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
 import sys
-import sqlite3
 
-from PyQt6.QtWidgets import QApplication, QMainWindow
+from PyQt6.QtWidgets import QApplication
 
 from rwv.main_window import MainWindow
-from rwv.judge_data_base import JudgeDatabase
+
 
 def main():
     app = QApplication(sys.argv)
@@ -15,9 +14,7 @@ def main():
         print("no db file provided")
         return 1
 
-    JudgeDatabase(sys.argv[1])
-
-    window = MainWindow()
+    window = MainWindow(sys.argv[1])
     window.show()
 
     return app.exec()

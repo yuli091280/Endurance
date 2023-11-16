@@ -2,19 +2,18 @@ import matplotlib
 
 from PyQt6.QtWidgets import QVBoxLayout, QWidget
 
-import pandas as pd
 import seaborn as sns
 
-import matplotlib.pyplot as plt
 import matplotlib.backends.backend_qt5agg as mlp_backend
 from matplotlib.figure import Figure
 
-from rwv.util import get_data, judge_data
+from rwv.util import judge_data
 
 matplotlib.use("QtAgg")
 
+
 class MpWidget(QWidget):
-    def __init__(self, canvas = None):
+    def __init__(self, canvas=None):
         super().__init__()
         toolbar = mlp_backend.NavigationToolbar2QT(canvas, self)
 
@@ -33,54 +32,109 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         else:
             self.fig = plot["fig"]
             self.axes = plot["axs"]
+
+        # Initialize dictionary to keep track of our plots, necessary for redrawing
+        self.data_plots = {}
+
+        # Initialize booleans to keep track of bent knee/loc display state
+        self.display_bent_knee = True
+        self.display_loc = True
+
         super(MplCanvas, self).__init__(self.fig)
 
-    def redraw_plot(self, *args):
-        selected_runner = args[0]
+    def redraw_plot(self, caller):
+        # Get bib number of selected runner from caller, since the regular arg only returns the full label
+        selected_runner = caller.currentData()
 
-        if selected_runner.lower() == 'all':
-            self.runner_1.set_visible(True)
-            self.runner_2.set_visible(True)
-            self.runner_3.set_visible(True)
-        else:
-            self.runner_1.set_visible(False)
-            self.runner_2.set_visible(False)
-            self.runner_3.set_visible(False)
-            getattr(self, selected_runner).set_visible(True)
+        for bib_key in self.data_plots.keys():
+            visibility = (
+                True if selected_runner == "all" else (selected_runner == bib_key)
+            )
+
+            # Set main line to visible if selected or all
+            self.data_plots[bib_key][0].set_visible(visibility)
+
+            # Set LOC points to visible if selected or all, and we have the box checked
+            self.data_plots[bib_key][1].set_visible(self.display_loc and visibility)
+
+            # Set bent knee points to visible if selected or all, and we have the box checked
+            self.data_plots[bib_key][2].set_visible(
+                self.display_bent_knee and visibility
+            )
 
         self.draw()
 
-    def redraw_points(self, owner, *args):
-        try:
-            plot = self.loc
+    def redraw_points(self, caller, *args):
+        # No data variable, so we have to match to the label
+        if caller.text() == "Bent Knee":
+            self.display_bent_knee = args[0] != 0
+        else:
+            self.display_loc = args[0] != 0
 
-            if owner.text() == "Bent Knee":
-                plot = self.bent_knee
-            
-            plot.set_visible(args[0] != 0)
+        for plots in self.data_plots.values():
+            # If the line for this athlete is visible, update the LOC and bent knee display values accordingly
+            if plots[0].get_visible():
+                plots[1].set_visible(self.display_loc)
+                plots[2].set_visible(self.display_bent_knee)
 
-            self.draw()
-        except:
-            pass
+        self.draw()
 
-    def plot(self, df):
-        self.fig.clear()
-
+    def plot(self, df, athletes):
         ax = self.fig.subplots()
 
+        # Set plot title and axis labels
         ax.set_title("Racer Leg Height over Time w/ Max LOC = 3")
         ax.set_ylabel("Racer Leg Height")
         ax.set_xlabel("Time")
 
-        self.max_loc = sns.lineplot(data=df, x='time', y='max_loc', ax=ax).lines[-1]
-        self.runner_1 = sns.lineplot(data=df, x='time', y='runner_1', ax=ax).lines[-1]
-        self.runner_2 = sns.lineplot(data=df, x='time', y='runner_2', ax=ax).lines[-1]
-        self.runner_3 = sns.lineplot(data=df, x='time', y='runner_3', ax=ax).lines[-1]
+        # Draw max LOC cutoff line
+        sns.lineplot(data=df, x="time", y="max_loc", ax=ax)
 
-        ax.legend(handles=ax.lines[1:], labels=["Runner 1", "Runner 2", "Runner 3"])
+        labels = ["Max LOC"]
 
-        self.loc = sns.scatterplot(data=df[df["time"].isin(judge_data.query("judge_1 == '~' | judge_2 == '~' | judge_3 == '~'")["time"])][["time", "runner_1"]], x="time", y="runner_1", ax=ax, color="r", marker="*", s=70).collections[-1]
-        
-        self.bent_knee = sns.scatterplot(data=df[df["time"].isin(judge_data.query("judge_1 == '>' | judge_2 == '>' | judge_3 == '>'")["time"])][["time", "runner_1"]], x="time", y="runner_1", ax=ax, color="r", marker=">", s=50).collections[-1]
+        for index, (last_name, first_name, bib_number) in enumerate(athletes):
+            self.data_plots[bib_number] = [
+                # Draw line plot of LOC
+                sns.lineplot(data=df, x="time", y=f"runner_{index + 1}", ax=ax).lines[
+                    -1
+                ],
+                # Draw red LOC infractions
+                sns.scatterplot(
+                    data=df[
+                        df["time"].isin(
+                            judge_data.query(
+                                "judge_1 == '~' | judge_2 == '~' | judge_3 == '~'"
+                            ).query(f"runner == {index + 1}")["time"]
+                        )
+                    ][["time", f"runner_{index + 1}"]],
+                    x="time",
+                    y=f"runner_{index + 1}",
+                    ax=ax,
+                    color="r",
+                    marker="*",
+                    s=70,
+                ).collections[-1],
+                # Draw red bent knee infractions
+                sns.scatterplot(
+                    data=df[
+                        df["time"].isin(
+                            judge_data.query(
+                                "judge_1 == '>' | judge_2 == '>' | judge_3 == '>'"
+                            ).query(f"runner == {index + 1}")["time"]
+                        )
+                    ][["time", f"runner_{index + 1}"]],
+                    x="time",
+                    y=f"runner_{index + 1}",
+                    ax=ax,
+                    color="r",
+                    marker=">",
+                    s=50,
+                ).collections[-1],
+            ]
+
+            # Add labels for legend
+            labels.append(f"{last_name}, {first_name} ({bib_number})")
+
+        ax.legend(handles=ax.lines, labels=labels)
 
         self.draw()
