@@ -12,19 +12,6 @@ from rwv.util import judge_data
 matplotlib.use("QtAgg")
 
 
-class MpWidget(QWidget):
-    def __init__(self, canvas=None):
-        super().__init__()
-        toolbar = mlp_backend.NavigationToolbar2QT(canvas, self)
-
-        layout = QVBoxLayout()
-        layout.addWidget(toolbar)
-        layout.addWidget(canvas)
-
-        # Create a placeholder widget to hold our toolbar and canvas.
-        self.setLayout(layout)
-
-
 def redraw_annotations(line_group, pos, text):
     line_group["annotations"].xy = pos
     line_group["annotations"].set_text(text)
