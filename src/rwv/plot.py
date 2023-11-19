@@ -26,12 +26,9 @@ class MpWidget(QWidget):
 
 
 class MplCanvas(mlp_backend.FigureCanvasQTAgg):
-    def __init__(self, parent=None, width=5, height=4, dpi=100, plot=None):
-        if plot is None:
-            self.fig = Figure(figsize=(width, height), dpi=dpi)
-        else:
-            self.fig = plot["fig"]
-            self.axes = plot["axs"]
+    def __init__(self, width=5, height=4, dpi=100):
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        self.ax = self.fig.subplots()
 
         # Initialize dictionary to keep track of our plots, necessary for redrawing
         self.data_plots = {}

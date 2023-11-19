@@ -15,7 +15,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle("CI491 Demo")
 
         # Set dimensions for our race canvas
-        canvas = MplCanvas(parent=self, width=12, height=7, dpi=100)
+        canvas = MplCanvas(width=12, height=7, dpi=100)
 
         # Initialize our DB and grab athlete info for combo box and plots
         db = JudgeDatabase(db_file)
