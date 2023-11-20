@@ -2,6 +2,8 @@ from PyQt6 import QtWidgets
 
 from rwv.plot import MplCanvas
 
+import matplotlib.backends.backend_qt5agg as mlp_backend
+
 from db import Database
 
 from util import get_data
@@ -16,6 +18,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Set dimensions for our race canvas
         canvas = MplCanvas(width=12, height=7, dpi=100)
+
+        # Initialize toolbar for interacting with plot
+        toolbar = mlp_backend.NavigationToolbar2QT(canvas, self)
 
         # Initialize our DB and grab athlete info for combo box and plots
         db = Database(db_file)
@@ -62,6 +67,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Setup layout of UI
         layout = QtWidgets.QVBoxLayout()
+
+        layout.addWidget(toolbar)
         layout.addWidget(self.runner_label)
         layout.addWidget(self.runner_combo_box)
         layout.addWidget(self.bent_knee_checkbox)
