@@ -2,7 +2,7 @@ from PyQt6 import QtWidgets
 
 from rwv.plot import MplCanvas
 
-from judge_database import JudgeDatabase
+from db import Database
 
 from util import get_data
 
@@ -18,7 +18,7 @@ class MainWindow(QtWidgets.QMainWindow):
         canvas = MplCanvas(width=12, height=7, dpi=100)
 
         # Initialize our DB and grab athlete info for combo box and plots
-        db = JudgeDatabase(db_file)
+        db = Database(db_file)
         athletes = db.execute_lookup_query(
             "SELECT LastName, FirstName, BibNumber FROM Athlete ORDER BY BibNumber LIMIT 3",
             [],
