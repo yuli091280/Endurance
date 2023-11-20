@@ -1,7 +1,5 @@
 import matplotlib
 
-from PyQt6.QtWidgets import QVBoxLayout, QWidget
-
 import seaborn as sns
 
 import matplotlib.backends.backend_qt5agg as mlp_backend
@@ -12,13 +10,22 @@ from rwv.util import judge_data
 matplotlib.use("QtAgg")
 
 
-def redraw_annotations(line_group, pos, text):
-    line_group["annotations"].xy = pos
-    line_group["annotations"].set_text(text)
-    line_group["annotations"].get_bbox_patch().set_facecolor(
-        line_group["main_plot"].get_c()
-    )
-    line_group["annotations"].get_bbox_patch().set_alpha(0.4)
+def redraw_annotations(plot_group, pos, text):
+    plot_group.annotations.xy = pos
+    plot_group.annotations.set_text(text)
+    # Set annotation color to match that of the line
+    plot_group.annotations.get_bbox_patch().set_facecolor(plot_group.main_plot.get_c())
+    plot_group.annotations.get_bbox_patch().set_alpha(0.4)
+
+
+class PlotGroup:
+    def __init__(self, main_plot, annotations=None, token_plots=None):
+        if token_plots is None:
+            token_plots = []
+
+        self.main_plot = main_plot
+        self.annotations = annotations
+        self.token_plots = token_plots
 
 
 class MplCanvas(mlp_backend.FigureCanvasQTAgg):
@@ -30,7 +37,7 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         self.data_plots = {}
 
         # Initialize dictionary to keep track of the max LOC
-        self.max_loc = {}
+        self.max_loc = None
 
         # Initialize booleans to keep track of bent knee/loc display state
         self.display_bent_knee = True
@@ -58,57 +65,54 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
                 visible_lines.append(self.data_plots[bib_key])
 
             # Set main line to visible if selected or all
-            self.data_plots[bib_key]["main_plot"].set_visible(visibility)
+            self.data_plots[bib_key].main_plot.set_visible(visibility)
 
             # Set LOC points to visible if selected or all, and we have the box checked
-            self.data_plots[bib_key]["token_plots"][0].set_visible(
+            self.data_plots[bib_key].token_plots[0].set_visible(
                 self.display_loc and visibility
             )
 
             # Set bent knee points to visible if selected or all, and we have the box checked
-            self.data_plots[bib_key]["token_plots"][1].set_visible(
+            self.data_plots[bib_key].token_plots[1].set_visible(
                 self.display_bent_knee and visibility
             )
 
         # Redraw the legend based on visible lines
-        self.ax.legend(
-            handles=[line["main_plot"] for line in visible_lines],
-            labels=[line["label"] for line in visible_lines],
-        )
+        self.ax.legend(handles=[line.main_plot for line in visible_lines])
 
         self.draw()
 
     def hover_annotations(self, event):
         if event.inaxes == self.ax:
             # If we're inbounds, look at every token plot to see if we're on one of their points
-            for line_group in self.data_plots.values():
+            for plot_group in self.data_plots.values():
                 # If the main line isn't visible, neither will the token plots
-                if not line_group["main_plot"].get_visible():
+                if not plot_group.main_plot.get_visible():
                     pass
 
                 pos = None
                 judge_calls = []
-                for index, scatter in enumerate(line_group["token_plots"]):
+                for index, scatter in enumerate(plot_group.token_plots):
                     # Check each token plot to see if we're on their point
                     cont, ind = scatter.contains(event)
                     if cont:
                         # Set the position of the annotation
-                        # x, y = scatter.get_data()  # Strat for getting line data
+                        # x, y = scatter.get_data()  # Strategy for getting line data
                         # pos = (x[ind["ind"][0]], y[ind["ind"][0]])
                         pos = scatter.get_offsets()[ind["ind"][0]]
                         # Add the judgement call to the annotation text
                         # TODO: Tie in judge "data" value
-                        judge_calls.append(f"Chart {index}: {pos}")
+                        judge_calls.append(f"{scatter.get_label()}: {pos}")
 
                 # If one of the points matches, draw the annotation
                 if judge_calls:
-                    redraw_annotations(line_group, pos, "\n".join(judge_calls).strip())
-                    line_group["annotations"].set_visible(True)
+                    redraw_annotations(plot_group, pos, "\n".join(judge_calls).strip())
+                    plot_group.annotations.set_visible(True)
                     self.fig.canvas.draw_idle()
                 # Otherwise, if we're still visible, remove the annotation
                 else:
-                    if line_group["annotations"].get_visible():
-                        line_group["annotations"].set_visible(False)
+                    if plot_group.annotations.get_visible():
+                        plot_group.annotations.set_visible(False)
                         self.fig.canvas.draw_idle()
 
     def redraw_points(self, caller, *args):
@@ -118,11 +122,11 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         else:
             self.display_loc = args[0] != 0
 
-        for plots in self.data_plots.values():
+        for plot_group in self.data_plots.values():
             # If the line for this athlete is visible, update the LOC and bent knee display values accordingly
-            if plots["main_plot"].get_visible():
-                plots["token_plots"][0].set_visible(self.display_loc)
-                plots["token_plots"][1].set_visible(self.display_bent_knee)
+            if plot_group.main_plot.get_visible():
+                plot_group.token_plots[0].set_visible(self.display_loc)
+                plot_group.token_plots[1].set_visible(self.display_bent_knee)
 
         self.draw()
 
@@ -133,26 +137,24 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         self.ax.set_xlabel("Time")
 
         # Draw max LOC cutoff line
-        self.max_loc = {
-            "label": "Max LOC",
-            "main_plot": sns.lineplot(data=df, x="time", y="max_loc", ax=self.ax).lines[
-                -1
-            ],
-        }
-
-        labels = ["Max LOC"]
+        self.max_loc = PlotGroup(
+            sns.lineplot(
+                data=df, x="time", y="max_loc", label="Max LOC", ax=self.ax
+            ).lines[-1]
+        )
 
         # TODO: Find better method of preventing clashes on annotation position
         place = 20
         for index, (last_name, first_name, bib_number) in enumerate(athletes):
-            label = f"{last_name}, {first_name} ({bib_number})"
-            self.data_plots[bib_number] = {
-                "label": label,
-                # Draw line plot of LOC
-                "main_plot": sns.lineplot(
-                    data=df, x="time", y=f"runner_{index + 1}", ax=self.ax
+            self.data_plots[bib_number] = PlotGroup(
+                main_plot=sns.lineplot(
+                    data=df,
+                    x="time",
+                    y=f"runner_{index + 1}",
+                    label=f"{last_name}, {first_name} ({bib_number})",
+                    ax=self.ax,
                 ).lines[-1],
-                "annotations": self.ax.annotate(
+                annotations=self.ax.annotate(
                     "",
                     xy=(0, 0),
                     xytext=(20, place),
@@ -161,7 +163,7 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
                     arrowprops=dict(arrowstyle="->"),
                     visible=False,
                 ),
-                "token_plots": [
+                token_plots=[
                     # Draw red LOC infractions
                     sns.scatterplot(
                         data=df[
@@ -173,10 +175,11 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
                         ][["time", f"runner_{index + 1}"]],
                         x="time",
                         y=f"runner_{index + 1}",
+                        label="LOC Red Card",
                         ax=self.ax,
                         color="r",
                         marker="*",
-                        s=70,
+                        s=100,
                     ).collections[-1],
                     # Draw red bent knee infractions
                     sns.scatterplot(
@@ -189,19 +192,17 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
                         ][["time", f"runner_{index + 1}"]],
                         x="time",
                         y=f"runner_{index + 1}",
+                        label="Bent Knee Red Card",
                         ax=self.ax,
                         color="r",
                         marker=">",
-                        s=50,
+                        s=100,
                     ).collections[-1],
                 ],
-            }
+            )
             place += 20
 
-            # Add labels for legend
-            labels.append(label)
-
         # Create a legend for the plot
-        self.ax.legend(handles=self.ax.lines, labels=labels)
+        self.ax.legend(handles=self.ax.lines)
 
         self.draw()
