@@ -7,7 +7,7 @@ import sqlite3
 from PyQt6.QtWidgets import QApplication, QMainWindow
 
 from rwv.main_window import MainWindow
-from rwv.rwv_db import RwvDB
+from rwv.db import DB
 
 
 def start_db():
@@ -20,7 +20,7 @@ def start_db():
         print("bad file path")
         return None
 
-    return RwvDB(sys.argv[1])
+    return DB(sys.argv[1])
 
 
 def main():

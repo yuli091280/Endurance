@@ -1,7 +1,7 @@
 import sqlite3
 
 
-class RwvDB:
+class DB:
     def __init__(self, db_path):
         self.connection = sqlite3.connect(db_path)
 
@@ -26,19 +26,19 @@ class RwvDB:
         result = self.executeLookupQuery(
             "SELECT * FROM Judge WHERE IDJudge = ?", (judge_id,)
         )
-        return RwvDB.singleQueryResult(result)
+        return DB.singleQueryResult(result)
 
     def athleteByBib(self, bib_num):
         result = self.executeLookupQuery(
             "SELECT * FROM Athlete WHERE BibNumber = ?", (bib_num,)
         )
-        return RwvDB.singleQueryResult(result)
+        return DB.singleQueryResult(result)
 
     def raceById(self, race_id):
         result = self.executeLookupQuery(
             "SELECT * FROM Race WHERE IDRace = ?", (race_id,)
         )
-        return RwvDB.singleQueryResult(result)
+        return DB.singleQueryResult(result)
 
     def getJudgeCallData(self, race_id, bib_num):
         result = self.executeLookupQuery(
