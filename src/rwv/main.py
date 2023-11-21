@@ -28,10 +28,10 @@ def main():
     if db is None:
         return 1
 
-    print(db.judgeById(2))
-    print(db.athleteByBib(111))
-    print(db.raceById(1))
-    print(db.getJudgeCallData(3, 111))
+    print(db.judge_by_id(2))
+    print(db.athlete_by_bib(111))
+    print(db.race_by_id(1))
+    print(db.get_judge_call_data(3, 111))
 
 
 """

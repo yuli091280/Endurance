@@ -8,7 +8,7 @@ class DB:
     def __del__(self):
         self.connection.close()
 
-    def executeLookupQuery(self, query, params):
+    def execute_lookup_query(self, query, params):
         cursor = self.connection.cursor()
         cursor.execute(query, params)
         result = cursor.fetchall()
@@ -16,32 +16,32 @@ class DB:
 
         return result
 
-    def singleQueryResult(queryResult):
+    def single_query_result(queryResult):
         if len(queryResult) > 0:
             return queryResult[0]
         else:
             return None
 
-    def judgeById(self, judge_id):
-        result = self.executeLookupQuery(
+    def judge_by_id(self, judge_id):
+        result = self.execute_lookup_query(
             "SELECT * FROM Judge WHERE IDJudge = ?", (judge_id,)
         )
-        return DB.singleQueryResult(result)
+        return DB.single_query_result(result)
 
-    def athleteByBib(self, bib_num):
-        result = self.executeLookupQuery(
+    def athlete_by_bib(self, bib_num):
+        result = self.execute_lookup_query(
             "SELECT * FROM Athlete WHERE BibNumber = ?", (bib_num,)
         )
-        return DB.singleQueryResult(result)
+        return DB.single_query_result(result)
 
-    def raceById(self, race_id):
-        result = self.executeLookupQuery(
+    def race_by_id(self, race_id):
+        result = self.execute_lookup_query(
             "SELECT * FROM Race WHERE IDRace = ?", (race_id,)
         )
-        return DB.singleQueryResult(result)
+        return DB.single_query_result(result)
 
-    def getJudgeCallData(self, race_id, bib_num):
-        result = self.executeLookupQuery(
+    def get_judge_call_data(self, race_id, bib_num):
+        result = self.execute_lookup_query(
             "SELECT * FROM JudgeCall WHERE IDRace = ? AND BibNumber = ?",
             (race_id, bib_num),
         )
