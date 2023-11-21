@@ -9,6 +9,7 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 
 from rwv.util import get_data
 
+
 # Subclass QMainWindow to customize your application's main window
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -21,13 +22,13 @@ class MainWindow(QtWidgets.QMainWindow):
         df = get_data()
 
         self.runner_combo_box = QtWidgets.QComboBox(self)
-        self.runner_combo_box.addItem('All', 'all')
+        self.runner_combo_box.addItem("All", "all")
         for item in df.keys()[2:]:
             self.runner_combo_box.addItem(item, item)
-        self.runner_label = QtWidgets.QLabel('Runner:')
+        self.runner_label = QtWidgets.QLabel("Runner:")
         self.runner_label.setBuddy(self.runner_combo_box)
         self.runner_combo_box.currentTextChanged.connect(sc.redraw_plot)
-        
+
         # canvas = FigureCanvas(5, 5, 100)
         sc.plot(df)
 
@@ -40,5 +41,3 @@ class MainWindow(QtWidgets.QMainWindow):
         widget.setLayout(layout)
         # Create a placeholder widget to hold our toolbar and canvas.
         self.setCentralWidget(widget)
-
-    

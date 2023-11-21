@@ -14,12 +14,16 @@ then do these for python stuff:
 
 - `pip install poetry`
 - `poetry install`
-- `poetry shell`
 
 ## Running the project
 
-do this: `pyqt-test`
+- get in the shell by `poetry shell`
+- run the program with `rwv`
+
+First argument to the program needs to be a db file
 
 ## building the project
+
+This is for packaging, you can run the project without building
 
 `make clean build`
