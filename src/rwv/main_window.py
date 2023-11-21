@@ -1,12 +1,10 @@
 from PyQt6 import QtWidgets
 
 from rwv.plot import MplCanvas
+from rwv.db import Database
+from rwv.util import get_data
 
 import matplotlib.backends.backend_qt5agg as mlp_backend
-
-from db import Database
-
-from util import get_data
 
 
 class MainWindow(QtWidgets.QMainWindow):
