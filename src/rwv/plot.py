@@ -4,27 +4,20 @@ import seaborn as sns
 
 import matplotlib.backends.backend_qt5agg as mlp_backend
 from matplotlib.figure import Figure
+from matplotlib.text import OffsetFrom
 
 from rwv.util import judge_data
 
 matplotlib.use("QtAgg")
 
 
-def redraw_annotations(plot_group, pos, text):
-    plot_group.annotations.xy = pos
-    plot_group.annotations.set_text(text)
-    # Set annotation color to match that of the line
-    plot_group.annotations.get_bbox_patch().set_facecolor(plot_group.main_plot.get_c())
-    plot_group.annotations.get_bbox_patch().set_alpha(0.4)
-
-
 class PlotGroup:
-    def __init__(self, main_plot, annotations=None, token_plots=None):
+    def __init__(self, main_plot, annotation=None, token_plots=None):
         if token_plots is None:
             token_plots = []
 
         self.main_plot = main_plot
-        self.annotations = annotations
+        self.annotation = annotation
         self.token_plots = token_plots
 
 
@@ -82,17 +75,39 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
 
         self.draw()
 
+    @staticmethod
+    def redraw_annotations(plot_group, pos, text, previous_annotation=None):
+        plot_group.annotation.xy = pos
+        plot_group.annotation.set_text(text)
+        # Set annotation color to match that of the line
+        plot_group.annotation.get_bbox_patch().set_facecolor(
+            plot_group.main_plot.get_c()
+        )
+
+        if previous_annotation:
+            plot_group.annotation.set_verticalalignment("top")
+            plot_group.annotation.xyann = (3, -5)
+            plot_group.annotation.set_anncoords(
+                OffsetFrom(previous_annotation.get_bbox_patch(), (0, 0))
+            )
+        else:
+            plot_group.annotation.set_verticalalignment("bottom")
+            plot_group.annotation.xyann = (20, 20)
+            plot_group.annotation.set_anncoords("offset points")
+
     def hover_annotations(self, event):
         if event.inaxes == self.ax:
+            # List of active annotations, will be used to position subsequent annotations off the first visible one
+            active_annotations = []
             # If we're inbounds, look at every token plot to see if we're on one of their points
-            for plot_group in self.data_plots.values():
+            for index, plot_group in enumerate(self.data_plots.values()):
                 # If the main line isn't visible, neither will the token plots
                 if not plot_group.main_plot.get_visible():
                     pass
 
                 pos = None
                 judge_calls = []
-                for index, scatter in enumerate(plot_group.token_plots):
+                for scatter in plot_group.token_plots:
                     # Check each token plot to see if we're on their point
                     cont, ind = scatter.contains(event)
                     if cont:
@@ -106,13 +121,19 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
 
                 # If one of the points matches, draw the annotation
                 if judge_calls:
-                    redraw_annotations(plot_group, pos, "\n".join(judge_calls).strip())
-                    plot_group.annotations.set_visible(True)
+                    self.redraw_annotations(
+                        plot_group,
+                        pos,
+                        "\n".join(judge_calls).strip(),
+                        None if not active_annotations else active_annotations[-1],
+                    )
+                    plot_group.annotation.set_visible(True)
+                    active_annotations.append(plot_group.annotation)
                     self.fig.canvas.draw_idle()
                 # Otherwise, if we're still visible, remove the annotation
                 else:
-                    if plot_group.annotations.get_visible():
-                        plot_group.annotations.set_visible(False)
+                    if plot_group.annotation.get_visible():
+                        plot_group.annotation.set_visible(False)
                         self.fig.canvas.draw_idle()
 
     def redraw_points(self, caller, *args):
@@ -143,8 +164,6 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
             ).lines[-1]
         )
 
-        # TODO: Find better method of preventing clashes on annotation position
-        place = 20
         for index, (last_name, first_name, bib_number) in enumerate(athletes):
             self.data_plots[bib_number] = PlotGroup(
                 main_plot=sns.lineplot(
@@ -154,13 +173,17 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
                     label=f"{last_name}, {first_name} ({bib_number})",
                     ax=self.ax,
                 ).lines[-1],
-                annotations=self.ax.annotate(
+                annotation=self.ax.annotate(
                     "",
                     xy=(0, 0),
-                    xytext=(20, place),
+                    xytext=(20, 20),
                     textcoords="offset points",
+                    ha="left",
                     bbox=dict(boxstyle="round", fc="w"),
-                    arrowprops=dict(arrowstyle="->"),
+                    arrowprops=dict(
+                        arrowstyle="->",
+                        connectionstyle="angle,angleA=0,angleB=90,rad=10",
+                    ),
                     visible=False,
                 ),
                 token_plots=[
@@ -200,7 +223,6 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
                     ).collections[-1],
                 ],
             )
-            place += 20
 
         # Create a legend for the plot
         self.ax.legend(handles=self.ax.lines)
