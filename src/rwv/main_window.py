@@ -1,14 +1,13 @@
 from PyQt6 import QtWidgets
 
 from rwv.plot import MplCanvas
-from rwv.db import Database
 from rwv.util import get_data
 
 import matplotlib.backends.backend_qt5agg as mlp_backend
 
 
 class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self, db_file):
+    def __init__(self, db):
         super().__init__()
 
         # Set window title
@@ -21,7 +20,6 @@ class MainWindow(QtWidgets.QMainWindow):
         toolbar = mlp_backend.NavigationToolbar2QT(canvas, self)
 
         # Initialize our DB and grab athlete info for combo box and plots
-        db = Database(db_file)
         athletes = db.execute_lookup_query(
             "SELECT LastName, FirstName, BibNumber FROM Athlete ORDER BY BibNumber LIMIT 3",
             [],
