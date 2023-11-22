@@ -55,6 +55,7 @@ class DB:
         )
         return result
 
+    # Queries for tables in the report
     def get_judge_infraction_summary(self):
         return self.execute_lookup_query(
             "SELECT FirstName, LastName,"
