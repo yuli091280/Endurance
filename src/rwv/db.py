@@ -47,3 +47,10 @@ class DB:
             (race_id, bib_num),
         )
         return result
+
+    def get_athletes(self):
+        result = self.execute_lookup_query(
+            "SELECT LastName, FirstName, BibNumber FROM Athlete ORDER BY BibNumber",
+            (),
+        )
+        return result

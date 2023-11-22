@@ -19,11 +19,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # Initialize toolbar for interacting with plot
         toolbar = mlp_backend.NavigationToolbar2QT(canvas, self)
 
-        # Initialize our DB and grab athlete info for combo box and plots
-        athletes = db.execute_lookup_query(
-            "SELECT LastName, FirstName, BibNumber FROM Athlete ORDER BY BibNumber LIMIT 3",
-            [],
-        )
+        # Grab athlete info for combo box and plots
+        athletes = db.get_athletes()
 
         # Initialize combo box for selecting which athletes to draw
         self.runner_combo_box = QtWidgets.QComboBox(self)
@@ -59,7 +56,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.loc_checkbox.setChecked(True)
 
         # Plot athlete data
-        canvas.plot(get_data(), athletes)
+        canvas.plot(get_data(), athletes[:3])
 
         # Setup layout of UI
         layout = QtWidgets.QVBoxLayout()
