@@ -41,16 +41,13 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
 
         super(MplCanvas, self).__init__(self.fig)
 
-    def redraw_plot(self, caller):
-        # Get bib number of selected runner from caller, since the regular arg only returns the full label
-        selected_runner = caller.currentData()
-
+    def redraw_plot(self, selected_runners):
         # Set up a list of visible lines to draw the legend from
         visible_lines = [self.max_loc]
 
         for bib_key in self.data_plots.keys():
             visibility = (
-                True if selected_runner == "all" else (selected_runner == bib_key)
+                True if "all" in selected_runners else (bib_key in selected_runners)
             )
 
             # If visible, add to list of visible lines
@@ -136,9 +133,9 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
                         plot_group.annotation.set_visible(False)
                         self.fig.canvas.draw_idle()
 
-    def redraw_points(self, caller, *args):
+    def redraw_points(self, point_type, *args):
         # No data variable, so we have to match to the label
-        if caller.text() == "Bent Knee":
+        if point_type == "Bent Knee":
             self.display_bent_knee = args[0] != 0
         else:
             self.display_loc = args[0] != 0

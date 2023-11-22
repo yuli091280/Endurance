@@ -34,14 +34,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.runner_label.setBuddy(self.runner_combo_box)
         # Connect our redraw function to the selector
         self.runner_combo_box.currentTextChanged.connect(
-            lambda args: canvas.redraw_plot(self.runner_combo_box)
+            lambda args: canvas.redraw_plot([self.runner_combo_box.currentData()])
         )
 
         # Initialize checkbox for choosing whether to draw bent knee points
         self.bent_knee_checkbox = QtWidgets.QCheckBox("Bent Knee", self)
         # Connect our redraw function to the selector
         self.bent_knee_checkbox.stateChanged.connect(
-            lambda args: canvas.redraw_points(self.bent_knee_checkbox, args)
+            lambda args: canvas.redraw_points(self.bent_knee_checkbox.text(), args)
         )
         # Set default value to true
         self.bent_knee_checkbox.setChecked(True)
@@ -50,7 +50,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.loc_checkbox = QtWidgets.QCheckBox("LOC", self)
         # Connect our redraw function to the selector
         self.loc_checkbox.stateChanged.connect(
-            lambda args: canvas.redraw_points(self.loc_checkbox, args)
+            lambda args: canvas.redraw_points(self.loc_checkbox.text(), args)
         )
         # Set default value to true
         self.loc_checkbox.setChecked(True)
