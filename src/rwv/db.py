@@ -16,9 +16,10 @@ class DB:
 
         return result
 
-    def single_query_result(queryResult):
-        if len(queryResult) > 0:
-            return queryResult[0]
+    @staticmethod
+    def single_query_result(query_result):
+        if len(query_result) > 0:
+            return query_result[0]
         else:
             return None
 
@@ -44,6 +45,13 @@ class DB:
         result = self.execute_lookup_query(
             "SELECT * FROM JudgeCall WHERE IDRace = ? AND BibNumber = ?",
             (race_id, bib_num),
+        )
+        return result
+
+    def get_athletes(self):
+        result = self.execute_lookup_query(
+            "SELECT LastName, FirstName, BibNumber FROM Athlete ORDER BY BibNumber",
+            (),
         )
         return result
 
@@ -127,7 +135,7 @@ class DB:
         )
 
     def get_judge_consistency_report(self):
-        #todo: write the sql query
+        # todo: write the sql query
         return None
 
     def get_per_athlete_calls_summary(self):

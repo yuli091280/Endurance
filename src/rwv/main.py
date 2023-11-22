@@ -2,9 +2,8 @@
 
 import sys
 import os
-import sqlite3
 
-from PyQt6.QtWidgets import QApplication, QMainWindow
+from PyQt6.QtWidgets import QApplication
 
 from rwv.main_window import MainWindow
 from rwv.db import DB
@@ -28,20 +27,12 @@ def main():
     if db is None:
         return 1
 
-    print(db.judge_by_id(2))
-    print(db.athlete_by_bib(111))
-    print(db.race_by_id(1))
-    print(db.get_judge_call_data(3, 111))
-
-
-"""
     app = QApplication(sys.argv)
 
-    window = MainWindow()
+    window = MainWindow(db)
     window.show()
 
     return app.exec()
-"""
 
 
 if __name__ == "__main__":
