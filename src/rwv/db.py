@@ -54,3 +54,99 @@ class DB:
             (),
         )
         return result
+
+    # Queries for tables in the report
+    def get_judge_infraction_summary(self):
+        return self.execute_lookup_query(
+            "SELECT FirstName, LastName,"
+            "SUM(CASE WHEN Color = 'Red' AND Infraction = '~' THEN 1 ELSE 0 END) AS `Red ~`,"
+            "SUM(CASE WHEN Color = 'Red' AND Infraction = '<' THEN 1 ELSE 0 END) AS `Red <`,"
+            "SUM(CASE WHEN Color = 'Yellow' AND Infraction = '~' THEN 1 ELSE 0 END) AS 'Yellow ~',"
+            "SUM(CASE WHEN Color = 'Yellow' AND Infraction = '<' THEN 1 ELSE 0 END) AS 'Yellow <' "
+            "FROM Judge J "
+            "JOIN JudgeCall JC ON J.IDJudge = JC.IDJudge "
+            "GROUP by J.IDJudge "
+            "ORDER BY J.FirstName, J.LastName",
+            (),
+        )
+
+    def get_athlete_judge_infraction_summary(self):
+        return self.execute_lookup_query(
+            "SELECT A.BibNumber, A.FirstName , A.LastName, J.FirstName, J.LastName,"
+            "(CASE WHEN Color = 'Yellow' AND Infraction = '~' THEN 'x' ELSE NULL END) AS `Yellow ~`,"
+            "(CASE WHEN Color = 'Red' AND Infraction = '~' THEN 'x' ELSE NULL END) AS `Red ~`,"
+            "(CASE WHEN Color = 'Yellow' AND Infraction = '<' THEN 'x' ELSE NULL END) AS `Yellow <`,"
+            "(CASE WHEN Color = 'Red' AND Infraction = '<' THEN 'x' ELSE NULL END) AS `Red <` "
+            "FROM Judge J "
+            "JOIN JudgeCall JC ON J.IDJudge = JC.IDJudge "
+            "JOIN Athlete A ON JC.BibNumber = A.BibNumber "
+            "GROUP BY A.IDAthlete, J.IDJudge "
+            "ORDER BY A.BibNumber, J.FirstName, J.LastName",
+            (),
+        )
+
+    def get_athlete_infraction_summary(self):
+        return self.execute_lookup_query(
+            "SELECT A.BibNumber, A.FirstName AS 'Athlete First Name', A.LastName AS 'Athlete First Name',"
+            "SUM(CASE WHEN Color = 'Yellow' AND Infraction = '~' THEN 1 ELSE 0 END) AS `Yellow ~`,"
+            "SUM(CASE WHEN Color = 'Yellow' AND Infraction = '<' THEN 1 ELSE 0 END) AS `Yellow <`,"
+            "SUM(CASE WHEN Color = 'Red' AND Infraction = '~' THEN 1 ELSE 0 END) AS `Red ~`,"
+            "SUM(CASE WHEN Color = 'Red' AND Infraction = '<' THEN 1 ELSE 0 END) AS `Red <` "
+            "FROM JudgeCall JC "
+            "JOIN Athlete A ON JC.BibNumber = A.BibNumber "
+            "GROUP BY IDAthlete "
+            "ORDER BY A.BibNumber ",
+            (),
+        )
+
+    def get_red_without_yellow_summary(self):
+        return self.execute_lookup_query(
+            "SELECT FirstName, LastName,"
+            "        SUM(CASE WHEN Color = 'Red' AND Infraction = '~' AND NOT EXISTS ("
+            "                SELECT * FROM JudgeCall J2"
+            "                WHERE J1.IDJudge = J2.IDJudge AND J1.IDRace = J2.IDRace AND J1.BibNumber = J2.BibNumber AND J2.Infraction = '~' AND J2.Color = 'Yellow' AND J2.TOD < J1.TOD LIMIT 1)"
+            "        THEN 1 ELSE 0 END) AS `# of ~ Red cards without Yellow`,"
+            "        SUM(CASE WHEN Color = 'Red' AND Infraction = '<' AND NOT EXISTS ("
+            "                SELECT * FROM JudgeCall J2"
+            "                WHERE J1.IDJudge = J2.IDJudge AND J1.IDRace = J2.IDRace AND J1.BibNumber = J2.BibNumber AND J2.Infraction = '<' AND J2.Color = 'Yellow' AND J2.TOD < J1.TOD LIMIT 1)"
+            "        THEN 1 ELSE 0 END) AS `# of < Red cards without Yellow` "
+            "FROM JudgeCall J1 "
+            "JOIN Judge J ON J1.IDJudge = J.IDJudge "
+            "Group By J1.IDJudge "
+            "Order By FirstName, LastName",
+            (),
+        )
+
+    def get_yellow_without_red_summary(self):
+        return self.execute_lookup_query(
+            "SELECT FirstName, LastName,"
+            "        SUM(CASE WHEN Color = 'Yellow' AND Infraction = '~' AND NOT EXISTS ("
+            "                SELECT * FROM JudgeCall J2"
+            "                WHERE J1.IDJudge = J2.IDJudge AND J1.IDRace = J2.IDRace AND J1.BibNumber = J2.BibNumber AND J2.Infraction = '~' AND J2.Color = 'Red' AND J1.TOD < J2.TOD LIMIT 1)"
+            "        THEN 1 ELSE 0 END) AS `# of ~ Yellow not followed by a Red`,"
+            "        SUM(CASE WHEN Color = 'Yellow' AND Infraction = '<' AND NOT EXISTS ("
+            "                SELECT * FROM JudgeCall J2"
+            "                WHERE J1.IDJudge = J2.IDJudge AND J1.IDRace = J2.IDRace AND J1.BibNumber = J2.BibNumber AND J2.Infraction = '<' AND J2.Color = 'Red' AND J1.TOD < J2.TOD LIMIT 1)"
+            "        THEN 1 ELSE 0 END) AS `# of < Yellow not followed by a Red` "
+            "FROM JudgeCall J1 "
+            "JOIN Judge J ON J1.IDJudge = J.IDJudge "
+            "Group By J1.IDJudge "
+            "Order By FirstName, LastName",
+            (),
+        )
+
+    def get_judge_consistency_report(self):
+        # todo: write the sql query
+        return None
+
+    def get_per_athlete_calls_summary(self):
+        return self.execute_lookup_query(
+            "SELECT A.BibNumber, A.FirstName AS 'Athlete First Name', A.LastName AS 'Athlete First Name',"
+            "SUM(CASE WHEN Color = 'Yellow' THEN 1 ELSE 0 END) AS '# of Yellow Paddles',"
+            "SUM(CASE WHEN Color = 'Red' THEN 1 ELSE 0 END) AS '# of Red Cards' "
+            "FROM JudgeCall JC "
+            "JOIN Athlete A ON JC.BibNumber = A.BibNumber "
+            "GROUP BY IDAthlete "
+            "ORDER BY A.BibNumber",
+            (),
+        )
