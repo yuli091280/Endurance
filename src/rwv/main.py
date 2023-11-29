@@ -3,11 +3,13 @@
 import sys
 import os
 
+import matplotlib
 from PyQt6.QtWidgets import QApplication
 
-from rwv.main_window import MainWindow
+from rwv.ui.main_window import MainWindow
 from rwv.db import DB
 
+matplotlib.use("QtAgg")
 
 def start_db():
     if len(sys.argv) != 2:
