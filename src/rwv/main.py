@@ -5,7 +5,7 @@ import os
 
 from PyQt6.QtWidgets import QApplication
 
-from rwv.main_window import MainWindow
+from rwv.ui.main_window import MainWindow
 from rwv.db import DB
 
 
