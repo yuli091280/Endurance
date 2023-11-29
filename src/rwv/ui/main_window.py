@@ -1,6 +1,6 @@
 from PyQt6 import QtWidgets
 
-from rwv.ui.plot import PlotWidget
+from rwv.ui.plot_widget import PlotWidget
 from rwv.util import get_data
 
 import matplotlib.backends.backend_qt5agg as mlp_backend
