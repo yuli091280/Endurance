@@ -31,7 +31,10 @@ class DB:
 
     def athlete_by_bib(self, bib_num):
         result = self.execute_lookup_query(
-            "SELECT * FROM Athlete WHERE BibNumber = ?", (bib_num,)
+            "SELECT * FROM Athlete A "
+            "JOIN Bib B ON A.IDAthlete = B.IDAthlete "
+            "WHERE B.BibNumber = ?",
+            (bib_num,),
         )
         return DB.single_query_result(result)
 
@@ -50,7 +53,9 @@ class DB:
 
     def get_athletes(self):
         result = self.execute_lookup_query(
-            "SELECT LastName, FirstName, BibNumber FROM Athlete ORDER BY BibNumber",
+            "SELECT LastName, FirstName, BibNumber FROM Athlete A "
+            "JOIN Bib B ON A.IDAthlete = B.BibNumber "
+            "ORDER BY B.BibNumber",
             (),
         )
         return result
@@ -72,30 +77,32 @@ class DB:
 
     def get_athlete_judge_infraction_summary(self):
         return self.execute_lookup_query(
-            "SELECT A.BibNumber, A.FirstName , A.LastName, J.FirstName, J.LastName,"
+            "SELECT B.BibNumber, A.FirstName , A.LastName, J.FirstName, J.LastName,"
             "(CASE WHEN Color = 'Yellow' AND Infraction = '~' THEN 'x' ELSE NULL END) AS `Yellow ~`,"
             "(CASE WHEN Color = 'Red' AND Infraction = '~' THEN 'x' ELSE NULL END) AS `Red ~`,"
             "(CASE WHEN Color = 'Yellow' AND Infraction = '<' THEN 'x' ELSE NULL END) AS `Yellow <`,"
             "(CASE WHEN Color = 'Red' AND Infraction = '<' THEN 'x' ELSE NULL END) AS `Red <` "
             "FROM Judge J "
             "JOIN JudgeCall JC ON J.IDJudge = JC.IDJudge "
-            "JOIN Athlete A ON JC.BibNumber = A.BibNumber "
+            "JOIN Bib B ON JC.BibNumber = B.BibNumber "
+            "JOIN Athlete A ON B.IDAthlete = A.IDAthlete "
             "GROUP BY A.IDAthlete, J.IDJudge "
-            "ORDER BY A.BibNumber, J.FirstName, J.LastName",
+            "ORDER BY B.BibNumber, J.FirstName, J.LastName",
             (),
         )
 
     def get_athlete_infraction_summary(self):
         return self.execute_lookup_query(
-            "SELECT A.BibNumber, A.FirstName AS 'Athlete First Name', A.LastName AS 'Athlete First Name',"
+            "SELECT B.BibNumber, A.FirstName AS 'Athlete First Name', A.LastName AS 'Athlete First Name',"
             "SUM(CASE WHEN Color = 'Yellow' AND Infraction = '~' THEN 1 ELSE 0 END) AS `Yellow ~`,"
             "SUM(CASE WHEN Color = 'Yellow' AND Infraction = '<' THEN 1 ELSE 0 END) AS `Yellow <`,"
             "SUM(CASE WHEN Color = 'Red' AND Infraction = '~' THEN 1 ELSE 0 END) AS `Red ~`,"
             "SUM(CASE WHEN Color = 'Red' AND Infraction = '<' THEN 1 ELSE 0 END) AS `Red <` "
             "FROM JudgeCall JC "
-            "JOIN Athlete A ON JC.BibNumber = A.BibNumber "
-            "GROUP BY IDAthlete "
-            "ORDER BY A.BibNumber ",
+            "JOIN Bib B ON JC.BibNumber = B.BibNumber "
+            "JOIN Athlete A ON B.IDAthlete = A.IDAthlete "
+            "GROUP BY A.IDAthlete "
+            "ORDER BY B.BibNumber ",
             (),
         )
 
@@ -141,12 +148,13 @@ class DB:
 
     def get_per_athlete_calls_summary(self):
         return self.execute_lookup_query(
-            "SELECT A.BibNumber, A.FirstName AS 'Athlete First Name', A.LastName AS 'Athlete First Name',"
+            "SELECT B.BibNumber, A.FirstName AS 'Athlete First Name', A.LastName AS 'Athlete First Name',"
             "SUM(CASE WHEN Color = 'Yellow' THEN 1 ELSE 0 END) AS '# of Yellow Paddles',"
             "SUM(CASE WHEN Color = 'Red' THEN 1 ELSE 0 END) AS '# of Red Cards' "
             "FROM JudgeCall JC "
-            "JOIN Athlete A ON JC.BibNumber = A.BibNumber "
-            "GROUP BY IDAthlete "
-            "ORDER BY A.BibNumber",
+            "JOIN Bib B ON JC.BibNumber = B.BibNumber "
+            "JOIN Athlete A ON B.IDAthlete = A.IDAthlete "
+            "GROUP BY A.IDAthlete "
+            "ORDER BY B.BibNumber",
             (),
         )
