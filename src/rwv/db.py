@@ -54,7 +54,7 @@ class DB:
     def get_athletes(self):
         result = self.execute_lookup_query(
             "SELECT LastName, FirstName, BibNumber FROM Athlete A "
-            "JOIN Bib B ON A.IDAthlete = B.BibNumber "
+            "JOIN Bib B ON A.IDAthlete = B.IDAthlete "
             "ORDER BY B.BibNumber",
             (),
         )
