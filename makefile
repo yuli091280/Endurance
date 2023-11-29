@@ -1,4 +1,4 @@
-PYINSTALLER_ENTRY = src/pyqt_test/main.py
+PYINSTALLER_ENTRY = src/rwv/main.py
 EXECUTABLE_OUT = dist/main
 
 .PHONY: build clean
