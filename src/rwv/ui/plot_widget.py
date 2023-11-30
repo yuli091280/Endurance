@@ -1,18 +1,39 @@
+import pandas as pd
 from PyQt6 import QtWidgets
 
 import matplotlib.backends.backend_qt5agg as mlp_backend
 
 from rwv.loc_graph import LocGraph
 
+
 class PlotWidget(QtWidgets.QWidget):
-    def __init__(self, data, athletes):
+    def __init__(self, db):
         super().__init__()
 
         # Grab athlete info for combo box and plots
-        graph = LocGraph(width=12, height=7, dpi=100)
-        # Plot athlete data
-        graph.plot(data, athletes)
+        athletes = db.get_athletes_by_race_id(1)
 
+        # Get LOC values to plot
+        loc_values = pd.DataFrame(
+            data=db.get_loc_values_by_race_id(1),
+            columns=["BibNumber", "LOCAverage", "Time"],
+        )
+        loc_values["Time"] = pd.to_datetime(loc_values["Time"], format="%H:%M:%S %p")
+        loc_values = loc_values.pivot(
+            index="Time", columns="BibNumber", values="LOCAverage"
+        )
+        loc_values = loc_values.rename_axis(None, axis=1).reset_index()
+
+        # Get judge data to plot
+        judge_data = pd.DataFrame(
+            data=db.get_judge_data_by_race_id(1),
+            columns=["Time", "IDJudge", "BibNumber", "Infraction", "Color"],
+        )
+        judge_data["Time"] = pd.to_datetime(loc_values["Time"], format="%H:%M:%S %p")
+
+        # Plot athlete data
+        graph = LocGraph(width=12, height=7, dpi=100)
+        graph.plot(loc_values, judge_data, athletes)
         canvas = MplCanvas(graph)
 
         # Initialize toolbar for interacting with plot
@@ -35,23 +56,23 @@ class PlotWidget(QtWidgets.QWidget):
 
         # Initialize checkbox for choosing whether to draw bent knee points
         self.bent_knee_checkbox = QtWidgets.QCheckBox("Bent Knee", self)
+        # Set default value to true
+        self.bent_knee_checkbox.setChecked(True)
         # Connect our redraw function to the selector
         self.bent_knee_checkbox.stateChanged.connect(
             lambda checked: canvas.redraw_points(
                 self.bent_knee_checkbox.text(), checked
             )
         )
-        # Set default value to true
-        self.bent_knee_checkbox.setChecked(True)
 
         # Initialize checkbox for choosing whether to draw LOC points
         self.loc_checkbox = QtWidgets.QCheckBox("LOC", self)
+        # Set default value to true
+        self.loc_checkbox.setChecked(True)
         # Connect our redraw function to the selector
         self.loc_checkbox.stateChanged.connect(
             lambda checked: canvas.redraw_points(self.loc_checkbox.text(), checked)
         )
-        # Set default value to true
-        self.loc_checkbox.setChecked(True)
 
         # widget layout
         layout = QtWidgets.QVBoxLayout()

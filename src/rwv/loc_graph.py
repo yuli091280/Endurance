@@ -1,9 +1,11 @@
+import numpy as np
 import seaborn as sns
 
 from matplotlib.figure import Figure
 from matplotlib.text import OffsetFrom
 
-from rwv.util import judge_data
+import matplotlib.dates as mpl_dates
+
 
 class PlotGroup:
     def __init__(self, main_plot, annotation=None, token_plots=None):
@@ -25,6 +27,7 @@ class LocGraph:
         self.ax.set_title(f"Racer Leg Height over Time w/ Max LOC = {max_loc}")
         self.ax.set_ylabel("Racer Leg Height")
         self.ax.set_xlabel("Time")
+        self.ax.xaxis.set_major_formatter(mpl_dates.DateFormatter("%H:%M:%S %p"))
 
         # Initialize dictionary to keep track of our plots, necessary for redrawing
         self.data_plots = {}
@@ -43,9 +46,8 @@ class LocGraph:
         # Set up a list of visible lines to draw the legend from
         visible_lines = [self.max_loc]
 
-        show_all = "all" in selected_runners
         for bib_key in self.data_plots.keys():
-            visible = show_all or (bib_key in selected_runners)
+            visible = bib_key in selected_runners
 
             if visible:
                 visible_lines.append(self.data_plots[bib_key])
@@ -79,23 +81,31 @@ class LocGraph:
                 plot_group.token_plots[0].set_visible(self.display_loc)
                 plot_group.token_plots[1].set_visible(self.display_bent_knee)
 
-    def plot(self, df, athletes):
+    def plot(self, loc_values, judge_data, athletes):
         # Draw max LOC cutoff line
-        self.max_loc = PlotGroup(
-            sns.lineplot(
-                data=df, x="time", y="max_loc", label="Max LOC", ax=self.ax
-            ).lines[-1]
-        )
+        self.max_loc = PlotGroup(self.ax.axhline(y=60, color="r"))
 
         for index, (last_name, first_name, bib_number) in enumerate(athletes):
+            if bib_number not in list(loc_values.columns):
+                continue
+
+            main_plot = sns.lineplot(
+                data=loc_values,
+                x="Time",
+                y=bib_number,
+                label=f"{last_name}, {first_name} ({bib_number})",
+                ax=self.ax,
+            ).lines[-1]
+
+            judge_calls = judge_data.query(f"BibNumber == {bib_number}").copy()
+            judge_calls["y"] = np.interp(
+                x=judge_calls["Time"],
+                xp=main_plot.get_xdata(orig=True),
+                fp=main_plot.get_ydata(orig=True),
+            )
+
             self.data_plots[bib_number] = PlotGroup(
-                main_plot=sns.lineplot(
-                    data=df,
-                    x="time",
-                    y=f"runner_{index + 1}",
-                    label=f"{last_name}, {first_name} ({bib_number})",
-                    ax=self.ax,
-                ).lines[-1],
+                main_plot=main_plot,
                 annotation=self.ax.annotate(
                     "",
                     xy=(0, 0),
@@ -112,15 +122,9 @@ class LocGraph:
                 token_plots=[
                     # Draw red LOC infractions
                     sns.scatterplot(
-                        data=df[
-                            df["time"].isin(
-                                judge_data.query(
-                                    "judge_1 == '~' | judge_2 == '~' | judge_3 == '~'"
-                                ).query(f"runner == {index + 1}")["time"]
-                            )
-                        ][["time", f"runner_{index + 1}"]],
-                        x="time",
-                        y=f"runner_{index + 1}",
+                        data=judge_calls.query("Color == 'Red' & Infraction == '~'"),
+                        x="Time",
+                        y="y",
                         label="LOC Red Card",
                         ax=self.ax,
                         color="r",
@@ -129,15 +133,9 @@ class LocGraph:
                     ).collections[-1],
                     # Draw red bent knee infractions
                     sns.scatterplot(
-                        data=df[
-                            df["time"].isin(
-                                judge_data.query(
-                                    "judge_1 == '>' | judge_2 == '>' | judge_3 == '>'"
-                                ).query(f"runner == {index + 1}")["time"]
-                            )
-                        ][["time", f"runner_{index + 1}"]],
-                        x="time",
-                        y=f"runner_{index + 1}",
+                        data=judge_calls.query("Color == 'Red' & Infraction == '<'"),
+                        x="Time",
+                        y="y",
                         label="Bent Knee Red Card",
                         ax=self.ax,
                         color="r",
@@ -148,7 +146,7 @@ class LocGraph:
             )
 
         # Create a legend for the plot
-        self.ax.legend(handles=self.ax.lines)
+        self.ax.legend(handles=[self.max_loc.main_plot])
 
     @staticmethod
     def redraw_annotations(plot_group, pos, text, previous_annotation=None):
