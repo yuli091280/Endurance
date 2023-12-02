@@ -4,6 +4,7 @@ import matplotlib.backends.backend_qt5agg as mlp_backend
 
 from rwv.loc_graph import LocGraph
 
+
 class PlotWidget(QtWidgets.QWidget):
     def __init__(self, data, athletes):
         super().__init__()

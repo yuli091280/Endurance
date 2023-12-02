@@ -11,6 +11,7 @@ from rwv.db import DB
 
 matplotlib.use("QtAgg")
 
+
 def start_db():
     if len(sys.argv) != 2:
         print("no db file provided")
