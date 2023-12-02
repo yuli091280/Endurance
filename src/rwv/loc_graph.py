@@ -3,7 +3,7 @@ import seaborn as sns
 from matplotlib.figure import Figure
 from matplotlib.text import OffsetFrom
 
-import matplotlib.dates as mpl_dates
+from rwv.util import judge_data
 
 
 class PlotGroup:
@@ -215,7 +215,7 @@ class LocGraph:
             plot_group.annotation.set_verticalalignment("bottom")
             plot_group.annotation.set_anncoords("offset points")
             bounds = self.ax.get_xlim()
-            if(pos[0] > (bounds[1] - bounds[0]) / 2):
+            if pos[0] > (bounds[1] - bounds[0]) / 2:
                 plot_group.annotation.set_horizontalalignment("right")
                 plot_group.annotation.xyann = (-20, 20)
             else:
@@ -224,10 +224,10 @@ class LocGraph:
 
     def hover_annotations(self, event):
         if event.inaxes == self.ax:
-            # Keep the last annotation drawn to be used to position subsequent annotations off the first visible one
+            # keep the last annotation drawn to be used to position subsequent annotations off the first visible one
             previous_annotation = None
             # If we're inbounds, look at every token plot to see if we're on one of their points
-            for plot_group in self.data_plots.values():
+            for _, plot_group in enumerate(self.data_plots.values()):
                 # If the main line isn't visible, neither will the token plots
                 if not plot_group.main_plot.get_visible():
                     continue
@@ -238,9 +238,7 @@ class LocGraph:
                     # Check each token plot to see if we're on their point
                     cont, ind = scatter.contains(event)
                     if cont:
-                        # Set the position of the annotation
                         pos = scatter.get_offsets()[ind["ind"][0]]
-                        # Add the judgement call to the annotation text
                         # TODO: Tie in judge "data" value
                         if (
                             not f"{plot_group.main_plot.get_label()}: {scatter.get_label()}"
@@ -257,11 +255,16 @@ class LocGraph:
                         pos,
                         "\n".join(judge_calls).strip(),
                         previous_annotation,
+                        previous_annotation,
                     )
                     plot_group.annotation.set_visible(True)
                     previous_annotation = plot_group.annotation
+                    previous_annotation = plot_group.annotation
                     self.fig.canvas.draw_idle()
                 # Otherwise, if we're still visible, remove the annotation
+                elif plot_group.annotation.get_visible():
+                    plot_group.annotation.set_visible(False)
+                    self.fig.canvas.draw_idle()
                 elif plot_group.annotation.get_visible():
                     plot_group.annotation.set_visible(False)
                     self.fig.canvas.draw_idle()
