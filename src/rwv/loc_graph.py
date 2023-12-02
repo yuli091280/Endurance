@@ -22,7 +22,7 @@ class LocGraph:
         self.ax = self.fig.subplots()
 
         # Set plot title and axis labels
-        self.ax.set_title(f"Racer Leg Height over Time w/ Max LOC = {max_loc}")
+        self.ax.set_title(f"Racer Leg Height over Time w/ Max LOC = {max_loc}", pad=25)
         self.ax.set_ylabel("Racer Leg Height")
         self.ax.set_xlabel("Time")
 
@@ -99,8 +99,6 @@ class LocGraph:
                 annotation=self.ax.annotate(
                     "",
                     xy=(0, 0),
-                    xytext=(20, 20),
-                    textcoords="offset points",
                     ha="left",
                     bbox=dict(boxstyle="round", fc="w"),
                     arrowprops=dict(
@@ -150,8 +148,7 @@ class LocGraph:
         # Create a legend for the plot
         self.ax.legend(handles=self.ax.lines)
 
-    @staticmethod
-    def redraw_annotations(plot_group, pos, text, previous_annotation=None):
+    def redraw_annotations(self, plot_group, pos, text, previous_annotation=None):
         plot_group.annotation.xy = pos
         plot_group.annotation.set_text(text)
         # Set annotation color to match that of the line
@@ -165,10 +162,17 @@ class LocGraph:
             plot_group.annotation.set_anncoords(
                 OffsetFrom(previous_annotation.get_bbox_patch(), (0, 0))
             )
+            plot_group.annotation.set_horizontalalignment("left")
         else:
             plot_group.annotation.set_verticalalignment("bottom")
-            plot_group.annotation.xyann = (20, 20)
             plot_group.annotation.set_anncoords("offset points")
+            bounds = self.ax.get_xlim()
+            if(pos[0] > (bounds[1] - bounds[0]) / 2):
+                plot_group.annotation.set_horizontalalignment("right")
+                plot_group.annotation.xyann = (-20, 20)
+            else:
+                plot_group.annotation.set_horizontalalignment("left")
+                plot_group.annotation.xyann = (20, 20)
 
     def hover_annotations(self, event):
         if event.inaxes == self.ax:
