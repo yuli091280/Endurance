@@ -22,6 +22,12 @@ class LocGraph:
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.ax = self.fig.subplots()
 
+        # Set plot title and axis labels
+        self.ax.set_title(f"Racer Leg Height over Time w/ Max LOC = {max_loc}", pad=25)
+        self.ax.set_ylabel("Racer Leg Height")
+        self.ax.set_xlabel("Time")
+        self.ax.xaxis.set_major_formatter(mpl_dates.DateFormatter("%H:%M:%S %p"))
+
         # Initialize dictionary to keep track of our plots, necessary for redrawing
         self.data_plots = {}
 
@@ -208,14 +214,15 @@ class LocGraph:
             bounds = self.ax.get_xlim()
             plot_group.annotation.set_verticalalignment("bottom")
             plot_group.annotation.set_anncoords("offset points")
-            if pos[0] > bounds[0] + (bounds[1] - bounds[0]) / 2:
+            bounds = self.ax.get_xlim()
+            if(pos[0] > (bounds[1] - bounds[0]) / 2):
                 plot_group.annotation.set_horizontalalignment("right")
                 plot_group.annotation.xyann = (-20, 20)
             else:
                 plot_group.annotation.set_horizontalalignment("left")
                 plot_group.annotation.xyann = (20, 20)
 
-    def on_hover(self, event):
+    def hover_annotations(self, event):
         if event.inaxes == self.ax:
             # Keep the last annotation drawn to be used to position subsequent annotations off the first visible one
             previous_annotation = None
