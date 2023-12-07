@@ -23,12 +23,6 @@ class LocGraph:
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.ax = self.fig.subplots()
 
-        # Set plot title and axis labels
-        self.ax.set_title(f"Racer Leg Height over Time w/ Max LOC = {max_loc}")
-        self.ax.set_ylabel("Racer Leg Height")
-        self.ax.set_xlabel("Time")
-        self.ax.xaxis.set_major_formatter(mpl_dates.DateFormatter("%H:%M:%S %p"))
-
         # Initialize dictionary to keep track of our plots, necessary for redrawing
         self.data_plots = {}
 
@@ -88,6 +82,16 @@ class LocGraph:
                 plot_group.token_plots[1].set_visible(self.display_bent_knee)
 
     def plot(self, loc_values, judge_data, athletes):
+        self.fig.clear()
+        self.ax = self.fig.subplots()
+        self.data_plots = {}
+
+        # Set plot title and axis labels
+        self.ax.set_title(f"Racer LOC over Time w/ Max LOC = {self.max_loc_value} ms")
+        self.ax.set_ylabel("Racer LOC (ms)")
+        self.ax.set_xlabel("Time")
+        self.ax.xaxis.set_major_formatter(mpl_dates.DateFormatter("%H:%M:%S %p"))
+
         # Draw max LOC cutoff line
         self.max_loc = PlotGroup(
             self.ax.axhline(y=self.max_loc_value, color="r", label="Max LOC")

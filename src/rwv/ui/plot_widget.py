@@ -95,6 +95,10 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         self.mpl_connect("motion_notify_event", self.graph.hover_annotations)
         self.draw()
 
+    def redraw_loc(self, loc):
+        self.graph.redraw_max_loc(loc)
+        self.draw()
+
     def redraw_plot(self, selected_runners):
         self.graph.display_runners(selected_runners)
         self.draw()
