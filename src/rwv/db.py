@@ -172,3 +172,9 @@ class DB:
             "BibNumber, TOD",
             (race_id,),
         )
+
+    def get_races(self):
+        return self.execute_lookup_query(
+            "SELECT IDRace, Gender, Distance, DistanceUnits, RaceDate, StartTime FROM Race ORDER BY IDRace",
+            (),
+        )
