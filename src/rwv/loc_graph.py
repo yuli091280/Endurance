@@ -1,4 +1,3 @@
-import numpy as np
 import seaborn as sns
 
 from matplotlib.figure import Figure
@@ -59,9 +58,15 @@ class LocGraph:
             self.data_plots[bib_key].token_plots[0].set_visible(
                 self.display_loc and visible
             )
+            self.data_plots[bib_key].token_plots[1].set_visible(
+                self.display_loc and visible
+            )
 
             # Set bent knee points to visible if selected or all, and we have the box checked
-            self.data_plots[bib_key].token_plots[1].set_visible(
+            self.data_plots[bib_key].token_plots[2].set_visible(
+                self.display_bent_knee and visible
+            )
+            self.data_plots[bib_key].token_plots[3].set_visible(
                 self.display_bent_knee and visible
             )
 
@@ -79,7 +84,9 @@ class LocGraph:
             # If the line for this athlete is visible, update the LOC and bent knee display values accordingly
             if plot_group.main_plot.get_visible():
                 plot_group.token_plots[0].set_visible(self.display_loc)
-                plot_group.token_plots[1].set_visible(self.display_bent_knee)
+                plot_group.token_plots[1].set_visible(self.display_loc)
+                plot_group.token_plots[2].set_visible(self.display_bent_knee)
+                plot_group.token_plots[3].set_visible(self.display_bent_knee)
 
     def plot(self, loc_values, judge_data, athletes):
         self.fig.clear()
@@ -107,14 +114,12 @@ class LocGraph:
                 y=bib_number,
                 label=f"{last_name}, {first_name} ({bib_number})",
                 ax=self.ax,
+                marker="o",
+                visible=False,
             ).lines[-1]
 
             judge_calls = judge_data.query(f"BibNumber == {bib_number}").copy()
-            judge_calls["y"] = np.interp(
-                x=judge_calls["Time"],
-                xp=main_plot.get_xdata(orig=True),
-                fp=main_plot.get_ydata(orig=True),
-            )
+            judge_calls["y"] = 45
 
             self.data_plots[bib_number] = PlotGroup(
                 main_plot=main_plot,
@@ -132,6 +137,18 @@ class LocGraph:
                     visible=False,
                 ),
                 token_plots=[
+                    # Draw yellow LOC infractions
+                    sns.scatterplot(
+                        data=judge_calls.query("Color == 'Yellow' & Infraction == '~'"),
+                        x="Time",
+                        y="y",
+                        label="LOC Yellow Card",
+                        ax=self.ax,
+                        color="y",
+                        marker="*",
+                        s=100,
+                        visible=False,
+                    ).collections[-1],
                     # Draw red LOC infractions
                     sns.scatterplot(
                         data=judge_calls.query("Color == 'Red' & Infraction == '~'"),
@@ -142,6 +159,19 @@ class LocGraph:
                         color="r",
                         marker="*",
                         s=100,
+                        visible=False,
+                    ).collections[-1],
+                    # Draw yellow bent knee infractions
+                    sns.scatterplot(
+                        data=judge_calls.query("Color == 'Yellow' & Infraction == '<'"),
+                        x="Time",
+                        y="y",
+                        label="Bent Knee Yellow Card",
+                        ax=self.ax,
+                        color="y",
+                        marker=">",
+                        s=100,
+                        visible=False,
                     ).collections[-1],
                     # Draw red bent knee infractions
                     sns.scatterplot(
@@ -153,6 +183,7 @@ class LocGraph:
                         color="r",
                         marker=">",
                         s=100,
+                        visible=False,
                     ).collections[-1],
                 ],
             )
@@ -197,12 +228,16 @@ class LocGraph:
                     cont, ind = scatter.contains(event)
                     if cont:
                         # Set the position of the annotation
-                        # x, y = scatter.get_data()  # Strategy for getting line data
-                        # pos = (x[ind["ind"][0]], y[ind["ind"][0]])
                         pos = scatter.get_offsets()[ind["ind"][0]]
                         # Add the judgement call to the annotation text
                         # TODO: Tie in judge "data" value
-                        judge_calls.append(f"{scatter.get_label()}: {pos}")
+                        if (
+                            not f"{plot_group.main_plot.get_label()}: {scatter.get_label()}"
+                            in judge_calls
+                        ):
+                            judge_calls.append(
+                                f"{plot_group.main_plot.get_label()}: {scatter.get_label()}"
+                            )
 
                 # If one of the points matches, draw the annotation
                 if judge_calls:
