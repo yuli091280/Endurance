@@ -19,7 +19,7 @@ class PlotGroup:
 
 # LocGraph showing loc for each selected runner with judge calls placed on top if requested
 class LocGraph:
-    def __init__(self, width=5, height=4, dpi=100, max_loc=3):
+    def __init__(self, width=5, height=4, dpi=100, max_loc=60):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.ax = self.fig.subplots()
 
@@ -32,7 +32,8 @@ class LocGraph:
         # Initialize dictionary to keep track of our plots, necessary for redrawing
         self.data_plots = {}
 
-        # Initialize dictionary to keep track of the max LOC
+        # Initialize value to keep track of the max LOC
+        self.max_loc_value = max_loc
         self.max_loc = None
 
         # Initialize booleans to keep track of bent knee/loc display state
@@ -41,6 +42,11 @@ class LocGraph:
 
     def get_figure(self):
         return self.fig
+
+    def redraw_max_loc(self, loc):
+        self.max_loc_value = loc
+        self.ax.set_title(f"Racer LOC over Time w/ Max LOC = {self.max_loc_value} ms")
+        self.max_loc.main_plot.set_ydata([loc, loc])
 
     def display_runners(self, selected_runners):
         # Set up a list of visible lines to draw the legend from
@@ -83,7 +89,9 @@ class LocGraph:
 
     def plot(self, loc_values, judge_data, athletes):
         # Draw max LOC cutoff line
-        self.max_loc = PlotGroup(self.ax.axhline(y=60, color="r"))
+        self.max_loc = PlotGroup(
+            self.ax.axhline(y=self.max_loc_value, color="r", label="Max LOC")
+        )
 
         for index, (last_name, first_name, bib_number) in enumerate(athletes):
             if bib_number not in list(loc_values.columns):
