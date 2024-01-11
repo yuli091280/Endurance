@@ -175,7 +175,7 @@ class LocGraph:
                 plot_group.annotation.set_horizontalalignment("left")
                 plot_group.annotation.xyann = (20, 20)
 
-    def hover_annotations(self, event):
+    def on_hover(self, event):
         if event.inaxes == self.ax:
             # keep the last annotation drawn to be used to position subsequent annotations off the first visible one
             previous_annotation = None
