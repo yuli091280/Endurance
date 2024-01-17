@@ -4,6 +4,7 @@ import matplotlib.backends.backend_qt5agg as mlp_backend
 
 from rwv.loc_graph import LocGraph
 
+
 class PlotWidget(QtWidgets.QWidget):
     def __init__(self, data, athletes):
         super().__init__()
@@ -71,7 +72,7 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
     def __init__(self, graph):
         self.graph = graph
         super(MplCanvas, self).__init__(graph.get_figure())
-        self.mpl_connect("motion_notify_event", self.graph.hover_annotations)
+        self.mpl_connect("motion_notify_event", self.graph.on_hover)
         self.draw()
 
     def redraw_plot(self, selected_runners):

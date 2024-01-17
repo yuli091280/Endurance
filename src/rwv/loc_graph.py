@@ -5,6 +5,7 @@ from matplotlib.text import OffsetFrom
 
 from rwv.util import judge_data
 
+
 class PlotGroup:
     def __init__(self, main_plot, annotation=None, token_plots=None):
         if token_plots is None:
@@ -22,7 +23,7 @@ class LocGraph:
         self.ax = self.fig.subplots()
 
         # Set plot title and axis labels
-        self.ax.set_title(f"Racer Leg Height over Time w/ Max LOC = {max_loc}")
+        self.ax.set_title(f"Racer Leg Height over Time w/ Max LOC = {max_loc}", pad=25)
         self.ax.set_ylabel("Racer Leg Height")
         self.ax.set_xlabel("Time")
 
@@ -35,6 +36,10 @@ class LocGraph:
         # Initialize booleans to keep track of bent knee/loc display state
         self.display_bent_knee = True
         self.display_loc = True
+
+        # keep track of bounds when user zoom in and out
+        self.bounds = self.ax.get_xlim()
+        self.ax.callbacks.connect("xlim_changed", self.on_xlim_change)
 
     def get_figure(self):
         return self.fig
@@ -99,8 +104,6 @@ class LocGraph:
                 annotation=self.ax.annotate(
                     "",
                     xy=(0, 0),
-                    xytext=(20, 20),
-                    textcoords="offset points",
                     ha="left",
                     bbox=dict(boxstyle="round", fc="w"),
                     arrowprops=dict(
@@ -150,8 +153,7 @@ class LocGraph:
         # Create a legend for the plot
         self.ax.legend(handles=self.ax.lines)
 
-    @staticmethod
-    def redraw_annotations(plot_group, pos, text, previous_annotation=None):
+    def redraw_annotations(self, plot_group, pos, text, previous_annotation=None):
         plot_group.annotation.xy = pos
         plot_group.annotation.set_text(text)
         # Set annotation color to match that of the line
@@ -165,17 +167,23 @@ class LocGraph:
             plot_group.annotation.set_anncoords(
                 OffsetFrom(previous_annotation.get_bbox_patch(), (0, 0))
             )
+            plot_group.annotation.set_horizontalalignment("left")
         else:
             plot_group.annotation.set_verticalalignment("bottom")
-            plot_group.annotation.xyann = (20, 20)
             plot_group.annotation.set_anncoords("offset points")
+            if pos[0] > self.bounds[0] + (self.bounds[1] - self.bounds[0]) / 2:
+                plot_group.annotation.set_horizontalalignment("right")
+                plot_group.annotation.xyann = (-20, 20)
+            else:
+                plot_group.annotation.set_horizontalalignment("left")
+                plot_group.annotation.xyann = (20, 20)
 
-    def hover_annotations(self, event):
+    def on_hover(self, event):
         if event.inaxes == self.ax:
-            # List of active annotations, will be used to position subsequent annotations off the first visible one
-            active_annotations = []
+            # keep the last annotation drawn to be used to position subsequent annotations off the first visible one
+            previous_annotation = None
             # If we're inbounds, look at every token plot to see if we're on one of their points
-            for index, plot_group in enumerate(self.data_plots.values()):
+            for _, plot_group in enumerate(self.data_plots.values()):
                 # If the main line isn't visible, neither will the token plots
                 if not plot_group.main_plot.get_visible():
                     continue
@@ -186,11 +194,7 @@ class LocGraph:
                     # Check each token plot to see if we're on their point
                     cont, ind = scatter.contains(event)
                     if cont:
-                        # Set the position of the annotation
-                        # x, y = scatter.get_data()  # Strategy for getting line data
-                        # pos = (x[ind["ind"][0]], y[ind["ind"][0]])
                         pos = scatter.get_offsets()[ind["ind"][0]]
-                        # Add the judgement call to the annotation text
                         # TODO: Tie in judge "data" value
                         judge_calls.append(f"{scatter.get_label()}: {pos}")
 
@@ -200,13 +204,15 @@ class LocGraph:
                         plot_group,
                         pos,
                         "\n".join(judge_calls).strip(),
-                        None if not active_annotations else active_annotations[-1],
+                        previous_annotation,
                     )
                     plot_group.annotation.set_visible(True)
-                    active_annotations.append(plot_group.annotation)
+                    previous_annotation = plot_group.annotation
                     self.fig.canvas.draw_idle()
                 # Otherwise, if we're still visible, remove the annotation
-                else:
-                    if plot_group.annotation.get_visible():
-                        plot_group.annotation.set_visible(False)
-                        self.fig.canvas.draw_idle()
+                elif plot_group.annotation.get_visible():
+                    plot_group.annotation.set_visible(False)
+                    self.fig.canvas.draw_idle()
+
+    def on_xlim_change(self, event):
+        self.bounds = event.get_xlim()
