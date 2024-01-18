@@ -33,10 +33,6 @@ class LocGraph:
         self.display_bent_knee = True
         self.display_loc = True
 
-        # Keep track of bounds when user zoom in and out
-        self.bounds = self.ax.get_xlim()
-        self.ax.callbacks.connect("xlim_changed", self.on_xlim_change)
-
     def get_figure(self):
         return self.fig
 
@@ -209,9 +205,10 @@ class LocGraph:
             )
             plot_group.annotation.set_horizontalalignment("left")
         else:
+            bounds = self.ax.get_xlim()
             plot_group.annotation.set_verticalalignment("bottom")
             plot_group.annotation.set_anncoords("offset points")
-            if pos[0] > self.bounds[0] + (self.bounds[1] - self.bounds[0]) / 2:
+            if pos[0] > bounds[0] + (bounds[1] - bounds[0]) / 2:
                 plot_group.annotation.set_horizontalalignment("right")
                 plot_group.annotation.xyann = (-20, 20)
             else:
@@ -261,6 +258,3 @@ class LocGraph:
                 elif plot_group.annotation.get_visible():
                     plot_group.annotation.set_visible(False)
                     self.fig.canvas.draw_idle()
-
-    def on_xlim_change(self, event):
-        self.bounds = event.get_xlim()
