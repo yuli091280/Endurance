@@ -3,7 +3,7 @@ import seaborn as sns
 from matplotlib.figure import Figure
 from matplotlib.text import OffsetFrom
 
-from rwv.util import judge_data
+import matplotlib.dates as mpl_dates
 
 
 class PlotGroup:
@@ -18,39 +18,39 @@ class PlotGroup:
 
 # LocGraph showing loc for each selected runner with judge calls placed on top if requested
 class LocGraph:
-    def __init__(self, width=5, height=4, dpi=100, max_loc=3):
+    def __init__(self, width=5, height=4, dpi=100, max_loc=60):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.ax = self.fig.subplots()
-
-        # Set plot title and axis labels
-        self.ax.set_title(f"Racer Leg Height over Time w/ Max LOC = {max_loc}", pad=25)
-        self.ax.set_ylabel("Racer Leg Height")
-        self.ax.set_xlabel("Time")
 
         # Initialize dictionary to keep track of our plots, necessary for redrawing
         self.data_plots = {}
 
-        # Initialize dictionary to keep track of the max LOC
+        # Initialize value to keep track of the max LOC
+        self.max_loc_value = max_loc
         self.max_loc = None
 
         # Initialize booleans to keep track of bent knee/loc display state
         self.display_bent_knee = True
         self.display_loc = True
 
-        # keep track of bounds when user zoom in and out
+        # Keep track of bounds when user zoom in and out
         self.bounds = self.ax.get_xlim()
         self.ax.callbacks.connect("xlim_changed", self.on_xlim_change)
 
     def get_figure(self):
         return self.fig
 
+    def redraw_max_loc(self, loc):
+        self.max_loc_value = loc
+        self.ax.set_title(f"Racer LOC over Time w/ Max LOC = {self.max_loc_value} ms")
+        self.max_loc.main_plot.set_ydata([loc, loc])
+
     def display_runners(self, selected_runners):
         # Set up a list of visible lines to draw the legend from
         visible_lines = [self.max_loc]
 
-        show_all = "all" in selected_runners
         for bib_key in self.data_plots.keys():
-            visible = show_all or (bib_key in selected_runners)
+            visible = bib_key in selected_runners
 
             if visible:
                 visible_lines.append(self.data_plots[bib_key])
@@ -62,9 +62,15 @@ class LocGraph:
             self.data_plots[bib_key].token_plots[0].set_visible(
                 self.display_loc and visible
             )
+            self.data_plots[bib_key].token_plots[1].set_visible(
+                self.display_loc and visible
+            )
 
             # Set bent knee points to visible if selected or all, and we have the box checked
-            self.data_plots[bib_key].token_plots[1].set_visible(
+            self.data_plots[bib_key].token_plots[2].set_visible(
+                self.display_bent_knee and visible
+            )
+            self.data_plots[bib_key].token_plots[3].set_visible(
                 self.display_bent_knee and visible
             )
 
@@ -82,25 +88,45 @@ class LocGraph:
             # If the line for this athlete is visible, update the LOC and bent knee display values accordingly
             if plot_group.main_plot.get_visible():
                 plot_group.token_plots[0].set_visible(self.display_loc)
-                plot_group.token_plots[1].set_visible(self.display_bent_knee)
+                plot_group.token_plots[1].set_visible(self.display_loc)
+                plot_group.token_plots[2].set_visible(self.display_bent_knee)
+                plot_group.token_plots[3].set_visible(self.display_bent_knee)
 
-    def plot(self, df, athletes):
+    def plot(self, loc_values, judge_data, athletes):
+        self.fig.clear()
+        self.ax = self.fig.subplots()
+        self.data_plots = {}
+
+        # Set plot title and axis labels
+        self.ax.set_title(f"Racer LOC over Time w/ Max LOC = {self.max_loc_value} ms")
+        self.ax.set_ylabel("Racer LOC (ms)")
+        self.ax.set_xlabel("Time")
+        self.ax.xaxis.set_major_formatter(mpl_dates.DateFormatter("%H:%M:%S %p"))
+
         # Draw max LOC cutoff line
         self.max_loc = PlotGroup(
-            sns.lineplot(
-                data=df, x="time", y="max_loc", label="Max LOC", ax=self.ax
-            ).lines[-1]
+            self.ax.axhline(y=self.max_loc_value, color="r", label="Max LOC")
         )
 
         for index, (last_name, first_name, bib_number) in enumerate(athletes):
+            if bib_number not in list(loc_values.columns):
+                continue
+
+            main_plot = sns.lineplot(
+                data=loc_values,
+                x="Time",
+                y=bib_number,
+                label=f"{last_name}, {first_name} ({bib_number})",
+                ax=self.ax,
+                marker="o",
+                visible=False,
+            ).lines[-1]
+
+            judge_calls = judge_data.query(f"BibNumber == {bib_number}").copy()
+            judge_calls["y"] = 45
+
             self.data_plots[bib_number] = PlotGroup(
-                main_plot=sns.lineplot(
-                    data=df,
-                    x="time",
-                    y=f"runner_{index + 1}",
-                    label=f"{last_name}, {first_name} ({bib_number})",
-                    ax=self.ax,
-                ).lines[-1],
+                main_plot=main_plot,
                 annotation=self.ax.annotate(
                     "",
                     xy=(0, 0),
@@ -113,45 +139,59 @@ class LocGraph:
                     visible=False,
                 ),
                 token_plots=[
+                    # Draw yellow LOC infractions
+                    sns.scatterplot(
+                        data=judge_calls.query("Color == 'Yellow' & Infraction == '~'"),
+                        x="Time",
+                        y="y",
+                        label="LOC Yellow Card",
+                        ax=self.ax,
+                        color="y",
+                        marker="*",
+                        s=100,
+                        visible=False,
+                    ).collections[-1],
                     # Draw red LOC infractions
                     sns.scatterplot(
-                        data=df[
-                            df["time"].isin(
-                                judge_data.query(
-                                    "judge_1 == '~' | judge_2 == '~' | judge_3 == '~'"
-                                ).query(f"runner == {index + 1}")["time"]
-                            )
-                        ][["time", f"runner_{index + 1}"]],
-                        x="time",
-                        y=f"runner_{index + 1}",
+                        data=judge_calls.query("Color == 'Red' & Infraction == '~'"),
+                        x="Time",
+                        y="y",
                         label="LOC Red Card",
                         ax=self.ax,
                         color="r",
                         marker="*",
                         s=100,
+                        visible=False,
+                    ).collections[-1],
+                    # Draw yellow bent knee infractions
+                    sns.scatterplot(
+                        data=judge_calls.query("Color == 'Yellow' & Infraction == '<'"),
+                        x="Time",
+                        y="y",
+                        label="Bent Knee Yellow Card",
+                        ax=self.ax,
+                        color="y",
+                        marker=">",
+                        s=100,
+                        visible=False,
                     ).collections[-1],
                     # Draw red bent knee infractions
                     sns.scatterplot(
-                        data=df[
-                            df["time"].isin(
-                                judge_data.query(
-                                    "judge_1 == '>' | judge_2 == '>' | judge_3 == '>'"
-                                ).query(f"runner == {index + 1}")["time"]
-                            )
-                        ][["time", f"runner_{index + 1}"]],
-                        x="time",
-                        y=f"runner_{index + 1}",
+                        data=judge_calls.query("Color == 'Red' & Infraction == '<'"),
+                        x="Time",
+                        y="y",
                         label="Bent Knee Red Card",
                         ax=self.ax,
                         color="r",
                         marker=">",
                         s=100,
+                        visible=False,
                     ).collections[-1],
                 ],
             )
 
         # Create a legend for the plot
-        self.ax.legend(handles=self.ax.lines)
+        self.ax.legend(handles=[self.max_loc.main_plot])
 
     def redraw_annotations(self, plot_group, pos, text, previous_annotation=None):
         plot_group.annotation.xy = pos
@@ -180,10 +220,10 @@ class LocGraph:
 
     def on_hover(self, event):
         if event.inaxes == self.ax:
-            # keep the last annotation drawn to be used to position subsequent annotations off the first visible one
+            # Keep the last annotation drawn to be used to position subsequent annotations off the first visible one
             previous_annotation = None
             # If we're inbounds, look at every token plot to see if we're on one of their points
-            for _, plot_group in enumerate(self.data_plots.values()):
+            for plot_group in self.data_plots.values():
                 # If the main line isn't visible, neither will the token plots
                 if not plot_group.main_plot.get_visible():
                     continue
@@ -194,9 +234,17 @@ class LocGraph:
                     # Check each token plot to see if we're on their point
                     cont, ind = scatter.contains(event)
                     if cont:
+                        # Set the position of the annotation
                         pos = scatter.get_offsets()[ind["ind"][0]]
+                        # Add the judgement call to the annotation text
                         # TODO: Tie in judge "data" value
-                        judge_calls.append(f"{scatter.get_label()}: {pos}")
+                        if (
+                            not f"{plot_group.main_plot.get_label()}: {scatter.get_label()}"
+                            in judge_calls
+                        ):
+                            judge_calls.append(
+                                f"{plot_group.main_plot.get_label()}: {scatter.get_label()}"
+                            )
 
                 # If one of the points matches, draw the annotation
                 if judge_calls:

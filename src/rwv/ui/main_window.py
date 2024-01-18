@@ -1,9 +1,6 @@
 from PyQt6 import QtWidgets
 
 from rwv.ui.plot_widget import PlotWidget
-from rwv.util import get_data
-
-import matplotlib.backends.backend_qt5agg as mlp_backend
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -11,10 +8,9 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__()
 
         # Set window title
-        self.setWindowTitle("CI491 Demo")
+        self.setWindowTitle("Race Walking Visualization")
 
-        athletes = db.get_athletes()
-        widget = PlotWidget(get_data(), athletes[:3])
+        widget = PlotWidget(db)
 
         # Tell window to use specified widget
         self.setCentralWidget(widget)
