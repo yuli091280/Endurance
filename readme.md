@@ -1,6 +1,16 @@
-# stuff
+# Race Walking Visualization Tool
 
-## setup
+A pyqt-6 GUI app to visualize various data pertaining to race walking from a sqlite database.
+
+## Features
+
+- Graphing LOC (lost of contact) data
+- Inspect various data points on the graph for more info
+- Export graph as either jpeg and pdf
+
+## Setup
+
+Make sure you have python3.11 installed, then:
 
 On Windows, do these:
 
@@ -22,8 +32,9 @@ then do these for python stuff:
 
 First argument to the program needs to be a db file
 
-## building the project
+## Building the project
 
 This is for packaging, you can run the project without building
 
 `make clean build`
+
