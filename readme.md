@@ -2,6 +2,12 @@
 
 A pyqt-6 GUI app to visualize various data pertaining to race walking from a sqlite database.
 
+## Features
+
+- Graphing LOC (lost of contact) data
+- Inspect various data points on the graph for more info
+- Export graph as either jpeg and pdf
+
 ## Setup
 
 Make sure you have python3.11 installed, then:
@@ -32,7 +38,3 @@ This is for packaging, you can run the project without building
 
 `make clean build`
 
-## Features
-- Graphing LOC (lost of contact) data
-- Inspect various data points on the graph for more info
-- Export graph as either jpeg and pdf
