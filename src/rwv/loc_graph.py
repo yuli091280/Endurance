@@ -33,10 +33,6 @@ class LocGraph:
         self.display_bent_knee = True
         self.display_loc = True
 
-        # Keep track of bounds when user zoom in and out
-        self.bounds = self.ax.get_xlim()
-        self.ax.callbacks.connect("xlim_changed", self.on_xlim_change)
-
     def get_figure(self):
         return self.fig
 

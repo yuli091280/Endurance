@@ -93,8 +93,6 @@ class PlotWidget(QtWidgets.QWidget):
         layout.addWidget(self.runner_label)
         layout.addWidget(self.runner_list)
         layout.addLayout(button_layout)
-        layout.addWidget(canvas)
-
         layout.addWidget(self.canvas)
 
         self.save_button = QtWidgets.QPushButton("Save Graph as PDF", self)
