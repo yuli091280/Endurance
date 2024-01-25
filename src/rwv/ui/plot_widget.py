@@ -35,15 +35,15 @@ class PlotWidget(QtWidgets.QWidget):
         self.max_loc_label = QtWidgets.QLabel("Max LOC:")
         self.race_label.setBuddy(self.max_loc_combo_box)
         self.max_loc_combo_box.currentIndexChanged.connect(
-            lambda: canvas.redraw_loc(self.max_loc_combo_box.currentData())
+            lambda: self.canvas.redraw_loc(self.max_loc_combo_box.currentData())
         )
 
         # Set up graph
         self.graph = LocGraph(width=12, height=7, dpi=100)
-        canvas = MplCanvas(self.graph)
+        self.canvas = MplCanvas(self.graph)
 
         # Initialize toolbar for interacting with plot
-        toolbar = mlp_backend.NavigationToolbar2QT(canvas, self)
+        toolbar = mlp_backend.NavigationToolbar2QT(self.canvas, self)
 
         # Initialize combo box for selecting which athletes to draw
         self.runner_list = DoubleListWidget()
@@ -51,7 +51,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.runner_label.setBuddy(self.runner_list)
         # Connect our redraw function to the selector
         self.runner_list.item_moved.connect(
-            lambda: canvas.redraw_plot(self.runner_list.get_selected_items())
+            lambda: self.canvas.redraw_plot(self.runner_list.get_selected_items())
         )
 
         # Initialize checkbox for choosing whether to draw bent knee points
@@ -60,7 +60,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.bent_knee_checkbox.setChecked(True)
         # Connect our redraw function to the selector
         self.bent_knee_checkbox.stateChanged.connect(
-            lambda checked: canvas.redraw_points(
+            lambda checked: self.canvas.redraw_points(
                 self.bent_knee_checkbox.text(), checked
             )
         )
@@ -71,7 +71,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.loc_checkbox.setChecked(True)
         # Connect our redraw function to the selector
         self.loc_checkbox.stateChanged.connect(
-            lambda checked: canvas.redraw_points(self.loc_checkbox.text(), checked)
+            lambda checked: self.canvas.redraw_points(self.loc_checkbox.text(), checked)
         )
 
         # Initialize UI values and graph
@@ -93,7 +93,11 @@ class PlotWidget(QtWidgets.QWidget):
         layout.addWidget(self.runner_label)
         layout.addWidget(self.runner_list)
         layout.addLayout(button_layout)
-        layout.addWidget(canvas)
+        layout.addWidget(self.canvas)
+
+        self.save_button = QtWidgets.QPushButton("Save Graph as PDF", self)
+        self.save_button.clicked.connect(self.save_current_graph_as_pdf)
+        layout.addWidget(self.save_button)
 
         # Tell widget to use specified layout
         self.setLayout(layout)
@@ -139,6 +143,15 @@ class PlotWidget(QtWidgets.QWidget):
 
         self.graph.plot(loc_values, judge_data, athletes)
 
+    def save_current_graph_as_pdf(self):
+        file_path, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self, "Save File", "", "PDF Files (*.pdf)"
+        )
+        if file_path:
+            if not file_path.endswith('.pdf'):
+                file_path += '.pdf'
+            self.canvas.save_figure_as_pdf(file_path) 
+
 
 class MplCanvas(mlp_backend.FigureCanvasQTAgg):
     def __init__(self, graph):
@@ -158,3 +171,6 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
     def redraw_points(self, point_type, visible):
         self.graph.display_points(point_type, visible)
         self.draw()
+
+    def save_figure_as_pdf(self, file_path):
+        self.figure.savefig(file_path)
