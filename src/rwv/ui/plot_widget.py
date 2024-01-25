@@ -7,7 +7,6 @@ from rwv.loc_graph import LocGraph
 from rwv.ui.double_list import DoubleListWidget
 
 
-
 class PlotWidget(QtWidgets.QWidget):
     def __init__(self, db):
         super().__init__()
@@ -103,9 +102,6 @@ class PlotWidget(QtWidgets.QWidget):
         self.setLayout(layout)
 
     def init_data_for_race(self, race_id):
-        # Grab athlete info for combo box and plots
-        athletes = self.db.get_athletes_by_race_id(race_id)
-
         # Get LOC values to plot
         loc_values = pd.DataFrame(
             data=self.db.get_loc_values_by_race_id(race_id),
@@ -117,12 +113,22 @@ class PlotWidget(QtWidgets.QWidget):
         )
         loc_values = loc_values.rename_axis(None, axis=1).reset_index()
 
+        # Grab athlete info for combo box and plots
+        bibs_with_data = loc_values.columns.tolist()
+        # Only add athletes that actually have data points to show
+        athletes = list(
+            filter(
+                lambda r: r[2] in bibs_with_data,
+                self.db.get_athletes_by_race_id(race_id),
+            )
+        )
+
         # Get judge data to plot
         judge_data = pd.DataFrame(
-            data=self.db.get_judge_data_by_race_id(1),
+            data=self.db.get_judge_data_by_race_id(race_id),
             columns=["Time", "IDJudge", "BibNumber", "Infraction", "Color"],
         )
-        judge_data["Time"] = pd.to_datetime(loc_values["Time"], format="%H:%M:%S %p")
+        judge_data["Time"] = pd.to_datetime(judge_data["Time"], format="%H:%M:%S %p")
 
         return loc_values, judge_data, athletes
 

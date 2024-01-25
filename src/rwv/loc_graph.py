@@ -1,3 +1,4 @@
+import numpy as np
 import seaborn as sns
 
 from matplotlib.figure import Figure
@@ -105,11 +106,11 @@ class LocGraph:
         )
 
         for index, (last_name, first_name, bib_number) in enumerate(athletes):
-            if bib_number not in list(loc_values.columns):
-                continue
+            # Remove null values from data, so we can use it to interpolate judge data later
+            runner_data = loc_values[["Time", bib_number]].dropna()
 
             main_plot = sns.lineplot(
-                data=loc_values,
+                data=runner_data,
                 x="Time",
                 y=bib_number,
                 label=f"{last_name}, {first_name} ({bib_number})",
@@ -119,7 +120,13 @@ class LocGraph:
             ).lines[-1]
 
             judge_calls = judge_data.query(f"BibNumber == {bib_number}").copy()
-            judge_calls["y"] = 45
+
+            judge_calls["y"] = np.interp(
+                # Converts the datetimes to seconds since epoch, which is how matplotlib converts these internally
+                (judge_calls["Time"].astype("int64") // 10**9).tolist(),
+                (runner_data["Time"].astype("int64") // 10**9).tolist(),
+                runner_data[bib_number].tolist(),
+            )
 
             self.data_plots[bib_number] = PlotGroup(
                 main_plot=main_plot,
