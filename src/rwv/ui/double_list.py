@@ -90,14 +90,13 @@ class DoubleListWidget(QtWidgets.QWidget):
                 destination.addItem(item)
             self.item_moved.emit()
             # Whenever move item is used it first appends to the bottom then sorts the given list
-            self.sort_list('right' if source is self._left_list else 'left')
+            self.sort_list("right" if source is self._left_list else "left")
 
     def sort_list(self, list_side):
         # Sorts list based on the given comparison function.
-        list_widget = self._left_list if list_side == 'left' else self._right_list
-        items = [(list_widget.item(i).text(), list_widget.item(i).data(QtCore.Qt.ItemDataRole.ToolTipRole)) for i in
-                 range(list_widget.count())]
-        items.sort(key=lambda item: self._comparison(item[0]))
+        list_widget = self._left_list if list_side == "left" else self._right_list
+        items = [(list_widget.item(i).text(), list_widget.item(i).data(QtCore.Qt.ItemDataRole.ToolTipRole)) for i in range(list_widget.count())]
+        items.sort(key=lambda item: item[0] if self._comparison is None else self._comparison(item[0]))
         list_widget.clear()
         for item in items:
             new_item = QListWidgetItem(item[0])
