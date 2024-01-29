@@ -46,7 +46,7 @@ class PlotWidget(QtWidgets.QWidget):
         toolbar = mlp_backend.NavigationToolbar2QT(self.canvas, self)
 
         # Initialize combo box for selecting which athletes to draw
-        self.runner_list = DoubleListWidget(comparison)
+        self.runner_list = DoubleListWidget()
         self.runner_label = QtWidgets.QLabel("Runner:")
         self.runner_label.setBuddy(self.runner_list)
         # Connect our redraw function to the selector
@@ -173,7 +173,3 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
 
     def save_figure_as_pdf(self, file_path):
         self.figure.savefig(file_path)
-
-def comparison(item):
-    # Just comparing it to its self.
-    return item
