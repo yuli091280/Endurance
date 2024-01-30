@@ -204,16 +204,22 @@ class LocGraph:
                 OffsetFrom(previous_annotation.get_bbox_patch(), (0, 0))
             )
             plot_group.annotation.set_horizontalalignment("left")
+            return
+
+        x_bounds = self.ax.get_xlim()
+        y_bounds = self.ax.get_ylim()
+        plot_group.annotation.set_verticalalignment("bottom")
+        plot_group.annotation.set_anncoords("offset points")
+        x_offset = 20
+        y_offset = 20
+        if pos[0] > x_bounds[0] + (x_bounds[1] - x_bounds[0]) / 2:
+            plot_group.annotation.set_horizontalalignment("right")
+            x_offset = -x_offset
         else:
-            bounds = self.ax.get_xlim()
-            plot_group.annotation.set_verticalalignment("bottom")
-            plot_group.annotation.set_anncoords("offset points")
-            if pos[0] > bounds[0] + (bounds[1] - bounds[0]) / 2:
-                plot_group.annotation.set_horizontalalignment("right")
-                plot_group.annotation.xyann = (-20, 20)
-            else:
-                plot_group.annotation.set_horizontalalignment("left")
-                plot_group.annotation.xyann = (20, 20)
+            plot_group.annotation.set_horizontalalignment("left")
+        if pos[1] > y_bounds[1] - (y_bounds[1] - y_bounds[0]) * 0.1:
+            y_offset = -y_offset
+        plot_group.annotation.xyann = (x_offset, y_offset)
 
     def on_hover(self, event):
         if event.inaxes == self.ax:
