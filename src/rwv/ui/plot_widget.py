@@ -108,13 +108,9 @@ class PlotWidget(QtWidgets.QWidget):
             columns=["BibNumber", "LOCAverage", "Time"],
         )
         loc_values["Time"] = pd.to_datetime(loc_values["Time"], format="%H:%M:%S %p")
-        loc_values = loc_values.pivot(
-            index="Time", columns="BibNumber", values="LOCAverage"
-        )
-        loc_values = loc_values.rename_axis(None, axis=1).reset_index()
 
         # Grab athlete info for combo box and plots
-        bibs_with_data = loc_values.columns.tolist()
+        bibs_with_data = loc_values["BibNumber"].unique()
         # Only add athletes that actually have data points to show
         athletes = list(
             filter(
@@ -154,9 +150,9 @@ class PlotWidget(QtWidgets.QWidget):
             self, "Save File", "", "PDF Files (*.pdf)"
         )
         if file_path:
-            if not file_path.endswith('.pdf'):
-                file_path += '.pdf'
-            self.canvas.save_figure_as_pdf(file_path) 
+            if not file_path.endswith(".pdf"):
+                file_path += ".pdf"
+            self.canvas.save_figure_as_pdf(file_path)
 
 
 class MplCanvas(mlp_backend.FigureCanvasQTAgg):

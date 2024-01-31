@@ -107,12 +107,12 @@ class LocGraph:
 
         for index, (last_name, first_name, bib_number) in enumerate(athletes):
             # Remove null values from data, so we can use it to interpolate judge data later
-            runner_data = loc_values[["Time", bib_number]].dropna()
+            runner_data = loc_values.query(f"BibNumber == {bib_number}").copy()
 
             main_plot = sns.lineplot(
                 data=runner_data,
                 x="Time",
-                y=bib_number,
+                y="LOCAverage",
                 label=f"{last_name}, {first_name} ({bib_number})",
                 ax=self.ax,
                 marker="o",
@@ -121,12 +121,16 @@ class LocGraph:
 
             judge_calls = judge_data.query(f"BibNumber == {bib_number}").copy()
 
-            judge_calls["y"] = np.interp(
+            judge_calls["LOCAverage"] = np.interp(
                 # Converts the datetimes to seconds since epoch, which is how matplotlib converts these internally
                 (judge_calls["Time"].astype("int64") // 10**9).tolist(),
                 (runner_data["Time"].astype("int64") // 10**9).tolist(),
-                runner_data[bib_number].tolist(),
+                runner_data["LOCAverage"].tolist(),
             )
+            yellow_loc = judge_calls.query("Color == 'Yellow' & Infraction == '~'")
+            red_loc = judge_calls.query("Color == 'Red' & Infraction == '~'")
+            yellow_bent = judge_calls.query("Color == 'Yellow' & Infraction == '<'")
+            red_bent = judge_calls.query("Color == 'Red' & Infraction == '<'")
 
             self.data_plots[bib_number] = PlotGroup(
                 main_plot=main_plot,
@@ -143,53 +147,41 @@ class LocGraph:
                 ),
                 token_plots=[
                     # Draw yellow LOC infractions
-                    sns.scatterplot(
-                        data=judge_calls.query("Color == 'Yellow' & Infraction == '~'"),
-                        x="Time",
-                        y="y",
+                    self.ax.scatter(
+                        x=yellow_loc["Time"],
+                        y=yellow_loc["LOCAverage"],
                         label="LOC Yellow Card",
-                        ax=self.ax,
                         color="y",
                         marker="*",
-                        s=100,
                         visible=False,
-                    ).collections[-1],
+                    ),
                     # Draw red LOC infractions
-                    sns.scatterplot(
-                        data=judge_calls.query("Color == 'Red' & Infraction == '~'"),
-                        x="Time",
-                        y="y",
+                    self.ax.scatter(
+                        x=red_loc["Time"],
+                        y=red_loc["LOCAverage"],
                         label="LOC Red Card",
-                        ax=self.ax,
                         color="r",
                         marker="*",
-                        s=100,
                         visible=False,
-                    ).collections[-1],
+                    ),
                     # Draw yellow bent knee infractions
-                    sns.scatterplot(
-                        data=judge_calls.query("Color == 'Yellow' & Infraction == '<'"),
-                        x="Time",
-                        y="y",
+                    self.ax.scatter(
+                        x=yellow_bent["Time"],
+                        y=yellow_bent["LOCAverage"],
                         label="Bent Knee Yellow Card",
-                        ax=self.ax,
                         color="y",
                         marker=">",
-                        s=100,
                         visible=False,
-                    ).collections[-1],
+                    ),
                     # Draw red bent knee infractions
-                    sns.scatterplot(
-                        data=judge_calls.query("Color == 'Red' & Infraction == '<'"),
-                        x="Time",
-                        y="y",
+                    self.ax.scatter(
+                        x=red_bent["Time"],
+                        y=red_bent["LOCAverage"],
                         label="Bent Knee Red Card",
-                        ax=self.ax,
                         color="r",
                         marker=">",
-                        s=100,
                         visible=False,
-                    ).collections[-1],
+                    ),
                 ],
             )
 
