@@ -141,11 +141,10 @@ class PlotWidget(QtWidgets.QWidget):
         self.runner_list.clear_items()
 
         # Initialize combo box for selecting which athletes to draw
-        for athlete in athletes:
-            # Add athletes in the form "LastName, FirstName (BibNumber)"
-            self.runner_list.add_item(
-                f"{athlete[0]}, {athlete[1]} ({athlete[2]})", athlete[2]
-            )
+        # Add athletes in the form "LastName, FirstName (BibNumber)"
+        items = [f"{athlete[0]}, {athlete[1]} ({athlete[2]})" for athlete in athletes]
+        item_ids = [athlete[2] for athlete in athletes]
+        self.runner_list.add_items(items, item_ids)
 
         self.graph.plot(loc_values, judge_data, athletes)
 
