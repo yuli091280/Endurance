@@ -166,10 +166,22 @@ class DB:
             (race_id,),
         )
 
+    def get_bibs_by_race(self, race_id):
+        return self.execute_lookup_query(
+            "SELECT DISTINCT BibNumber FROM VideoObservation WHERE IDRace = ? AND LOCAverage IS NOT NULL",
+            (race_id,),
+        )
+
+    def get_loc_by_race_and_bib(self, race_id, bib):
+        return self.execute_lookup_query(
+            "SELECT LOCAverage, TOD as Time FROM VideoObservation WHERE IDRace = ? AND BibNumber = ? AND LOCAverage IS NOT NULL",
+            (race_id, bib)
+        )
+
     def get_judge_data_by_race_id(self, race_id):
         return self.execute_lookup_query(
-            "SELECT TOD AS Time, IDJudge, BibNumber, Infraction, Color FROM JudgeCall WHERE IDRace = ? ORDER BY "
-            "BibNumber, TOD",
+            "SELECT TOD AS Time, IDJudge, BibNumber, Infraction, Color FROM JudgeCall WHERE IDRace = ? "
+            "ORDER BY BibNumber, TOD",
             (race_id,),
         )
 

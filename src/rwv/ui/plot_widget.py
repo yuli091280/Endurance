@@ -103,21 +103,18 @@ class PlotWidget(QtWidgets.QWidget):
 
     def init_data_for_race(self, race_id):
         # Get LOC values to plot
-        loc_values = pd.DataFrame(
-            data=self.db.get_loc_values_by_race_id(race_id),
-            columns=["BibNumber", "LOCAverage", "Time"],
-        )
-        loc_values["Time"] = pd.to_datetime(loc_values["Time"], format="%H:%M:%S %p")
+        bibs = [bib[0] for bib in self.db.get_bibs_by_race(race_id)]
+        loc_values = dict()
+        for bib in bibs:
+            loc = self.db.get_loc_by_race_and_bib(race_id, bib)
+            loc_values[bib] = pd.DataFrame(data=loc, columns=["LOCAverage", "Time"])
+            loc_values[bib]["Time"] = pd.to_datetime(loc_values[bib]["Time"], format="%H:%M:%S %p")
 
-        # Grab athlete info for combo box and plots
-        bibs_with_data = loc_values["BibNumber"].unique()
         # Only add athletes that actually have data points to show
-        athletes = list(
-            filter(
-                lambda r: r[2] in bibs_with_data,
-                self.db.get_athletes_by_race_id(race_id),
-            )
-        )
+        athletes = []
+        for bib in bibs:
+            athlete = self.db.athlete_by_bib(bib)
+            athletes.append((athlete[2], athlete[1], bib))
 
         # Get judge data to plot
         judge_data = pd.DataFrame(

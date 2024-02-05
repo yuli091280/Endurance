@@ -107,8 +107,9 @@ class LocGraph:
 
         for index, (last_name, first_name, bib_number) in enumerate(athletes):
             # Remove null values from data, so we can use it to interpolate judge data later
-            runner_data = loc_values.query(f"BibNumber == {bib_number}")
+            runner_data = loc_values[bib_number]
 
+            print(runner_data)
             main_plot = sns.lineplot(
                 data=runner_data,
                 x="Time",
