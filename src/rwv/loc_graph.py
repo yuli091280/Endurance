@@ -1,6 +1,6 @@
 import numpy as np
-import seaborn as sns
 
+from matplotlib import pyplot
 from matplotlib.figure import Figure
 from matplotlib.text import OffsetFrom
 
@@ -94,6 +94,10 @@ class LocGraph:
         self.ax = self.fig.subplots()
         self.data_plots = {}
 
+        # setup colormap to avoid duplicate colors
+        colors = pyplot.cm.nipy_spectral(np.linspace(0, 1, len(athletes)))
+        self.ax.set_prop_cycle("color", colors)
+
         # Set plot title and axis labels
         self.ax.set_title(f"Racer LOC over Time w/ Max LOC = {self.max_loc_value} ms")
         self.ax.set_ylabel("Racer LOC (ms)")
@@ -106,19 +110,14 @@ class LocGraph:
         )
 
         for index, (last_name, first_name, bib_number) in enumerate(athletes):
-            # Remove null values from data, so we can use it to interpolate judge data later
             runner_data = loc_values[bib_number]
-
-            print(runner_data)
-            main_plot = sns.lineplot(
-                data=runner_data,
-                x="Time",
-                y="LOCAverage",
+            main_plot = self.ax.plot(
+                runner_data["Time"],
+                runner_data["LOCAverage"],
                 label=f"{last_name}, {first_name} ({bib_number})",
-                ax=self.ax,
                 marker="o",
                 visible=False,
-            ).lines[-1]
+            )[-1]
 
             judge_calls = judge_data.query(f"BibNumber == {bib_number}").copy()
 
