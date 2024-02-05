@@ -111,6 +111,8 @@ class PlotWidget(QtWidgets.QWidget):
             loc_values[bib]["Time"] = pd.to_datetime(
                 loc_values[bib]["Time"], format="%H:%M:%S %p"
             )
+            # can't sort with sql query because TOD is text for some goddamn reason
+            loc_values[bib].sort_values("Time", inplace=True, ignore_index=True)
 
         # Only add athletes that actually have data points to show
         athletes = []
