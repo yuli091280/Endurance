@@ -122,7 +122,7 @@ class LocGraph:
                 visible=False,
             )[-1]
 
-            judge_calls = judge_data.query(f"BibNumber == {bib_number}").copy()
+            judge_calls = judge_data[bib_number]
 
             judge_calls["LOCAverage"] = np.interp(
                 # Converts the datetimes to seconds since epoch, which is how matplotlib converts these internally

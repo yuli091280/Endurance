@@ -162,11 +162,11 @@ class DB:
             (race_id, bib),
         )
 
-    def get_judge_data_by_race_id(self, race_id):
+    def get_judge_data_by_race_and_bib(self, race_id, bib):
         return self.execute_lookup_query(
-            "SELECT TOD AS Time, IDJudge, BibNumber, Infraction, Color FROM JudgeCall WHERE IDRace = ? "
-            "ORDER BY BibNumber, TOD",
-            (race_id,),
+            "SELECT TOD AS Time, IDJudge, Infraction, Color FROM JudgeCall "
+            "WHERE IDRace = ? AND BibNumber = ?",
+            (race_id, bib),
         )
 
     def get_races(self):

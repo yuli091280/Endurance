@@ -114,18 +114,25 @@ class PlotWidget(QtWidgets.QWidget):
             # can't sort with sql query because TOD is text for some goddamn reason
             loc_values[bib].sort_values("Time", inplace=True, ignore_index=True)
 
-        # Only add athletes that actually have data points to show
+        # get athlete information
         athletes = []
         for bib in bibs:
             athlete = self.db.get_athlete_by_bib(bib)
             athletes.append((athlete[2], athlete[1], bib))
 
         # Get judge data to plot
-        judge_data = pd.DataFrame(
-            data=self.db.get_judge_data_by_race_id(race_id),
-            columns=["Time", "IDJudge", "BibNumber", "Infraction", "Color"],
-        )
-        judge_data["Time"] = pd.to_datetime(judge_data["Time"], format="%H:%M:%S %p")
+        judge_data = dict()
+        for bib in bibs:
+            data = self.db.get_judge_data_by_race_and_bib(race_id, bib)
+            judge_data[bib] = pd.DataFrame(
+                data=data, columns=["Time", "IDJudge", "Infraction", "Color"]
+            )
+            judge_data[bib]["Time"] = pd.to_datetime(
+                judge_data[bib]["Time"], format="%H:%M:%S %p"
+            )
+            # can't sort with sql query because TOD is text for some goddamn reason
+            judge_data[bib].sort_values("Time", inplace=True, ignore_index=True)
+        # TODO: combine code above this and the similar loc code somehow
 
         return loc_values, judge_data, athletes
 
