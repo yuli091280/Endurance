@@ -115,7 +115,7 @@ class PlotWidget(QtWidgets.QWidget):
         # Only add athletes that actually have data points to show
         athletes = []
         for bib in bibs:
-            athlete = self.db.athlete_by_bib(bib)
+            athlete = self.db.get_athlete_by_bib(bib)
             athletes.append((athlete[2], athlete[1], bib))
 
         # Get judge data to plot

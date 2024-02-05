@@ -29,7 +29,7 @@ class DB:
         )
         return DB.single_query_result(result)
 
-    def athlete_by_bib(self, bib_num):
+    def get_athlete_by_bib(self, bib_num):
         result = self.execute_lookup_query(
             "SELECT * FROM Athlete A "
             "JOIN Bib B ON A.IDAthlete = B.IDAthlete "
@@ -48,15 +48,6 @@ class DB:
         result = self.execute_lookup_query(
             "SELECT * FROM JudgeCall WHERE IDRace = ? AND BibNumber = ?",
             (race_id, bib_num),
-        )
-        return result
-
-    def get_athletes_by_race_id(self, race_id):
-        result = self.execute_lookup_query(
-            "SELECT LastName, FirstName, BibNumber FROM Athlete A "
-            "JOIN Bib B ON A.IDAthlete = B.IDAthlete WHERE IDRace = ? "
-            "ORDER BY B.BibNumber",
-            (race_id,),
         )
         return result
 
@@ -157,13 +148,6 @@ class DB:
             "GROUP BY A.IDAthlete "
             "ORDER BY B.BibNumber",
             (),
-        )
-
-    def get_loc_values_by_race_id(self, race_id):
-        return self.execute_lookup_query(
-            "SELECT BibNumber, LOCAverage, TOD as Time FROM VideoObservation WHERE IDRace = ? ORDER BY "
-            "BibNumber, TOD",
-            (race_id,),
         )
 
     def get_bibs_by_race(self, race_id):
