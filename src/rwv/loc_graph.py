@@ -24,7 +24,7 @@ class LocGraph:
         self.ax = self.fig.subplots()
 
         # Initialize dictionary to keep track of our plots, necessary for redrawing
-        self.data_plots = {}
+        self.data_plots = dict()
 
         # Initialize value to keep track of the max LOC
         self.max_loc_value = max_loc
@@ -33,6 +33,11 @@ class LocGraph:
         # Initialize booleans to keep track of bent knee/loc display state
         self.display_bent_knee = True
         self.display_loc = True
+
+    def reset(self):
+        self.fig.clear()
+        self.ax = self.fig.subplots()
+        self.data_plots = dict()
 
     def get_figure(self):
         return self.fig
@@ -90,9 +95,7 @@ class LocGraph:
                 plot_group.token_plots[3].set_visible(self.display_bent_knee)
 
     def plot(self, loc_values, judge_data, athletes):
-        self.fig.clear()
-        self.ax = self.fig.subplots()
-        self.data_plots = {}
+        self.reset()
 
         # setup colormap to avoid duplicate colors
         colors = pyplot.cm.nipy_spectral(np.linspace(0, 1, len(athletes)))
