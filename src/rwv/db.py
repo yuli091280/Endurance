@@ -175,7 +175,7 @@ class DB:
     def get_loc_by_race_and_bib(self, race_id, bib):
         return self.execute_lookup_query(
             "SELECT LOCAverage, TOD as Time FROM VideoObservation WHERE IDRace = ? AND BibNumber = ? AND LOCAverage IS NOT NULL",
-            (race_id, bib)
+            (race_id, bib),
         )
 
     def get_judge_data_by_race_id(self, race_id):

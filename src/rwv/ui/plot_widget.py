@@ -108,7 +108,9 @@ class PlotWidget(QtWidgets.QWidget):
         for bib in bibs:
             loc = self.db.get_loc_by_race_and_bib(race_id, bib)
             loc_values[bib] = pd.DataFrame(data=loc, columns=["LOCAverage", "Time"])
-            loc_values[bib]["Time"] = pd.to_datetime(loc_values[bib]["Time"], format="%H:%M:%S %p")
+            loc_values[bib]["Time"] = pd.to_datetime(
+                loc_values[bib]["Time"], format="%H:%M:%S %p"
+            )
 
         # Only add athletes that actually have data points to show
         athletes = []
