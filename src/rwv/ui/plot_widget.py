@@ -106,11 +106,16 @@ class PlotWidget(QtWidgets.QWidget):
         bibs = [bib[0] for bib in self.db.get_bibs_by_race(race_id)]
         loc_values = dict()
         for bib in bibs:
+            if bib is None:
+                raise ValueError(f"Video observation for race {race_id} contains a NULL BibNumber")
             loc = self.db.get_loc_by_race_and_bib(race_id, bib)
             loc_values[bib] = pd.DataFrame(data=loc, columns=["LOCAverage", "Time"])
-            loc_values[bib]["Time"] = pd.to_datetime(
-                loc_values[bib]["Time"], format="%H:%M:%S %p"
-            )
+            try:
+                loc_values[bib]["Time"] = pd.to_datetime(
+                    loc_values[bib]["Time"], format="%H:%M:%S %p"
+                )
+            except ValueError:
+                raise ValueError(f"Video observation for race {race_id} bib {bib} has invalid time value")
             # can't sort with sql query because TOD is text for some goddamn reason
             loc_values[bib].sort_values("Time", inplace=True, ignore_index=True)
 
@@ -127,9 +132,12 @@ class PlotWidget(QtWidgets.QWidget):
             judge_data[bib] = pd.DataFrame(
                 data=data, columns=["Time", "IDJudge", "Infraction", "Color"]
             )
-            judge_data[bib]["Time"] = pd.to_datetime(
-                judge_data[bib]["Time"], format="%H:%M:%S %p"
-            )
+            try:
+                judge_data[bib]["Time"] = pd.to_datetime(
+                    judge_data[bib]["Time"], format="%H:%M:%S %p"
+                )
+            except ValueError:
+                raise ValueError(f"Video observation for race {race_id} bib {bib} has invalid time value")
             # can't sort with sql query because TOD is text for some goddamn reason
             judge_data[bib].sort_values("Time", inplace=True, ignore_index=True)
         # TODO: combine code above this and the similar loc code somehow
