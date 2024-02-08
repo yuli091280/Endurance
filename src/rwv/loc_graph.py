@@ -190,6 +190,7 @@ class LocGraph:
 
         # Create a legend for the plot
         self.ax.legend(handles=[self.max_loc.main_plot])
+        self.fig.canvas.draw_idle()
 
     def redraw_annotations(self, plot_group, pos, text, previous_annotation=None):
         plot_group.annotation.xy = pos

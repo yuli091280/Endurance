@@ -167,19 +167,19 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         self.graph = graph
         super(MplCanvas, self).__init__(graph.get_figure())
         self.mpl_connect("motion_notify_event", self.graph.on_hover)
-        self.draw()
+        self.draw_idle()
 
     def redraw_loc(self, loc):
         self.graph.redraw_max_loc(loc)
-        self.draw()
+        self.draw_idle()
 
     def redraw_plot(self, selected_runners):
         self.graph.display_runners(selected_runners)
-        self.draw()
+        self.draw_idle()
 
     def redraw_points(self, point_type, visible):
         self.graph.display_points(point_type, visible)
-        self.draw()
+        self.draw_idle()
 
     def save_figure_as_pdf(self, file_path):
         self.figure.savefig(file_path)
