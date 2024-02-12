@@ -8,11 +8,14 @@ from rwv.ui.double_list import DoubleListWidget
 
 
 class PlotWidget(QtWidgets.QWidget):
-    def __init__(self, db):
+    def __init__(self, window, db):
         super().__init__()
 
         self.db = db
         races = db.get_races()
+
+        close_db_button = QtWidgets.QPushButton("Close current DB")
+        close_db_button.clicked.connect(window.reset)
 
         # Initialize combo box for selecting which race to fetch data for
         self.race_combo_box = QtWidgets.QComboBox(self)
@@ -84,6 +87,7 @@ class PlotWidget(QtWidgets.QWidget):
         button_layout.addWidget(self.bent_knee_checkbox)
         button_layout.addWidget(self.loc_checkbox)
 
+        layout.addWidget(close_db_button)
         layout.addWidget(toolbar)
         layout.addWidget(self.race_label)
         layout.addWidget(self.race_combo_box)

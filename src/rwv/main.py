@@ -16,7 +16,6 @@ def main():
 
     window = MainWindow(app.primaryScreen())
 
-    window.show()
     return app.exec()
 
 

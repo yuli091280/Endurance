@@ -8,20 +8,12 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, screen):
         super().__init__()
 
+        self.screen = screen
+
         # Set window title
         self.setWindowTitle("Race Walking Visualization")
 
-        layout = QtWidgets.QVBoxLayout()
-
-        db_button = QtWidgets.QPushButton("Open a new database", self)
-        db_button.clicked.connect(self.open_db)
-
-        # Tell window to use specified widget
-        self.setCentralWidget(db_button)
-
-        # center this window
-        self.screen = screen
-        self.move(self.screen.geometry().center() - self.frameGeometry().center())
+        self.reset()
 
     def open_db(self):
         """Event handler for when the user opens a new db"""
@@ -35,6 +27,25 @@ class MainWindow(QtWidgets.QMainWindow):
 
         db = DB(file_path)
         self.hide()
-        plot_widget = PlotWidget(db)
+        plot_widget = PlotWidget(self, db)
         self.setCentralWidget(plot_widget)
+
+        # center this window
+        self.move(self.screen.geometry().center() - self.frameGeometry().center())
+        self.show()
+
+    def reset(self):
+        """Return the main window to before a DB was opened"""
+
+        self.hide()
+        layout = QtWidgets.QVBoxLayout()
+
+        db_button = QtWidgets.QPushButton("Open a new database", self)
+        db_button.clicked.connect(self.open_db)
+
+        # Tell window to use specified widget
+        self.setCentralWidget(db_button)
+
+        # center this window
+        self.move(self.screen.geometry().center() - self.frameGeometry().center())
         self.show()
