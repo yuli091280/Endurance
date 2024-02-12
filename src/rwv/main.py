@@ -12,6 +12,10 @@ matplotlib.use("QtAgg")
 
 
 def main():
+    """Entry point for this app.
+    
+    :returns: 0 if the app exited properly, an error code otherwise.
+    """
     app = QApplication(sys.argv)
 
     window = MainWindow(app.primaryScreen())

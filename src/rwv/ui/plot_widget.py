@@ -9,6 +9,11 @@ from rwv.ui.double_list import DoubleListWidget
 
 class PlotWidget(QtWidgets.QWidget):
     def __init__(self, window, db):
+        """Creates a new widget containing the plot and its controls
+
+        :param window: The window where this widget will be on.
+        :param db: The database this widget will use in order to graph.
+        """
         super().__init__()
 
         self.db = db
