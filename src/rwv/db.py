@@ -30,6 +30,14 @@ class DB:
         return DB.single_query_result(result)
 
     def get_athlete_by_race_and_bib(self, race_id, bib_num):
+        """Query this database for athlete information matching the given race id and bib number
+
+        :param self: this db instance
+        :param race_id: race id for this query
+        :param bib_num: bib number for this query
+
+        :returns: a list of athlete information, each athlete will have their information in a tuple
+        """
         result = self.execute_lookup_query(
             "SELECT * FROM Athlete A "
             "JOIN Bib B ON A.IDAthlete = B.IDAthlete "
@@ -151,6 +159,13 @@ class DB:
         )
 
     def get_bibs_by_race(self, race_id):
+        """Query this database for all bib numbers of a race.
+
+        :param self: This db instance.
+        :param race_id: Race id for this query.
+
+        :returns: A list of bib numbers.
+        """
         return self.execute_lookup_query(
             "SELECT DISTINCT BibNumber FROM VideoObservation "
             "WHERE IDRace = ? AND LOCAverage IS NOT NULL",
@@ -158,6 +173,14 @@ class DB:
         )
 
     def get_loc_by_race_and_bib(self, race_id, bib):
+        """Query this database for LOC information matching the given race id and bib number.
+
+        :param self: This db instance.
+        :param race_id: Race id for this query.
+        :param bib_num: Bib number for this query.
+
+        :returns: A list of LOC information in the database, each instance is a tuple of (LOC value, Time of day).
+        """
         return self.execute_lookup_query(
             "SELECT LOCAverage, TOD as Time FROM VideoObservation "
             "WHERE IDRace = ? AND BibNumber = ? AND LOCAverage IS NOT NULL",

@@ -20,6 +20,14 @@ class PlotGroup:
 # LocGraph showing loc for each selected runner with judge calls placed on top if requested
 class LocGraph:
     def __init__(self, width=5, height=4, dpi=100, max_loc=60):
+        """Create the graph object where LOC values are graphed.
+
+        :param self: This LocGraph instance.
+        :param width: Width of the canvas in inches.
+        :param height: Height of the canvase in inches.
+        :param dpi: Dots per inch of the canvas.
+        :param max_loc: The LOC value in which a line is drawn.
+        """
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.ax = self.fig.subplots()
 
@@ -35,6 +43,10 @@ class LocGraph:
         self.display_loc = True
 
     def reset(self):
+        """Reset this graph object to before any LOC values were graphed.
+
+        :param self: This LocGraph instance.
+        """
         self.fig.clear()
         self.ax = self.fig.subplots()
         self.data_plots = dict()
@@ -95,6 +107,13 @@ class LocGraph:
                 plot_group.token_plots[3].set_visible(self.display_bent_knee)
 
     def plot(self, loc_values, judge_data, athletes):
+        """Plot the given LOC values as well as judge calls, and make them invisible.
+
+        :param self: This LocGraph instance.
+        :param loc_values: The LOC values to graph.
+        :param judge_data: The judge calls to graph.
+        :param athletes: Information for each athlete that is graphed.
+        """
         self.reset()
 
         # setup colormap to avoid duplicate colors

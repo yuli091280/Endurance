@@ -102,6 +102,13 @@ class PlotWidget(QtWidgets.QWidget):
         self.setLayout(layout)
 
     def init_data_for_race(self, race_id):
+        """Fetch all data for a given race from the database and prepare the data to be graphed.
+
+        :param self: This plotWidget instance.
+        :param race_id: Id of the race to fetch data for.
+
+        :returns: A tuple of (loc values, judge calls, athlete information) for use in plotting by the LocGraph.
+        """
         # Get LOC values to plot
         bibs = [bib[0] for bib in self.db.get_bibs_by_race(race_id)]
         loc_values = dict()
@@ -164,22 +171,47 @@ class PlotWidget(QtWidgets.QWidget):
 
 class MplCanvas(mlp_backend.FigureCanvasQTAgg):
     def __init__(self, graph):
+        """Create the canvas that will display our graph.
+
+        :param self: This MplCanvas instance.
+        :param graph: The graph object to be displayed.
+        """
         self.graph = graph
         super(MplCanvas, self).__init__(graph.get_figure())
         self.mpl_connect("motion_notify_event", self.graph.on_hover)
         self.draw_idle()
 
     def redraw_loc(self, loc):
+        """Redraw the loc line based on request.
+
+        :param self: This MplCanvas instance.
+        :param loc: The loc value where the new line should be drawn.
+        """
         self.graph.redraw_max_loc(loc)
         self.draw_idle()
 
     def redraw_plot(self, selected_runners):
+        """Show points for selected athletes, and hide those that were not selected.
+
+        :param self: This MplCanvas instance.
+        :param selected_runners: The athletes that should be shown.
+        """
         self.graph.display_runners(selected_runners)
         self.draw_idle()
 
     def redraw_points(self, point_type, visible):
+        """Show or hide points for the given type.
+
+        :param self: This MplCanvas instance.
+        :param point_type: The type of point to be changed.
+        :param visible: If the point type being changed should be visible.
+        """
         self.graph.display_points(point_type, visible)
         self.draw_idle()
 
     def save_figure_as_pdf(self, file_path):
+        """Save the currently visible graph as a PDF.
+
+        :param file_path: The file path to save the PDF to.
+        """
         self.figure.savefig(file_path)
