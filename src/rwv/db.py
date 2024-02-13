@@ -2,6 +2,12 @@ import sqlite3
 
 
 class DB:
+    """
+    Class that handles storing the used database.
+
+    :param db_path: Path to the database file.
+    :param db_path: str
+    """
     def __init__(self, db_path):
         self.connection = sqlite3.connect(db_path)
 
@@ -9,6 +15,16 @@ class DB:
         self.connection.close()
 
     def execute_lookup_query(self, query, params):
+        """
+        Executes the sql query
+
+        :param query: sql query to run.
+        :param query: str
+        :param params: parameter to pass to sql query..
+        :param params: list[str]
+        :return: Data returned from sql query.
+        :rtype: list[str]
+        """
         cursor = self.connection.cursor()
         cursor.execute(query, params)
         result = cursor.fetchall()
@@ -18,18 +34,42 @@ class DB:
 
     @staticmethod
     def single_query_result(query_result):
+        """
+        Executes the sql query for only the first item
+
+        :param query_result: sql query to run.
+        :param query_result: str
+        :return: Data returned from sql query.
+        :rtype: str
+        """
         if len(query_result) > 0:
             return query_result[0]
         else:
             return None
 
     def judge_by_id(self, judge_id):
+        """
+        Returns judge based on id.
+
+        :param judge_id: Judge id
+        :param judge_id: str
+        :return: Judge based on id.
+        :rtype: list[str]
+        """
         result = self.execute_lookup_query(
             "SELECT * FROM Judge WHERE IDJudge = ?", (judge_id,)
         )
         return DB.single_query_result(result)
 
     def athlete_by_bib(self, bib_num):
+        """
+        Returns athlete based on bib number.
+
+        :param bib_num: bib number
+        :param bib_num: str
+        :return: Athlete based on bib number.
+        :rtype: list[str]
+        """
         result = self.execute_lookup_query(
             "SELECT * FROM Athlete A "
             "JOIN Bib B ON A.IDAthlete = B.IDAthlete "
@@ -39,6 +79,14 @@ class DB:
         return DB.single_query_result(result)
 
     def race_by_id(self, race_id):
+        """
+        Returns race based on race id.
+
+        :param race_id: race id
+        :param race_id: str
+        :return: Race based on race id.
+        :rtype: list[str]
+        """
         result = self.execute_lookup_query(
             "SELECT * FROM Race WHERE IDRace = ?", (race_id,)
         )

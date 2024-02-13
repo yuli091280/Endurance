@@ -3,6 +3,12 @@ from PyQt6.QtWidgets import QListWidgetItem
 
 
 class DoubleListWidget(QtWidgets.QWidget):
+    """
+    Double List UI Widget
+
+    :arg fig: The LocGraph stored in the class.
+    :arg fig: LocGraph
+    """
     item_moved = QtCore.pyqtSignal()
 
     def __init__(self, comparison=None):

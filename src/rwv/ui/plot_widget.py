@@ -8,6 +8,12 @@ from rwv.ui.double_list import DoubleListWidget
 
 
 class PlotWidget(QtWidgets.QWidget):
+    """
+    PlotWidget sets up the plot for the race walking data.
+
+    :param db: The database object that the PlotWidget will get data from.
+    :type db: DB
+    """
     def __init__(self, db):
         super().__init__()
 
@@ -102,6 +108,14 @@ class PlotWidget(QtWidgets.QWidget):
         self.setLayout(layout)
 
     def init_data_for_race(self, race_id):
+        """
+        Returns data found in the race based on id.
+
+        :param race_id: The ID of the race to initialize data for.
+        :type race_id: int
+        :return: A tuple containing location values, judge data, and athletes.
+        :rtype: tuple
+        """
         # Get LOC values to plot
         loc_values = pd.DataFrame(
             data=self.db.get_loc_values_by_race_id(race_id),
@@ -129,6 +143,9 @@ class PlotWidget(QtWidgets.QWidget):
         return loc_values, judge_data, athletes
 
     def init_interface_for_race(self):
+        """
+        Plots the data based on the current race selected.
+        """
         loc_values, judge_data, athletes = self.init_data_for_race(
             self.race_combo_box.currentData()
         )
@@ -145,6 +162,9 @@ class PlotWidget(QtWidgets.QWidget):
         self.graph.plot(loc_values, judge_data, athletes)
 
     def save_current_graph_as_pdf(self):
+        """
+        Saves current graph as a PDF.
+        """
         file_path, _ = QtWidgets.QFileDialog.getSaveFileName(
             self, "Save File", "", "PDF Files (*.pdf)"
         )
@@ -155,6 +175,12 @@ class PlotWidget(QtWidgets.QWidget):
 
 
 class MplCanvas(mlp_backend.FigureCanvasQTAgg):
+    """
+    MplCanvas sets up the graph canvas.
+
+    :param graph: The graph object being passed to display on the canvas.
+    :type graph: LocGraph
+    """
     def __init__(self, graph):
         self.graph = graph
         super(MplCanvas, self).__init__(graph.get_figure())
@@ -162,16 +188,42 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         self.draw()
 
     def redraw_loc(self, loc):
+        """
+        Draws the max loc line on the graph.
+
+        :param loc: The max loc value.
+        :type loc: int
+        """
         self.graph.redraw_max_loc(loc)
         self.draw()
 
     def redraw_plot(self, selected_runners):
+        """
+        Redraws the graph with the runners list.
+
+        :param selected_runners: An array of runners.
+        :type selected_runners: list[str]
+        """
         self.graph.display_runners(selected_runners)
         self.draw()
 
     def redraw_points(self, point_type, visible):
+        """
+        Redraw the specific point type.
+
+        :param point_type: The point type to draw.
+        :type point_type: str
+        :param visible: Is the point visible
+        :type visible: bool
+        """
         self.graph.display_points(point_type, visible)
         self.draw()
 
     def save_figure_as_pdf(self, file_path):
+        """
+        Saves the graph as a pdf at a file path.
+
+        :param file_path: The file path to save the pdf at.
+        :type file_path: str
+        """
         self.figure.savefig(file_path)
