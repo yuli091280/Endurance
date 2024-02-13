@@ -1,6 +1,6 @@
 import numpy as np
-import seaborn as sns
 
+from matplotlib import pyplot
 from matplotlib.figure import Figure
 from matplotlib.text import OffsetFrom
 
@@ -20,11 +20,19 @@ class PlotGroup:
 # LocGraph showing loc for each selected runner with judge calls placed on top if requested
 class LocGraph:
     def __init__(self, width=5, height=4, dpi=100, max_loc=60):
+        """Create the graph object where LOC values are graphed.
+
+        :param self: This LocGraph instance.
+        :param width: Width of the canvas in inches.
+        :param height: Height of the canvase in inches.
+        :param dpi: Dots per inch of the canvas.
+        :param max_loc: The LOC value in which a line is drawn.
+        """
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.ax = self.fig.subplots()
 
         # Initialize dictionary to keep track of our plots, necessary for redrawing
-        self.data_plots = {}
+        self.data_plots = dict()
 
         # Initialize value to keep track of the max LOC
         self.max_loc_value = max_loc
@@ -33,6 +41,15 @@ class LocGraph:
         # Initialize booleans to keep track of bent knee/loc display state
         self.display_bent_knee = True
         self.display_loc = True
+
+    def reset(self):
+        """Reset this graph object to before any LOC values were graphed.
+
+        :param self: This LocGraph instance.
+        """
+        self.fig.clear()
+        self.ax = self.fig.subplots()
+        self.data_plots = dict()
 
     def get_figure(self):
         return self.fig
@@ -90,9 +107,18 @@ class LocGraph:
                 plot_group.token_plots[3].set_visible(self.display_bent_knee)
 
     def plot(self, loc_values, judge_data, athletes):
-        self.fig.clear()
-        self.ax = self.fig.subplots()
-        self.data_plots = {}
+        """Plot the given LOC values as well as judge calls, and make them invisible.
+
+        :param self: This LocGraph instance.
+        :param loc_values: The LOC values to graph.
+        :param judge_data: The judge calls to graph.
+        :param athletes: Information for each athlete that is graphed.
+        """
+        self.reset()
+
+        # setup colormap to avoid duplicate colors
+        colors = pyplot.cm.nipy_spectral(np.linspace(0, 1, len(athletes)))
+        self.ax.set_prop_cycle("color", colors)
 
         # Set plot title and axis labels
         self.ax.set_title(f"Racer LOC over Time w/ Max LOC = {self.max_loc_value} ms")
@@ -106,20 +132,16 @@ class LocGraph:
         )
 
         for index, (last_name, first_name, bib_number) in enumerate(athletes):
-            # Remove null values from data, so we can use it to interpolate judge data later
-            runner_data = loc_values.query(f"BibNumber == {bib_number}")
-
-            main_plot = sns.lineplot(
-                data=runner_data,
-                x="Time",
-                y="LOCAverage",
+            runner_data = loc_values[bib_number]
+            main_plot = self.ax.plot(
+                runner_data["Time"],
+                runner_data["LOCAverage"],
                 label=f"{last_name}, {first_name} ({bib_number})",
-                ax=self.ax,
                 marker="o",
                 visible=False,
-            ).lines[-1]
+            )[-1]
 
-            judge_calls = judge_data.query(f"BibNumber == {bib_number}").copy()
+            judge_calls = judge_data[bib_number]
 
             judge_calls["LOCAverage"] = np.interp(
                 # Converts the datetimes to seconds since epoch, which is how matplotlib converts these internally
@@ -187,6 +209,7 @@ class LocGraph:
 
         # Create a legend for the plot
         self.ax.legend(handles=[self.max_loc.main_plot])
+        self.fig.canvas.draw_idle()
 
     def redraw_annotations(self, plot_group, pos, text, previous_annotation=None):
         plot_group.annotation.xy = pos

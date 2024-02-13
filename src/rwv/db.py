@@ -29,12 +29,20 @@ class DB:
         )
         return DB.single_query_result(result)
 
-    def athlete_by_bib(self, bib_num):
+    def get_athlete_by_race_and_bib(self, race_id, bib_num):
+        """Query this database for athlete information matching the given race id and bib number
+
+        :param self: this db instance
+        :param race_id: race id for this query
+        :param bib_num: bib number for this query
+
+        :returns: a list of athlete information, each athlete will have their information in a tuple
+        """
         result = self.execute_lookup_query(
             "SELECT * FROM Athlete A "
             "JOIN Bib B ON A.IDAthlete = B.IDAthlete "
-            "WHERE B.BibNumber = ?",
-            (bib_num,),
+            "WHERE B.BibNumber = ? AND B.IDRace = ?",
+            (bib_num, race_id),
         )
         return DB.single_query_result(result)
 
@@ -48,15 +56,6 @@ class DB:
         result = self.execute_lookup_query(
             "SELECT * FROM JudgeCall WHERE IDRace = ? AND BibNumber = ?",
             (race_id, bib_num),
-        )
-        return result
-
-    def get_athletes_by_race_id(self, race_id):
-        result = self.execute_lookup_query(
-            "SELECT LastName, FirstName, BibNumber FROM Athlete A "
-            "JOIN Bib B ON A.IDAthlete = B.IDAthlete WHERE IDRace = ? "
-            "ORDER BY B.BibNumber",
-            (race_id,),
         )
         return result
 
@@ -159,18 +158,40 @@ class DB:
             (),
         )
 
-    def get_loc_values_by_race_id(self, race_id):
+    def get_bibs_by_race(self, race_id):
+        """Query this database for all bib numbers of a race.
+
+        :param self: This db instance.
+        :param race_id: Race id for this query.
+
+        :returns: A list of bib numbers.
+        """
         return self.execute_lookup_query(
-            "SELECT BibNumber, LOCAverage, TOD as Time FROM VideoObservation WHERE IDRace = ? ORDER BY "
-            "BibNumber, TOD",
+            "SELECT DISTINCT BibNumber FROM VideoObservation "
+            "WHERE IDRace = ? AND LOCAverage IS NOT NULL",
             (race_id,),
         )
 
-    def get_judge_data_by_race_id(self, race_id):
+    def get_loc_by_race_and_bib(self, race_id, bib):
+        """Query this database for LOC information matching the given race id and bib number.
+
+        :param self: This db instance.
+        :param race_id: Race id for this query.
+        :param bib_num: Bib number for this query.
+
+        :returns: A list of LOC information in the database, each instance is a tuple of (LOC value, Time of day).
+        """
         return self.execute_lookup_query(
-            "SELECT TOD AS Time, IDJudge, BibNumber, Infraction, Color FROM JudgeCall WHERE IDRace = ? ORDER BY "
-            "BibNumber, TOD",
-            (race_id,),
+            "SELECT LOCAverage, TOD as Time FROM VideoObservation "
+            "WHERE IDRace = ? AND BibNumber = ? AND LOCAverage IS NOT NULL",
+            (race_id, bib),
+        )
+
+    def get_judge_data_by_race_and_bib(self, race_id, bib):
+        return self.execute_lookup_query(
+            "SELECT TOD AS Time, IDJudge, Infraction, Color FROM JudgeCall "
+            "WHERE IDRace = ? AND BibNumber = ?",
+            (race_id, bib),
         )
 
     def get_races(self):
