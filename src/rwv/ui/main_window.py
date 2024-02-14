@@ -4,6 +4,12 @@ from rwv.ui.plot_widget import PlotWidget
 
 
 class MainWindow(QtWidgets.QMainWindow):
+    """
+    The main window to draw.
+
+    :param db: The database to draw the PlotWidget of.
+    :type db: DB
+    """
     def __init__(self, db):
         super().__init__()
 

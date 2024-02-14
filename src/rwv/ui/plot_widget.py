@@ -108,6 +108,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.setLayout(layout)
 
     def init_data_for_race(self, race_id):
+
         """
         Returns data found in the race based on id.
 
@@ -117,28 +118,36 @@ class PlotWidget(QtWidgets.QWidget):
         :rtype: tuple
         """
         # Get LOC values to plot
-        loc_values = pd.DataFrame(
-            data=self.db.get_loc_values_by_race_id(race_id),
-            columns=["BibNumber", "LOCAverage", "Time"],
-        )
-        loc_values["Time"] = pd.to_datetime(loc_values["Time"], format="%H:%M:%S %p")
-
-        # Grab athlete info for combo box and plots
-        bibs_with_data = loc_values["BibNumber"].unique()
-        # Only add athletes that actually have data points to show
-        athletes = list(
-            filter(
-                lambda r: r[2] in bibs_with_data,
-                self.db.get_athletes_by_race_id(race_id),
+        bibs = [bib[0] for bib in self.db.get_bibs_by_race(race_id)]
+        loc_values = dict()
+        for bib in bibs:
+            loc = self.db.get_loc_by_race_and_bib(race_id, bib)
+            loc_values[bib] = pd.DataFrame(data=loc, columns=["LOCAverage", "Time"])
+            loc_values[bib]["Time"] = pd.to_datetime(
+                loc_values[bib]["Time"], format="%H:%M:%S %p"
             )
-        )
+            # can't sort with sql query because TOD is text for some goddamn reason
+            loc_values[bib].sort_values("Time", inplace=True, ignore_index=True)
+
+        # get athlete information
+        athletes = []
+        for bib in bibs:
+            athlete = self.db.get_athlete_by_race_and_bib(race_id, bib)
+            athletes.append((athlete[2], athlete[1], bib))
 
         # Get judge data to plot
-        judge_data = pd.DataFrame(
-            data=self.db.get_judge_data_by_race_id(race_id),
-            columns=["Time", "IDJudge", "BibNumber", "Infraction", "Color"],
-        )
-        judge_data["Time"] = pd.to_datetime(judge_data["Time"], format="%H:%M:%S %p")
+        judge_data = dict()
+        for bib in bibs:
+            data = self.db.get_judge_data_by_race_and_bib(race_id, bib)
+            judge_data[bib] = pd.DataFrame(
+                data=data, columns=["Time", "IDJudge", "Infraction", "Color"]
+            )
+            judge_data[bib]["Time"] = pd.to_datetime(
+                judge_data[bib]["Time"], format="%H:%M:%S %p"
+            )
+            # can't sort with sql query because TOD is text for some goddamn reason
+            judge_data[bib].sort_values("Time", inplace=True, ignore_index=True)
+        # TODO: combine code above this and the similar loc code somehow
 
         return loc_values, judge_data, athletes
 
@@ -182,20 +191,25 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
     :type graph: LocGraph
     """
     def __init__(self, graph):
+        """Create the canvas that will display our graph.
+
+        :param self: This MplCanvas instance.
+        :param graph: The graph object to be displayed.
+        """
         self.graph = graph
         super(MplCanvas, self).__init__(graph.get_figure())
         self.mpl_connect("motion_notify_event", self.graph.on_hover)
-        self.draw()
+        self.draw_idle()
 
     def redraw_loc(self, loc):
         """
-        Draws the max loc line on the graph.
+        Redraw the loc line based on request.
 
-        :param loc: The max loc value.
-        :type loc: int
+        :param self: This MplCanvas instance.
+        :param loc: The loc value where the new line should be drawn.
         """
         self.graph.redraw_max_loc(loc)
-        self.draw()
+        self.draw_idle()
 
     def redraw_plot(self, selected_runners):
         """
@@ -205,7 +219,7 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         :type selected_runners: list[str]
         """
         self.graph.display_runners(selected_runners)
-        self.draw()
+        self.draw_idle()
 
     def redraw_points(self, point_type, visible):
         """
@@ -217,7 +231,7 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         :type visible: bool
         """
         self.graph.display_points(point_type, visible)
-        self.draw()
+        self.draw_idle()
 
     def save_figure_as_pdf(self, file_path):
         """
