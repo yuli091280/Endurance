@@ -7,12 +7,13 @@ class DoubleListWidget(QtWidgets.QWidget):
     Double List UI Widget
 
     :param comparison: The optional comparison function.
-    :param comparison: function or None
+    :type comparison: function or None
     """
-    item_moved = QtCore.pyqtSignal()
 
     def __init__(self, comparison=None):
         super().__init__()
+
+        self.item_moved = QtCore.pyqtSignal()
 
         # Store the comparison function
         self._comparison = comparison

@@ -193,7 +193,6 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
     def __init__(self, graph):
         """Create the canvas that will display our graph.
 
-        :param self: This MplCanvas instance.
         :param graph: The graph object to be displayed.
         """
         self.graph = graph
@@ -205,7 +204,6 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         """
         Redraw the loc line based on request.
 
-        :param self: This MplCanvas instance.
         :param loc: The loc value where the new line should be drawn.
         """
         self.graph.redraw_max_loc(loc)
