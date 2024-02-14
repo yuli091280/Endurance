@@ -5,12 +5,12 @@ from rwv.db import DB
 
 
 class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self, screen):
-        """Creates the main window of this app.
+    """Main window for the app.
 
-        :param self: This MainWindow instance.
-        :param screen: The QScreen this app will be displayed on.
-        """
+    :param screen: The screen this app will be displayed on.
+    :type screen: QScreen
+    """
+    def __init__(self, screen):
         super().__init__()
 
         self.screen = screen
@@ -22,8 +22,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_db(self):
         """Event handler for when the user opens a new db.
-
-        :param self: This MainWindow instance.
         """
 
         file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
@@ -44,8 +42,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def reset(self):
         """Return the main window to before a DB was opened.
-
-        :param self: This MainWindow instance.
         """
 
         self.hide()
