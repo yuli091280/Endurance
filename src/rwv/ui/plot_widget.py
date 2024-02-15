@@ -94,9 +94,13 @@ class PlotWidget(QtWidgets.QWidget):
         layout.addLayout(button_layout)
         layout.addWidget(self.canvas)
 
-        self.save_button = QtWidgets.QPushButton("Save Graph as PDF", self)
-        self.save_button.clicked.connect(self.save_current_graph_as_pdf)
-        layout.addWidget(self.save_button)
+        self.save_pdf_button = QtWidgets.QPushButton("Save Graph as PDF", self)
+        self.save_pdf_button.clicked.connect(self.save_current_graph_as_pdf)
+        layout.addWidget(self.save_pdf_button)
+
+        self.save_jpeg_button = QtWidgets.QPushButton("Save Graph as JPEG", self)
+        self.save_jpeg_button.clicked.connect(self.save_current_graph_as_jpeg)
+        layout.addWidget(self.save_jpeg_button)
 
         # Tell widget to use specified layout
         self.setLayout(layout)
@@ -176,6 +180,13 @@ class PlotWidget(QtWidgets.QWidget):
                 file_path += ".pdf"
             self.canvas.save_figure_as_pdf(file_path)
 
+    def save_current_graph_as_jpeg(self):
+        file_path = QtWidgets.QFileDialog.getSaveFileName(self, "Save Graph as JPEG", "", "JPEG Files (*.jpeg;*.jpg)")
+        file_path=file_path[0]
+        if file_path:
+            if not file_path.endswith(('.jpeg','.jpg')):
+                file_path += '.jpeg'
+            self.canvas.save_figure_as_jpeg(file_path) 
 
 class MplCanvas(mlp_backend.FigureCanvasQTAgg):
     """
@@ -235,3 +246,6 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         :type file_path: str
         """
         self.figure.savefig(file_path)
+
+    def save_figure_as_jpeg(self, file_path):
+        self.figure.savefig(file_path, format='jpeg')
