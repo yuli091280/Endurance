@@ -102,12 +102,14 @@ class PlotWidget(QtWidgets.QWidget):
         self.setLayout(layout)
 
     def init_data_for_race(self, race_id):
-        """Fetch all data for a given race from the database and prepare the data to be graphed.
 
-        :param self: This plotWidget instance.
-        :param race_id: Id of the race to fetch data for.
+        """
+        Returns data found in the race based on id.
 
-        :returns: A tuple of (loc values, judge calls, athlete information) for use in plotting by the LocGraph.
+        :param race_id: The ID of the race to initialize data for.
+        :type race_id: int
+        :return: A tuple containing location values, judge data, and athletes.
+        :rtype: tuple
         """
         # Get LOC values to plot
         bibs = [bib[0] for bib in self.db.get_bibs_by_race(race_id)]
@@ -144,6 +146,9 @@ class PlotWidget(QtWidgets.QWidget):
         return loc_values, judge_data, athletes
 
     def init_interface_for_race(self):
+        """
+        Plots the data based on the current race selected.
+        """
         loc_values, judge_data, athletes = self.init_data_for_race(
             self.race_combo_box.currentData()
         )
@@ -160,6 +165,9 @@ class PlotWidget(QtWidgets.QWidget):
         self.graph.plot(loc_values, judge_data, athletes)
 
     def save_current_graph_as_pdf(self):
+        """
+        Saves current graph as a PDF.
+        """
         file_path, _ = QtWidgets.QFileDialog.getSaveFileName(
             self, "Save File", "", "PDF Files (*.pdf)"
         )
@@ -170,11 +178,17 @@ class PlotWidget(QtWidgets.QWidget):
 
 
 class MplCanvas(mlp_backend.FigureCanvasQTAgg):
+    """
+    MplCanvas sets up the graph canvas.
+
+    :param graph: The graph object being passed to display on the canvas.
+    :type graph: LocGraph
+    """
     def __init__(self, graph):
         """Create the canvas that will display our graph.
 
-        :param self: This MplCanvas instance.
         :param graph: The graph object to be displayed.
+        :type graph: LocGraph
         """
         self.graph = graph
         super(MplCanvas, self).__init__(graph.get_figure())
@@ -182,36 +196,42 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         self.draw_idle()
 
     def redraw_loc(self, loc):
-        """Redraw the loc line based on request.
+        """
+        Redraw the loc line based on request.
 
-        :param self: This MplCanvas instance.
         :param loc: The loc value where the new line should be drawn.
+        :type loc: int
         """
         self.graph.redraw_max_loc(loc)
         self.draw_idle()
 
     def redraw_plot(self, selected_runners):
-        """Show points for selected athletes, and hide those that were not selected.
+        """
+        Redraws the graph with the runners list.
 
-        :param self: This MplCanvas instance.
-        :param selected_runners: The athletes that should be shown.
+        :param selected_runners: An array of runners.
+        :type selected_runners: list[str]
         """
         self.graph.display_runners(selected_runners)
         self.draw_idle()
 
     def redraw_points(self, point_type, visible):
-        """Show or hide points for the given type.
+        """
+        Redraw the specific point type.
 
-        :param self: This MplCanvas instance.
-        :param point_type: The type of point to be changed.
-        :param visible: If the point type being changed should be visible.
+        :param point_type: The point type to draw.
+        :type point_type: str
+        :param visible: Is the point visible
+        :type visible: bool
         """
         self.graph.display_points(point_type, visible)
         self.draw_idle()
 
     def save_figure_as_pdf(self, file_path):
-        """Save the currently visible graph as a PDF.
+        """
+        Saves the graph as a pdf at a file path.
 
-        :param file_path: The file path to save the PDF to.
+        :param file_path: The file path to save the pdf at.
+        :type file_path: str
         """
         self.figure.savefig(file_path)

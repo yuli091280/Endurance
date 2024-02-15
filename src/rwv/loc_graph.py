@@ -8,6 +8,16 @@ import matplotlib.dates as mpl_dates
 
 
 class PlotGroup:
+    """
+    PlotGroup is the grouping of the plot.
+
+    :param main_plot: The main plot data.
+    :type main_plot: list[str]
+    :param annotation: The main plot data.
+    :type annotation: list[str]
+    :param token_plots: Token plots
+    :type token_plots: list[str]
+    """
     def __init__(self, main_plot, annotation=None, token_plots=None):
         if token_plots is None:
             token_plots = []
@@ -19,6 +29,18 @@ class PlotGroup:
 
 # LocGraph showing loc for each selected runner with judge calls placed on top if requested
 class LocGraph:
+    """
+    LocGraph is the class holding Loc Graph.
+
+    :param width: Graph width
+    :type width: int
+    :param height: Graph height.
+    :type height: int
+    :param dpi: dpi value
+    :type dpi: int
+    :param max_loc: Max Loc line value.
+    :type max_loc: int
+    """
     def __init__(self, width=5, height=4, dpi=100, max_loc=60):
         """Create the graph object where LOC values are graphed.
 
@@ -52,14 +74,32 @@ class LocGraph:
         self.data_plots = dict()
 
     def get_figure(self):
+        """
+        Get the Matplotlib figure this class is using to plot.
+
+        :return fig: The LocGraph stored in the class.
+        :return fig: Figure
+        """
         return self.fig
 
     def redraw_max_loc(self, loc):
+        """
+        Redraws a max loc line on the plot along with a title.
+
+        :param loc: The loc value.
+        :type loc: int
+        """
         self.max_loc_value = loc
         self.ax.set_title(f"Racer LOC over Time w/ Max LOC = {self.max_loc_value} ms")
         self.max_loc.main_plot.set_ydata([loc, loc])
 
     def display_runners(self, selected_runners):
+        """
+        Displays runners on the graph.
+
+        :param selected_runners: A dictionary of runners to display, with their bib numbers as the key.
+        :type selected_runners: dict[any]
+        """
         # Set up a list of visible lines to draw the legend from
         visible_lines = [self.max_loc]
 
@@ -92,6 +132,14 @@ class LocGraph:
         self.ax.legend(handles=[line.main_plot for line in visible_lines])
 
     def display_points(self, point_type, visible):
+        """
+        Change visibility of selected point type on the graph.
+
+        :param point_type: String representing the point type.
+        :type point_type: str
+        :param visible: Visibility of the point.
+        :type visible: bool
+        """
         # No data variable, so we have to match to the label
         if point_type == "Bent Knee":
             self.display_bent_knee = visible
@@ -107,12 +155,15 @@ class LocGraph:
                 plot_group.token_plots[3].set_visible(self.display_bent_knee)
 
     def plot(self, loc_values, judge_data, athletes):
-        """Plot the given LOC values as well as judge calls, and make them invisible.
+        """
+        Plot the given LOC values as well as judge calls, and make them invisible.
 
-        :param self: This LocGraph instance.
         :param loc_values: The LOC values to graph.
+        :type loc_values: list[int]
         :param judge_data: The judge calls to graph.
+        :type judge_data: list[int]
         :param athletes: Information for each athlete that is graphed.
+        :type athletes: list[str]
         """
         self.reset()
 
@@ -212,6 +263,9 @@ class LocGraph:
         self.fig.canvas.draw_idle()
 
     def redraw_annotations(self, plot_group, pos, text, previous_annotation=None):
+        """
+        todo
+        """
         plot_group.annotation.xy = pos
         plot_group.annotation.set_text(text)
         # Set annotation color to match that of the line
