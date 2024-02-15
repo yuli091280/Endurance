@@ -75,10 +75,10 @@ class LocGraph:
 
     def get_figure(self):
         """
-        Returns the class's figure
+        Get the Matplotlib figure this class is using to plot.
 
         :return fig: The LocGraph stored in the class.
-        :rtype fig: LocGraph
+        :return fig: Figure
         """
         return self.fig
 
@@ -87,7 +87,7 @@ class LocGraph:
         Redraws a max loc line on the plot along with a title.
 
         :param loc: The loc value.
-        :param loc: int
+        :type loc: int
         """
         self.max_loc_value = loc
         self.ax.set_title(f"Racer LOC over Time w/ Max LOC = {self.max_loc_value} ms")
@@ -97,8 +97,8 @@ class LocGraph:
         """
         Displays runners on the graph.
 
-        :param selected_runners: The string list of the runners selected to display.
-        :param selected_runners: list[str]
+        :param selected_runners: A dictionary of runners to display, with their bib numbers as the key.
+        :type selected_runners: dict[any]
         """
         # Set up a list of visible lines to draw the legend from
         visible_lines = [self.max_loc]
@@ -133,12 +133,12 @@ class LocGraph:
 
     def display_points(self, point_type, visible):
         """
-        Displays runners on the graph.
+        Change visibility of selected point type on the graph.
 
         :param point_type: String representing the point type.
-        :param point_type: str
+        :type point_type: str
         :param visible: Visibility of the point.
-        :param visible: bool
+        :type visible: bool
         """
         # No data variable, so we have to match to the label
         if point_type == "Bent Knee":
@@ -156,14 +156,14 @@ class LocGraph:
 
     def plot(self, loc_values, judge_data, athletes):
         """
-        Plots the given data
+        Plot the given LOC values as well as judge calls, and make them invisible.
 
-        :param loc_values: Values of the loc.
-        :param loc_values: list[int]
-        :param judge_data: Data for the judge
-        :param judge_data: list[int]
-        :param athletes: The list of athletes to display.
-        :param athletes: list[str]
+        :param loc_values: The LOC values to graph.
+        :type loc_values: list[int]
+        :param judge_data: The judge calls to graph.
+        :type judge_data: list[int]
+        :param athletes: Information for each athlete that is graphed.
+        :type athletes: list[str]
         """
         self.reset()
 

@@ -8,12 +8,6 @@ from rwv.ui.double_list import DoubleListWidget
 
 
 class PlotWidget(QtWidgets.QWidget):
-    """
-    PlotWidget sets up the plot for the race walking data.
-
-    :param db: The database object that the PlotWidget will get data from.
-    :type db: DB
-    """
     def __init__(self, db):
         super().__init__()
 
@@ -193,8 +187,8 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
     def __init__(self, graph):
         """Create the canvas that will display our graph.
 
-        :param self: This MplCanvas instance.
         :param graph: The graph object to be displayed.
+        :type graph: LocGraph
         """
         self.graph = graph
         super(MplCanvas, self).__init__(graph.get_figure())
@@ -205,8 +199,8 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         """
         Redraw the loc line based on request.
 
-        :param self: This MplCanvas instance.
         :param loc: The loc value where the new line should be drawn.
+        :type loc: int
         """
         self.graph.redraw_max_loc(loc)
         self.draw_idle()
