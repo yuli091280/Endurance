@@ -106,37 +106,53 @@ class PlotWidget(QtWidgets.QWidget):
         self.setLayout(layout)
 
     def init_data_for_race(self, race_id):
-        # Get LOC values to plot
-        loc_values = pd.DataFrame(
-            data=self.db.get_loc_values_by_race_id(race_id),
-            columns=["BibNumber", "LOCAverage", "Time"],
-        )
-        loc_values["Time"] = pd.to_datetime(loc_values["Time"], format="%H:%M:%S %p")
-        loc_values = loc_values.pivot(
-            index="Time", columns="BibNumber", values="LOCAverage"
-        )
-        loc_values = loc_values.rename_axis(None, axis=1).reset_index()
 
-        # Grab athlete info for combo box and plots
-        bibs_with_data = loc_values.columns.tolist()
-        # Only add athletes that actually have data points to show
-        athletes = list(
-            filter(
-                lambda r: r[2] in bibs_with_data,
-                self.db.get_athletes_by_race_id(race_id),
+        """
+        Returns data found in the race based on id.
+
+        :param race_id: The ID of the race to initialize data for.
+        :type race_id: int
+        :return: A tuple containing location values, judge data, and athletes.
+        :rtype: tuple
+        """
+        # Get LOC values to plot
+        bibs = [bib[0] for bib in self.db.get_bibs_by_race(race_id)]
+        loc_values = dict()
+        for bib in bibs:
+            loc = self.db.get_loc_by_race_and_bib(race_id, bib)
+            loc_values[bib] = pd.DataFrame(data=loc, columns=["LOCAverage", "Time"])
+            loc_values[bib]["Time"] = pd.to_datetime(
+                loc_values[bib]["Time"], format="%H:%M:%S %p"
             )
-        )
+            # can't sort with sql query because TOD is text for some goddamn reason
+            loc_values[bib].sort_values("Time", inplace=True, ignore_index=True)
+
+        # get athlete information
+        athletes = []
+        for bib in bibs:
+            athlete = self.db.get_athlete_by_race_and_bib(race_id, bib)
+            athletes.append((athlete[2], athlete[1], bib))
 
         # Get judge data to plot
-        judge_data = pd.DataFrame(
-            data=self.db.get_judge_data_by_race_id(race_id),
-            columns=["Time", "IDJudge", "BibNumber", "Infraction", "Color"],
-        )
-        judge_data["Time"] = pd.to_datetime(judge_data["Time"], format="%H:%M:%S %p")
+        judge_data = dict()
+        for bib in bibs:
+            data = self.db.get_judge_data_by_race_and_bib(race_id, bib)
+            judge_data[bib] = pd.DataFrame(
+                data=data, columns=["Time", "IDJudge", "Infraction", "Color"]
+            )
+            judge_data[bib]["Time"] = pd.to_datetime(
+                judge_data[bib]["Time"], format="%H:%M:%S %p"
+            )
+            # can't sort with sql query because TOD is text for some goddamn reason
+            judge_data[bib].sort_values("Time", inplace=True, ignore_index=True)
+        # TODO: combine code above this and the similar loc code somehow
 
         return loc_values, judge_data, athletes
 
     def init_interface_for_race(self):
+        """
+        Plots the data based on the current race selected.
+        """
         loc_values, judge_data, athletes = self.init_data_for_race(
             self.race_combo_box.currentData()
         )
@@ -145,21 +161,24 @@ class PlotWidget(QtWidgets.QWidget):
         self.runner_list.clear_items()
 
         # Initialize combo box for selecting which athletes to draw
-        for athlete in athletes:
-            # Add athletes in the form "LastName, FirstName (BibNumber)"
-            self.runner_list.add_item(
-                f"{athlete[0]}, {athlete[1]} ({athlete[2]})", athlete[2]
-            )
+        # Add athletes in the form "LastName, FirstName (BibNumber)"
+        items = [f"{athlete[0]}, {athlete[1]} ({athlete[2]})" for athlete in athletes]
+        item_ids = [athlete[2] for athlete in athletes]
+        self.runner_list.add_items(items, item_ids)
 
         self.graph.plot(loc_values, judge_data, athletes)
 
     def save_current_graph_as_pdf(self):
-        file_path = QtWidgets.QFileDialog.getSaveFileName(self, "Save Graph as PDF", "", "PDF Files (*.pdf)")
-        file_path=file_path[0]
+        """
+        Saves current graph as a PDF.
+        """
+        file_path, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self, "Save File", "", "PDF Files (*.pdf)"
+        )
         if file_path:
-            if not file_path.endswith('.pdf'):
-                file_path += '.pdf'
-            self.canvas.save_figure_as_pdf(file_path) 
+            if not file_path.endswith(".pdf"):
+                file_path += ".pdf"
+            self.canvas.save_figure_as_pdf(file_path)
 
     def save_current_graph_as_jpeg(self):
         file_path = QtWidgets.QFileDialog.getSaveFileName(self, "Save Graph as JPEG", "", "JPEG Files (*.jpeg;*.jpg)")
@@ -170,25 +189,62 @@ class PlotWidget(QtWidgets.QWidget):
             self.canvas.save_figure_as_jpeg(file_path) 
 
 class MplCanvas(mlp_backend.FigureCanvasQTAgg):
+    """
+    MplCanvas sets up the graph canvas.
+
+    :param graph: The graph object being passed to display on the canvas.
+    :type graph: LocGraph
+    """
     def __init__(self, graph):
+        """Create the canvas that will display our graph.
+
+        :param graph: The graph object to be displayed.
+        :type graph: LocGraph
+        """
         self.graph = graph
         super(MplCanvas, self).__init__(graph.get_figure())
         self.mpl_connect("motion_notify_event", self.graph.on_hover)
-        self.draw()
+        self.draw_idle()
 
     def redraw_loc(self, loc):
+        """
+        Redraw the loc line based on request.
+
+        :param loc: The loc value where the new line should be drawn.
+        :type loc: int
+        """
         self.graph.redraw_max_loc(loc)
-        self.draw()
+        self.draw_idle()
 
     def redraw_plot(self, selected_runners):
+        """
+        Redraws the graph with the runners list.
+
+        :param selected_runners: An array of runners.
+        :type selected_runners: list[str]
+        """
         self.graph.display_runners(selected_runners)
-        self.draw()
+        self.draw_idle()
 
     def redraw_points(self, point_type, visible):
+        """
+        Redraw the specific point type.
+
+        :param point_type: The point type to draw.
+        :type point_type: str
+        :param visible: Is the point visible
+        :type visible: bool
+        """
         self.graph.display_points(point_type, visible)
-        self.draw()
+        self.draw_idle()
 
     def save_figure_as_pdf(self, file_path):
+        """
+        Saves the graph as a pdf at a file path.
+
+        :param file_path: The file path to save the pdf at.
+        :type file_path: str
+        """
         self.figure.savefig(file_path)
 
     def save_figure_as_jpeg(self, file_path):
