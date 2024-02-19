@@ -8,6 +8,7 @@ class DB:
     :param db_path: Path to the database file.
     :type db_path: str
     """
+
     def __init__(self, db_path):
         self.connection = sqlite3.connect(db_path)
 
@@ -292,7 +293,7 @@ class DB:
             "WHERE IDRace = ? AND BibNumber = ?",
             (race_id, bib_num),
         )
-    
+
     def get_judge_by_race(self, race_id):
         """Query this database for judges involved in a given race.
 

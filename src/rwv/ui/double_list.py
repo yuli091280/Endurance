@@ -1,15 +1,17 @@
 from enum import Enum, auto
 from PyQt6 import QtWidgets, QtCore
 from PyQt6.QtWidgets import QListWidgetItem
-    
+
 
 class Side(Enum):
     """
     Enum to reference the side of a doubleList
     """
+
     LEFT = auto()
     RIGHT = auto()
     BOTH = auto()
+
 
 class DoubleListWidget(QtWidgets.QWidget):
     """
@@ -134,23 +136,23 @@ class DoubleListWidget(QtWidgets.QWidget):
 
     def move_items(self, source, destination):
         """
-         Move the selected items from source to destination
+        Move the selected items from source to destination
 
-         :param source: The source list to get the selected items from.
-         :type source: QListWidget
-         :param destination: The destination list to move the selected items to.
-         :type source: QListWidget
-         """
+        :param source: The source list to get the selected items from.
+        :type source: QListWidget
+        :param destination: The destination list to move the selected items to.
+        :type source: QListWidget
+        """
         items = source.selectedItems()
         if len(items) == 0:
             return
-        
+
         moved_ids = []
         for item in items:
             source.takeItem(source.row(item))
             destination.addItem(item)
             moved_ids.append(item.data(QtCore.Qt.ItemDataRole.ToolTipRole))
-        
+
         destination_side = Side.RIGHT if source is self._left_list else Side.LEFT
         self.item_moved.emit(destination_side, moved_ids)
         # Whenever move item is used it first appends to the bottom then sorts the given list
