@@ -292,6 +292,22 @@ class DB:
             "WHERE IDRace = ? AND BibNumber = ?",
             (race_id, bib_num),
         )
+    
+    def get_judge_by_race(self, race_id):
+        """Query this database for judges involved in a given race.
+
+        :param race_id: Id of the race to get judge ids for.
+        :type race_id: int
+
+        :returns: A list of tuple, where each tuple contains information for a particular judge
+        :rtype: list[tuple[any]]
+        """
+        return self.execute_lookup_query(
+            "SELECT Judge.* FROM Judge "
+            "JOIN JudgeCall ON Judge.IDJudge = JudgeCall.IDJudge "
+            "WHERE JudgeCall.IDRace = ? GROUP BY Judge.IDJudge",
+            (race_id,),
+        )
 
     def get_races(self):
         """Query this database for all races.

@@ -44,14 +44,17 @@ class PlotWidget(QtWidgets.QWidget):
         # Initialize toolbar for interacting with plot
         toolbar = mlp_backend.NavigationToolbar2QT(self.canvas, self)
 
-        # Initialize combo box for selecting which athletes to draw
-        self.runner_list = DoubleListWidget()
-        self.runner_label = QtWidgets.QLabel("Runner:")
-        self.runner_label.setBuddy(self.runner_list)
+        runner_list_layout, self.runner_list = PlotWidget.make_double_list_layout("Runners")
         # Connect our redraw function to the selector
         self.runner_list.item_moved.connect(
             lambda: self.canvas.redraw_plot(self.runner_list.get_selected_items())
         )
+
+        judge_list_layout, self.judge_list = PlotWidget.make_double_list_layout("Judges")
+
+        selector_layout = QtWidgets.QHBoxLayout()
+        selector_layout.addLayout(runner_list_layout)
+        selector_layout.addLayout(judge_list_layout)
 
         # Initialize checkbox for choosing whether to draw bent knee points
         self.bent_knee_checkbox = QtWidgets.QCheckBox("Bent Knee", self)
@@ -89,8 +92,7 @@ class PlotWidget(QtWidgets.QWidget):
         layout.addWidget(self.race_combo_box)
         layout.addWidget(self.max_loc_label)
         layout.addWidget(self.max_loc_combo_box)
-        layout.addWidget(self.runner_label)
-        layout.addWidget(self.runner_list)
+        layout.addLayout(selector_layout)
         layout.addLayout(button_layout)
         layout.addWidget(self.canvas)
 
@@ -104,6 +106,23 @@ class PlotWidget(QtWidgets.QWidget):
 
         # Tell widget to use specified layout
         self.setLayout(layout)
+
+    @staticmethod
+    def make_double_list_layout(label_text):
+        """
+        Create a double list layout consist of the doubleList and a label on top.
+
+        :param label_text: Text for the label.
+        :type label_text: str
+        """
+        layout = QtWidgets.QVBoxLayout()
+        double_list = DoubleListWidget()
+        label = QtWidgets.QLabel(f"{label_text}:")
+        label.setBuddy(double_list)
+        
+        layout.addWidget(label)
+        layout.addWidget(double_list)
+        return layout, double_list
 
     def init_data_for_race(self, race_id):
 
@@ -147,13 +166,15 @@ class PlotWidget(QtWidgets.QWidget):
             judge_data[bib].sort_values("Time", inplace=True, ignore_index=True)
         # TODO: combine code above this and the similar loc code somehow
 
-        return loc_values, judge_data, athletes
+        judges = self.db.get_judge_by_race(race_id)
+
+        return loc_values, judge_data, athletes, judges
 
     def init_interface_for_race(self):
         """
         Plots the data based on the current race selected.
         """
-        loc_values, judge_data, athletes = self.init_data_for_race(
+        loc_values, judge_data, athletes, judges = self.init_data_for_race(
             self.race_combo_box.currentData()
         )
 
@@ -165,6 +186,11 @@ class PlotWidget(QtWidgets.QWidget):
         items = [f"{athlete[0]}, {athlete[1]} ({athlete[2]})" for athlete in athletes]
         item_ids = [athlete[2] for athlete in athletes]
         self.runner_list.add_items(items, item_ids)
+
+        self.judge_list.clear_items()
+        items = [f"{judge[2]}, {judge[1]} ({judge[0]})" for judge in judges]
+        item_ids = [judge[0] for judge in judges]
+        self.judge_list.add_items(items, item_ids)
 
         self.graph.plot(loc_values, judge_data, athletes)
 
