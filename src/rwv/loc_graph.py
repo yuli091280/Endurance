@@ -1,3 +1,5 @@
+from enum import Enum, auto
+
 import numpy as np
 
 from matplotlib import pyplot
@@ -5,6 +7,15 @@ from matplotlib.figure import Figure
 from matplotlib.text import OffsetFrom
 
 import matplotlib.dates as mpl_dates
+
+
+class PointType(Enum):
+    """
+    Enum representing the type of point on the graph.
+    """
+
+    BENT_KNEE = auto()
+    LOC = auto()
 
 
 class PlotGroup:
@@ -18,6 +29,7 @@ class PlotGroup:
     :param token_plots: Token plots
     :type token_plots: list[str]
     """
+
     def __init__(self, main_plot, annotation=None, token_plots=None):
         if token_plots is None:
             token_plots = []
@@ -41,6 +53,7 @@ class LocGraph:
     :param max_loc: Max Loc line value.
     :type max_loc: int
     """
+
     def __init__(self, width=5, height=4, dpi=100, max_loc=60):
         """Create the graph object where LOC values are graphed.
 
@@ -135,13 +148,13 @@ class LocGraph:
         """
         Change visibility of selected point type on the graph.
 
-        :param point_type: String representing the point type.
-        :type point_type: str
+        :param point_type: The point type.
+        :type point_type: PointType
         :param visible: Visibility of the point.
         :type visible: bool
         """
         # No data variable, so we have to match to the label
-        if point_type == "Bent Knee":
+        if point_type == PointType.BENT_KNEE:
             self.display_bent_knee = visible
         else:
             self.display_loc = visible

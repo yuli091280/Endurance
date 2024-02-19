@@ -3,7 +3,7 @@ from PyQt6 import QtWidgets
 
 import matplotlib.backends.backend_qt5agg as mlp_backend
 
-from rwv.loc_graph import LocGraph
+from rwv.loc_graph import LocGraph, PointType
 from rwv.ui.double_list import DoubleListWidget
 
 
@@ -44,13 +44,17 @@ class PlotWidget(QtWidgets.QWidget):
         # Initialize toolbar for interacting with plot
         toolbar = mlp_backend.NavigationToolbar2QT(self.canvas, self)
 
-        runner_list_layout, self.runner_list = PlotWidget.make_double_list_layout("Runners")
+        runner_list_layout, self.runner_list = PlotWidget.make_double_list_layout(
+            "Runners"
+        )
         # Connect our redraw function to the selector
         self.runner_list.item_moved.connect(
             lambda: self.canvas.redraw_plot(self.runner_list.get_selected_items())
         )
 
-        judge_list_layout, self.judge_list = PlotWidget.make_double_list_layout("Judges")
+        judge_list_layout, self.judge_list = PlotWidget.make_double_list_layout(
+            "Judges"
+        )
 
         selector_layout = QtWidgets.QHBoxLayout()
         selector_layout.addLayout(runner_list_layout)
@@ -62,9 +66,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.bent_knee_checkbox.setChecked(True)
         # Connect our redraw function to the selector
         self.bent_knee_checkbox.stateChanged.connect(
-            lambda checked: self.canvas.redraw_points(
-                self.bent_knee_checkbox.text(), checked
-            )
+            lambda checked: self.canvas.redraw_points(PointType.BENT_KNEE, checked)
         )
 
         # Initialize checkbox for choosing whether to draw LOC points
@@ -73,7 +75,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.loc_checkbox.setChecked(True)
         # Connect our redraw function to the selector
         self.loc_checkbox.stateChanged.connect(
-            lambda checked: self.canvas.redraw_points(self.loc_checkbox.text(), checked)
+            lambda checked: self.canvas.redraw_points(PointType.LOC, checked)
         )
 
         # Initialize UI values and graph
@@ -119,13 +121,12 @@ class PlotWidget(QtWidgets.QWidget):
         double_list = DoubleListWidget()
         label = QtWidgets.QLabel(f"{label_text}:")
         label.setBuddy(double_list)
-        
+
         layout.addWidget(label)
         layout.addWidget(double_list)
         return layout, double_list
 
     def init_data_for_race(self, race_id):
-
         """
         Returns data found in the race based on id.
 
@@ -207,12 +208,15 @@ class PlotWidget(QtWidgets.QWidget):
             self.canvas.save_figure_as_pdf(file_path)
 
     def save_current_graph_as_jpeg(self):
-        file_path = QtWidgets.QFileDialog.getSaveFileName(self, "Save Graph as JPEG", "", "JPEG Files (*.jpeg;*.jpg)")
-        file_path=file_path[0]
+        file_path = QtWidgets.QFileDialog.getSaveFileName(
+            self, "Save Graph as JPEG", "", "JPEG Files (*.jpeg;*.jpg)"
+        )
+        file_path = file_path[0]
         if file_path:
-            if not file_path.endswith(('.jpeg','.jpg')):
-                file_path += '.jpeg'
-            self.canvas.save_figure_as_jpeg(file_path) 
+            if not file_path.endswith((".jpeg", ".jpg")):
+                file_path += ".jpeg"
+            self.canvas.save_figure_as_jpeg(file_path)
+
 
 class MplCanvas(mlp_backend.FigureCanvasQTAgg):
     """
@@ -221,6 +225,7 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
     :param graph: The graph object being passed to display on the canvas.
     :type graph: LocGraph
     """
+
     def __init__(self, graph):
         """Create the canvas that will display our graph.
 
@@ -257,7 +262,7 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         Redraw the specific point type.
 
         :param point_type: The point type to draw.
-        :type point_type: str
+        :type point_type: loc_graph.PointType
         :param visible: Is the point visible
         :type visible: bool
         """
@@ -274,4 +279,4 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         self.figure.savefig(file_path)
 
     def save_figure_as_jpeg(self, file_path):
-        self.figure.savefig(file_path, format='jpeg')
+        self.figure.savefig(file_path, format="jpeg")
