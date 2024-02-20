@@ -3,7 +3,7 @@ from PyQt6 import QtWidgets
 
 import matplotlib.backends.backend_qt5agg as mlp_backend
 
-from rwv.loc_graph import LocGraph, PointType
+from rwv.loc_graph import LocGraph, JudgeCallType
 from rwv.ui.double_list import DoubleListWidget
 
 
@@ -66,7 +66,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.bent_knee_checkbox.setChecked(True)
         # Connect our redraw function to the selector
         self.bent_knee_checkbox.stateChanged.connect(
-            lambda checked: self.canvas.redraw_points(PointType.BENT_KNEE, checked)
+            lambda checked: self.canvas.redraw_points(JudgeCallType.BENT_KNEE, checked)
         )
 
         # Initialize checkbox for choosing whether to draw LOC points
@@ -75,7 +75,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.loc_checkbox.setChecked(True)
         # Connect our redraw function to the selector
         self.loc_checkbox.stateChanged.connect(
-            lambda checked: self.canvas.redraw_points(PointType.LOC, checked)
+            lambda checked: self.canvas.redraw_points(JudgeCallType.LOC, checked)
         )
 
         # Initialize UI values and graph
@@ -262,7 +262,7 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         Redraw the specific point type.
 
         :param point_type: The point type to draw.
-        :type point_type: loc_graph.PointType
+        :type point_type: loc_graph.JudgeCallType
         :param visible: Is the point visible
         :type visible: bool
         """

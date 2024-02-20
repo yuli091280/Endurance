@@ -9,34 +9,120 @@ from matplotlib.text import OffsetFrom
 import matplotlib.dates as mpl_dates
 
 
-class PointType(Enum):
+class JudgeCallType(Enum):
     """
-    Enum representing the type of point on the graph.
+    Enum representing the type of judge calls on the graph.
     """
 
     BENT_KNEE = auto()
     LOC = auto()
 
 
-class PlotGroup:
+class AthletePlotGroup:
     """
-    PlotGroup is the grouping of the plot.
+    A group of plots for a particular athlete.
 
-    :param main_plot: The main plot data.
-    :type main_plot: list[str]
+    :param loc_line: The LOC data of this athlete as a line plot.
+    :type loc_line: list[str]
     :param annotation: The main plot data.
     :type annotation: list[str]
-    :param token_plots: Token plots
-    :type token_plots: list[str]
     """
 
-    def __init__(self, main_plot, annotation=None, token_plots=None):
-        if token_plots is None:
-            token_plots = []
-
-        self.main_plot = main_plot
+    def __init__(self, loc_line, annotation=None):
+        self.judge_calls = dict()
+        for call_type in JudgeCallType:
+            self.judge_calls[call_type] = dict()
+        self.loc_line = loc_line
         self.annotation = annotation
-        self.token_plots = token_plots
+
+    def set_visible(self, visible):
+        """
+        Show or hide the LOC line under this group
+
+        :param visible: True to show, False to hide
+        :type visible: bool
+        """
+        self.loc_line.set_visible(visible)
+
+    def get_visible(self):
+        """
+        Check if the LOC line under this group is visible
+
+        :return: True if any plot in this group is visible, False otherwise.
+        :rtype: bool
+        """
+        return self.loc_line.get_visible()
+
+    def add_judge_calls(self, call_type, judge_id, yellow, red):
+        """
+        Add new judge calls to this plot group
+
+        :param call_type: The type of judge call to add
+        :type call_type: JudgeCallType
+        :param judge_id: Id of the judge that made the calls
+        :type judge_id: int
+        :param yellow: The yellow judge calls made as a plot
+        :type yellow: list[str]
+        :param red: The red judge calls made as a plot
+        :type red: list[str]
+        """
+
+        call_plot_group = JudgeCallPlotGroup(yellow, red)
+        call_plot_group.set_visible(False)
+        self.judge_calls[call_type][judge_id] = call_plot_group
+
+    def display_judge_calls(self, selected_types, judges):
+        """
+        Make only judge calls of the selected type from the selected judges visible,
+        and make the rest invisible. Everything will remain invisible if the LOC line
+        of this group is invisible
+
+        :param selected_types: Judge call types selected.
+        :type selected_types: list[JudgeCallType]
+        :param judges: The selected judges
+        :type judges: list[int]
+        """
+        if not self.loc_line.get_visible():
+            return
+        for call_type in self.judge_calls:
+            visible = call_type in selected_types
+            for judge in self.judge_calls[call_type]:
+                visible = visible and judge in judges
+                self.judge_calls[call_type][judge].set_visible(visible)
+
+
+class JudgeCallPlotGroup:
+    """
+    A group of plots for judge calls of a particular judge
+
+    :param yellow: The yellow judge calls plot
+    :type yellow: list[str]
+    :param red: The red judge calls plot
+    :type red: list[str]
+    """
+
+    def __init__(self, yellow, red):
+        self.yellow = yellow
+        self.red = red
+
+    def set_visible(self, visible):
+        """
+        Show or hide the judge calls under this group
+
+        :param visible: True to show, False to hide
+        :type visible: bool
+        """
+        self.yellow.set_visible(visible)
+        self.red.set_visible(visible)
+
+    def get_visible(self):
+        """
+        Check if any judge calls under this group is visible
+
+        :return: True if any plot in this group is visible, False otherwise.
+        :rtype: bool
+        """
+        return self.yellow.get_visible or self.red.get_visible
 
 
 # LocGraph showing loc for each selected runner with judge calls placed on top if requested
