@@ -1,9 +1,9 @@
-from enum import Enum, auto
+from enum import IntEnum, auto
 from PyQt6 import QtWidgets, QtCore
 from PyQt6.QtWidgets import QListWidgetItem
 
 
-class Side(Enum):
+class Side(IntEnum):
     """
     Enum to reference the side of a doubleList
     """

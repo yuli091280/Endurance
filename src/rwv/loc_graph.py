@@ -1,4 +1,4 @@
-from enum import Enum, IntEnum, auto
+from enum import IntEnum, IntFlag, auto
 
 import numpy as np
 
@@ -29,9 +29,6 @@ class AthletePlotGroup:
     """
 
     def __init__(self, loc_plot, annotation=None):
-        self.judge_calls = dict()
-        for call_type in JudgeCallType:
-            self.judge_calls[call_type] = dict()
         self.loc_plot = loc_plot
         self.annotation = annotation
         self.judge_call_plots = list()
@@ -92,7 +89,7 @@ class JudgeCallPlotGroup:
     :type red: list[str]
     """
 
-    class Selection(IntEnum):
+    class Selection(IntFlag):
         """
         Enum representing how this plot group was selected by the user
         """
@@ -284,7 +281,7 @@ class LocGraph:
         :type judges: list[int]
         """
         # setup colormap to avoid duplicate colors
-        colors = pyplot.cm.prism(np.linspace(0, 1, len(athletes)))
+        colors = pyplot.cm.nipy_spectral(np.linspace(0, 1, len(athletes)))
         self.ax.set_prop_cycle("color", colors)
 
         # Set plot title and axis labels
@@ -381,9 +378,7 @@ class LocGraph:
                     plot = JudgeCallPlotGroup(yellow_plot, red_plot)
                     self.call_type_plots.setdefault(call_type, list()).append(plot)
                     self.judge_plots.setdefault(judge_id, list()).append(plot)
-                    self.athlete_plots.setdefault(
-                        bib_number, list()
-                    ).add_judge_call_plot_group(plot)
+                    self.athlete_plots[bib_number].add_judge_call_plot_group(plot)
 
         # Create a legend for the plot
         self.ax.legend(handles=[self.max_loc.loc_plot])

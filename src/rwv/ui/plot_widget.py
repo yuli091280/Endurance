@@ -15,6 +15,7 @@ class PlotWidget(QtWidgets.QWidget):
     :param db: The database this widget will use in order to graph.
     :type db: DB
     """
+
     def __init__(self, window, db):
         super().__init__()
 
@@ -158,7 +159,7 @@ class PlotWidget(QtWidgets.QWidget):
             loc_values[bib]["Time"] = pd.to_datetime(
                 loc_values[bib]["Time"], format="%H:%M:%S %p"
             )
-            # can't sort with sql query because TOD is text for some goddamn reason
+            # can't sort with sql query because TOD is text for some reason
             loc_values[bib].sort_values("Time", inplace=True, ignore_index=True)
 
         # get athlete information
@@ -195,9 +196,7 @@ class PlotWidget(QtWidgets.QWidget):
         item_ids = [judge[0] for judge in judges]
         self.judge_list.add_items(items, item_ids)
 
-        self.canvas.plot_new_race(
-            loc_values, judge_data, athletes, [judge[0] for judge in judges]
-        )
+        self.canvas.plot_new_race(loc_values, judge_data, athletes, item_ids)
         self.canvas.redraw_points(JudgeCallType.LOC, self.loc_checkbox.isChecked())
         self.canvas.redraw_points(
             JudgeCallType.BENT_KNEE, self.bent_knee_checkbox.isChecked()
@@ -246,7 +245,7 @@ class PlotWidget(QtWidgets.QWidget):
                     self.db.get_judge_call_filtered(bib, race_id, judge_id, "Red", "<"),
                     columns=["Time"],
                 )
-                # can't sort with sql query because TOD is text for some goddamn reason
+                # can't sort with sql query because TOD is text for some reason
                 yellow_loc["Time"] = pd.to_datetime(
                     yellow_loc["Time"], format="%H:%M:%S %p"
                 )
