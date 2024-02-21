@@ -10,13 +10,18 @@ import pytest
 from PyQt6.QtWidgets import QApplication
 from rwv.ui.plot_widget import PlotWidget
 from rwv.db import DB
+import sys
+from rwv.ui.main_window import MainWindow
 
 def test_plot_widget_user_interaction(qtbot):
-    # Create a real DB object with the database file
-    db = DB("DrexelRaceWalking.db")
+    app = QApplication(sys.argv)
 
+    window = MainWindow(app.primaryScreen())
+
+    # Create a real DB object with the database file
+    db = DB("new.db")
     # Create the PlotWidget with the real DB
-    widget = PlotWidget(db)
+    widget = PlotWidget(window, db)
     qtbot.addWidget(widget)
 
     # Simulate selecting the first race

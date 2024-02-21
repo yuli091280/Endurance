@@ -9,7 +9,7 @@ from matplotlib.text import OffsetFrom
 import matplotlib.dates as mpl_dates
 
 
-class JudgeCallType(Enum):
+class JudgeCallType(IntEnum):
     """
     Enum representing the type of judge calls on the graph.
     """
