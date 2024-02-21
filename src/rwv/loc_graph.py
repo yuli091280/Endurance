@@ -322,71 +322,68 @@ class LocGraph:
 
             self.athlete_plots[bib_number] = AthletePlotGroup(loc_plot, annotation)
 
-            judge_calls = judge_data[bib_number]
+            per_athlete_judge_calls = judge_data[bib_number]
 
-            judge_calls["LOCAverage"] = np.interp(
-                # Converts the datetimes to seconds since epoch, which is how matplotlib converts these internally
-                (judge_calls["Time"].astype("int64") // 10**9).tolist(),
-                (runner_data["Time"].astype("int64") // 10**9).tolist(),
-                runner_data["LOCAverage"].tolist(),
-            )
-            for judge in judges:
-                yellow_loc = judge_calls.query(
-                    f"Color == 'Yellow' & Infraction == '~' & IDJudge == {judge}"
-                )
-                red_loc = judge_calls.query(
-                    f"Color == 'Red' & Infraction == '~' & IDJudge == {judge}"
-                )
-                yellow_bent = judge_calls.query(
-                    f"Color == 'Yellow' & Infraction == '<' & IDJudge == {judge}"
-                )
-                red_bent = judge_calls.query(
-                    f"Color == 'Red' & Infraction == '<' & IDJudge == {judge}"
-                )
-                yellow_loc_plot = self.ax.scatter(
-                    x=yellow_loc["Time"],
-                    y=yellow_loc["LOCAverage"],
-                    label="LOC Yellow Card",
-                    color="y",
-                    marker="*",
-                    visible=False,
-                )
-                red_loc_plot = self.ax.scatter(
-                    x=red_loc["Time"],
-                    y=red_loc["LOCAverage"],
-                    label="LOC Red Card",
-                    color="r",
-                    marker="*",
-                    visible=False,
-                )
-                yellow_bent_plot = self.ax.scatter(
-                    x=yellow_bent["Time"],
-                    y=yellow_bent["LOCAverage"],
-                    label="Bent Knee Yellow Card",
-                    color="y",
-                    marker=">",
-                    visible=False,
-                )
-                red_bent_plot = self.ax.scatter(
-                    x=red_bent["Time"],
-                    y=red_bent["LOCAverage"],
-                    label="Bent Knee Red Card",
-                    color="r",
-                    marker=">",
-                    visible=False,
-                )
-                loc_plot = JudgeCallPlotGroup(yellow_loc_plot, red_loc_plot)
-                bent_plot = JudgeCallPlotGroup(yellow_bent_plot, red_bent_plot)
-                self.call_type_plots.setdefault(JudgeCallType.LOC, list()).append(
-                    loc_plot
-                )
-                self.call_type_plots.setdefault(JudgeCallType.BENT_KNEE, list()).append(
-                    bent_plot
-                )
-                self.judge_plots.setdefault(judge, list()).append(loc_plot)
-                self.judge_plots[judge].append(bent_plot)
-                self.athlete_plots[bib_number].add_judge_call_plot_group(loc_plot)
-                self.athlete_plots[bib_number].add_judge_call_plot_group(bent_plot)
+            for judge_id in per_athlete_judge_calls:
+                per_judge_calls = per_athlete_judge_calls[judge_id]
+                for call_type in per_judge_calls:
+                    yellow_data = per_judge_calls[call_type][0]
+                    red_data = per_judge_calls[call_type][1]
+                    yellow_data["LOCAverage"] = np.interp(
+                        # Converts the datetimes to seconds since epoch, which is how matplotlib converts these internally
+                        (yellow_data["Time"].astype("int64") // 10**9).tolist(),
+                        (runner_data["Time"].astype("int64") // 10**9).tolist(),
+                        runner_data["LOCAverage"].tolist(),
+                    )
+                    red_data["LOCAverage"] = np.interp(
+                        # Converts the datetimes to seconds since epoch, which is how matplotlib converts these internally
+                        (red_data["Time"].astype("int64") // 10**9).tolist(),
+                        (runner_data["Time"].astype("int64") // 10**9).tolist(),
+                        runner_data["LOCAverage"].tolist(),
+                    )
+                    if call_type == JudgeCallType.LOC:
+                        yellow_plot = self.ax.scatter(
+                            x=yellow_data["Time"],
+                            y=yellow_data["LOCAverage"],
+                            label="LOC Yellow Card",
+                            color="y",
+                            marker="*",
+                            visible=False,
+                        )
+                        red_plot = self.ax.scatter(
+                            x=red_data["Time"],
+                            y=red_data["LOCAverage"],
+                            label="LOC Red Card",
+                            color="r",
+                            marker="*",
+                            visible=False,
+                        )
+                    elif call_type == JudgeCallType.BENT_KNEE:
+                        yellow_plot = self.ax.scatter(
+                            x=yellow_data["Time"],
+                            y=yellow_data["LOCAverage"],
+                            label="Bent Knee Yellow Card",
+                            color="y",
+                            marker=">",
+                            visible=False,
+                        )
+                        red_plot = self.ax.scatter(
+                            x=red_data["Time"],
+                            y=red_data["LOCAverage"],
+                            label="Bent Knee Red Card",
+                            color="r",
+                            marker=">",
+                            visible=False,
+                        )
+                    else:
+                        raise RuntimeError("Unknown judge call type while plotting.")
+
+                    plot = JudgeCallPlotGroup(yellow_plot, red_plot)
+                    self.call_type_plots.setdefault(call_type, list()).append(plot)
+                    self.judge_plots.setdefault(judge_id, list()).append(plot)
+                    self.athlete_plots.setdefault(
+                        bib_number, list()
+                    ).add_judge_call_plot_group(plot)
 
         # Create a legend for the plot
         self.ax.legend(handles=[self.max_loc.loc_plot])

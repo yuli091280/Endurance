@@ -156,21 +156,9 @@ class PlotWidget(QtWidgets.QWidget):
             athlete = self.db.get_athlete_by_race_and_bib(race_id, bib)
             athletes.append((athlete[2], athlete[1], bib))
 
-        # Get judge data to plot
-        judge_data = dict()
-        for bib in bibs:
-            data = self.db.get_judge_data_by_race_and_bib(race_id, bib)
-            judge_data[bib] = pd.DataFrame(
-                data=data, columns=["Time", "IDJudge", "Infraction", "Color"]
-            )
-            judge_data[bib]["Time"] = pd.to_datetime(
-                judge_data[bib]["Time"], format="%H:%M:%S %p"
-            )
-            # can't sort with sql query because TOD is text for some goddamn reason
-            judge_data[bib].sort_values("Time", inplace=True, ignore_index=True)
-        # TODO: combine code above this and the similar loc code somehow
-
         judges = self.db.get_judge_by_race(race_id)
+
+        judge_data = self.fetch_judge_data(judges, bibs, race_id)
 
         return loc_values, judge_data, athletes, judges
 
@@ -203,6 +191,74 @@ class PlotWidget(QtWidgets.QWidget):
         self.canvas.redraw_points(
             JudgeCallType.BENT_KNEE, self.bent_knee_checkbox.isChecked()
         )
+
+    def fetch_judge_data(self, judges, bibs, race_id):
+        """
+        Fetch judge call data from the database, placing them into various buckets based on the involved bib and judge,
+        as well as their call type. Also performs time conversion.
+
+        :param judges: Judge information for all judges in this race.
+        :type judges: list[tuple]
+        :param bibs: All athlete bibs in this race.
+        :type bibs: list[int]
+        :param race_id: Id of this race.
+        :type race_id: int
+        :returns: A map of judge calls where each judge call is categorized first by bib number, then by judge, finally
+        by their type.
+        :rtype: dict
+        """
+        categorized_judge_calls = dict()
+        for bib in bibs:
+            calls_for_this_athlete = dict()
+            for judge in judges:
+                judge_id = judge[0]
+                calls_for_this_judge = dict()
+                yellow_loc = pd.DataFrame(
+                    data=self.db.get_judge_call_filtered(
+                        bib, race_id, judge_id, "Yellow", "~"
+                    ),
+                    columns=["Time"],
+                )
+                red_loc = pd.DataFrame(
+                    data=self.db.get_judge_call_filtered(
+                        bib, race_id, judge_id, "Red", "~"
+                    ),
+                    columns=["Time"],
+                )
+                yellow_bent = pd.DataFrame(
+                    self.db.get_judge_call_filtered(
+                        bib, race_id, judge_id, "Yellow", "<"
+                    ),
+                    columns=["Time"],
+                )
+                red_bent = pd.DataFrame(
+                    self.db.get_judge_call_filtered(bib, race_id, judge_id, "Red", "<"),
+                    columns=["Time"],
+                )
+                # can't sort with sql query because TOD is text for some goddamn reason
+                yellow_loc["Time"] = pd.to_datetime(
+                    yellow_loc["Time"], format="%H:%M:%S %p"
+                )
+                red_loc["Time"] = pd.to_datetime(red_loc["Time"], format="%H:%M:%S %p")
+                yellow_bent["Time"] = pd.to_datetime(
+                    yellow_bent["Time"], format="%H:%M:%S %p"
+                )
+                red_bent["Time"] = pd.to_datetime(
+                    red_bent["Time"], format="%H:%M:%S %p"
+                )
+
+                if yellow_loc.shape[0] > 0 or red_loc.shape[0] > 0:
+                    calls_for_this_judge[JudgeCallType.LOC] = (yellow_loc, red_loc)
+                if yellow_bent.shape[0] > 0 or red_bent.shape[0] > 0:
+                    calls_for_this_judge[JudgeCallType.BENT_KNEE] = (
+                        yellow_bent,
+                        red_bent,
+                    )
+                if len(calls_for_this_judge) > 0:
+                    calls_for_this_athlete[judge_id] = calls_for_this_judge
+            categorized_judge_calls[bib] = calls_for_this_athlete
+
+        return categorized_judge_calls
 
     def save_current_graph_as_pdf(self):
         """
