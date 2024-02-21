@@ -1,4 +1,4 @@
-from enum import Enum, IntEnum, auto
+from enum import IntEnum, IntFlag, auto
 
 import numpy as np
 
@@ -9,7 +9,7 @@ from matplotlib.text import OffsetFrom
 import matplotlib.dates as mpl_dates
 
 
-class JudgeCallType(Enum):
+class JudgeCallType(IntEnum):
     """
     Enum representing the type of judge calls on the graph.
     """
@@ -89,7 +89,7 @@ class JudgeCallPlotGroup:
     :type red: list[str]
     """
 
-    class Selection(IntEnum):
+    class Selection(IntFlag):
         """
         Enum representing how this plot group was selected by the user
         """
