@@ -320,3 +320,23 @@ class DB:
             "SELECT IDRace, Gender, Distance, DistanceUnits, RaceDate, StartTime FROM Race ORDER BY IDRace",
             (),
         )
+
+    def get_judge_call_filtered(self, bib, race_id, judge_id, color, infraction):
+        """Query this database for judge calls for use in filtering judge calls on the graph
+
+        :param bib: Bib number of the athlete that the call was made against.
+        :type bib: int
+        :param race_id: The race where the call took place.
+        :type race_id: int
+        :param judge_id: Id of the judge who made the call.
+        :type judge_id: int
+        :param color: Color of the judge call.
+        :type color: str
+        :param infraction: Infraction that was called
+        :type infraction: str
+        """
+        return self.execute_lookup_query(
+            "SELECT TOD FROM JudgeCall "
+            "WHERE BibNumber = ? AND IDRace = ? AND IDJudge = ? AND Color = ? AND Infraction = ?",
+            (bib, race_id, judge_id, color, infraction),
+        )
