@@ -55,6 +55,9 @@ class PlotWidget(QtWidgets.QWidget):
         judge_list_layout, self.judge_list = PlotWidget.make_double_list_layout(
             "Judges"
         )
+        self.judge_list.item_moved.connect(
+            lambda: self.canvas.select_new_judges(self.judge_list.get_selected_items())
+        )
 
         selector_layout = QtWidgets.QHBoxLayout()
         selector_layout.addLayout(runner_list_layout)
@@ -193,7 +196,13 @@ class PlotWidget(QtWidgets.QWidget):
         item_ids = [judge[0] for judge in judges]
         self.judge_list.add_items(items, item_ids)
 
-        self.graph.plot(loc_values, judge_data, athletes)
+        self.canvas.plot_new_race(
+            loc_values, judge_data, athletes, [judge[0] for judge in judges]
+        )
+        self.canvas.redraw_points(JudgeCallType.LOC, self.loc_checkbox.isChecked())
+        self.canvas.redraw_points(
+            JudgeCallType.BENT_KNEE, self.bent_knee_checkbox.isChecked()
+        )
 
     def save_current_graph_as_pdf(self):
         """
@@ -227,7 +236,8 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
     """
 
     def __init__(self, graph):
-        """Create the canvas that will display our graph.
+        """
+        Create the canvas that will display our graph.
 
         :param graph: The graph object to be displayed.
         :type graph: LocGraph
@@ -235,6 +245,23 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         self.graph = graph
         super(MplCanvas, self).__init__(graph.get_figure())
         self.mpl_connect("motion_notify_event", self.graph.on_hover)
+        self.draw_idle()
+
+    def plot_new_race(self, loc_values, judge_data, athletes, judges):
+        """
+        Plot this graph based on new race data, removing all existing plots
+
+        :param loc_values: The LOC values to graph.
+        :type loc_values: list[int]
+        :param judge_data: The judge calls to graph.
+        :type judge_data: list[int]
+        :param athletes: Information for each athlete that is graphed.
+        :type athletes: list[str]
+        :param judges: A list of judge ids for the judges involved in this race
+        :type judges: list[int]
+        """
+        self.graph.reset()
+        self.graph.plot(loc_values, judge_data, athletes, judges)
         self.draw_idle()
 
     def redraw_loc(self, loc):
@@ -254,7 +281,7 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         :param selected_runners: An array of runners.
         :type selected_runners: list[str]
         """
-        self.graph.display_runners(selected_runners)
+        self.graph.display_athletes(selected_runners)
         self.draw_idle()
 
     def redraw_points(self, point_type, visible):
@@ -266,7 +293,17 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         :param visible: Is the point visible
         :type visible: bool
         """
-        self.graph.display_points(point_type, visible)
+        self.graph.display_judge_call_by_type(point_type, visible)
+        self.draw_idle()
+
+    def select_new_judges(self, selected_judges):
+        """
+        Select new judges for which the judge calls will be shown.
+
+        :param selected_judges: A list of selected judges.
+        :type selected_judges: list[int]
+        """
+        self.graph.display_judge_call_by_judges(selected_judges)
         self.draw_idle()
 
     def save_figure_as_pdf(self, file_path):

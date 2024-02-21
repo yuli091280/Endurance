@@ -1,4 +1,4 @@
-from enum import Enum, auto
+from enum import Enum, IntEnum, auto
 
 import numpy as np
 
@@ -22,27 +22,37 @@ class AthletePlotGroup:
     """
     A group of plots for a particular athlete.
 
-    :param loc_line: The LOC data of this athlete as a line plot.
-    :type loc_line: list[str]
+    :param loc_plot: The LOC data of this athlete as a line plot.
+    :type loc_plot: list[str]
     :param annotation: The main plot data.
     :type annotation: list[str]
     """
 
-    def __init__(self, loc_line, annotation=None):
+    def __init__(self, loc_plot, annotation=None):
         self.judge_calls = dict()
         for call_type in JudgeCallType:
             self.judge_calls[call_type] = dict()
-        self.loc_line = loc_line
+        self.loc_plot = loc_plot
         self.annotation = annotation
+        self.judge_call_plots = list()
 
-    def set_visible(self, visible):
+    def select(self):
         """
-        Show or hide the LOC line under this group
+        Select this plot group to be displayed. Also adds athlete selection to the
+        judge call plot groups belonging to this group.
+        """
+        self.loc_plot.set_visible(True)
+        for call_group in self.judge_call_plots:
+            call_group.select(JudgeCallPlotGroup.Selection.ATHLETE)
 
-        :param visible: True to show, False to hide
-        :type visible: bool
+    def deselect(self):
         """
-        self.loc_line.set_visible(visible)
+        Deselect this plot group and hide it. Also removes athlete selection to the
+        judge call plot groups belonging to this group.
+        """
+        self.loc_plot.set_visible(False)
+        for call_group in self.judge_call_plots:
+            call_group.deselect(JudgeCallPlotGroup.Selection.ATHLETE)
 
     def get_visible(self):
         """
@@ -51,44 +61,25 @@ class AthletePlotGroup:
         :return: True if any plot in this group is visible, False otherwise.
         :rtype: bool
         """
-        return self.loc_line.get_visible()
+        return self.loc_plot.get_visible()
 
-    def add_judge_calls(self, call_type, judge_id, yellow, red):
+    def add_judge_call_plot_group(self, plot_group):
         """
-        Add new judge calls to this plot group
+        Add a judge call plot group to this group
 
-        :param call_type: The type of judge call to add
-        :type call_type: JudgeCallType
-        :param judge_id: Id of the judge that made the calls
-        :type judge_id: int
-        :param yellow: The yellow judge calls made as a plot
-        :type yellow: list[str]
-        :param red: The red judge calls made as a plot
-        :type red: list[str]
+        :param plot_group: The plot group to add
+        :type plot_group: JudgeCallPlotGroup
         """
+        self.judge_call_plots.append(plot_group)
 
-        call_plot_group = JudgeCallPlotGroup(yellow, red)
-        call_plot_group.set_visible(False)
-        self.judge_calls[call_type][judge_id] = call_plot_group
-
-    def display_judge_calls(self, selected_types, judges):
+    def get_judge_call_plot_group(self):
         """
-        Make only judge calls of the selected type from the selected judges visible,
-        and make the rest invisible. Everything will remain invisible if the LOC line
-        of this group is invisible
+        Get all the judge call plot groups belonging to this group
 
-        :param selected_types: Judge call types selected.
-        :type selected_types: list[JudgeCallType]
-        :param judges: The selected judges
-        :type judges: list[int]
+        :return: A list of judge call plot groups
+        :rtype: list[JudgeCallPlotGroup]
         """
-        if not self.loc_line.get_visible():
-            return
-        for call_type in self.judge_calls:
-            visible = call_type in selected_types
-            for judge in self.judge_calls[call_type]:
-                visible = visible and judge in judges
-                self.judge_calls[call_type][judge].set_visible(visible)
+        return self.judge_call_plots
 
 
 class JudgeCallPlotGroup:
@@ -101,28 +92,62 @@ class JudgeCallPlotGroup:
     :type red: list[str]
     """
 
+    class Selection(IntEnum):
+        """
+        Enum representing how this plot group was selected by the user
+        """
+
+        NONE = 0b000
+        TYPE = 0b001
+        JUDGE = 0b010
+        ATHLETE = 0b100
+        ALL = 0b111
+
     def __init__(self, yellow, red):
         self.yellow = yellow
         self.red = red
+        self.selected = JudgeCallPlotGroup.Selection.NONE
 
-    def set_visible(self, visible):
+    def select(self, selection):
         """
-        Show or hide the judge calls under this group
+        Select this plot grouop in some way. The plot group will not become visible until this group has been selected by everything.
 
-        :param visible: True to show, False to hide
-        :type visible: bool
+        :param selection: Which method to select.
+        :type selection: JudgeCallPlotGroup.Selection
         """
+        self.selected = self.selected | selection
+        visible = self.selected == JudgeCallPlotGroup.Selection.ALL
         self.yellow.set_visible(visible)
         self.red.set_visible(visible)
 
+    def deselect(self, selection):
+        """
+        Unselect this plot grouop in some way, making this plot group invisible
+
+        :param selection: Which method to unselect.
+        :type selection: JudgeCallPlotGroup.Selection
+        """
+        self.selected = self.selected & (~selection)
+        self.yellow.set_visible(False)
+        self.red.set_visible(False)
+
     def get_visible(self):
         """
-        Check if any judge calls under this group is visible
+        Check if any plots under this group is visible
 
-        :return: True if any plot in this group is visible, False otherwise.
+        :return: True if this group is visible, False otherwise.
         :rtype: bool
         """
-        return self.yellow.get_visible or self.red.get_visible
+        return self.yellow.get_visible() or self.red.get_visible()
+
+    def get_plots(self):
+        """
+        Get all plots belonging to this group
+
+        :return: The plots.
+        :rtype: tuple[matplotlib.ax]
+        """
+        return self.yellow, self.red
 
 
 # LocGraph showing loc for each selected runner with judge calls placed on top if requested
@@ -152,16 +177,14 @@ class LocGraph:
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.ax = self.fig.subplots()
 
-        # Initialize dictionary to keep track of our plots, necessary for redrawing
-        self.data_plots = dict()
-
         # Initialize value to keep track of the max LOC
         self.max_loc_value = max_loc
         self.max_loc = None
 
-        # Initialize booleans to keep track of bent knee/loc display state
-        self.display_bent_knee = True
-        self.display_loc = True
+        # map plots in various ways so they can be referenced easily later
+        self.athlete_plots = dict()
+        self.call_type_plots = dict()
+        self.judge_plots = dict()
 
     def reset(self):
         """Reset this graph object to before any LOC values were graphed.
@@ -170,7 +193,9 @@ class LocGraph:
         """
         self.fig.clear()
         self.ax = self.fig.subplots()
-        self.data_plots = dict()
+        self.athlete_plots = dict()
+        self.call_type_plots = dict()
+        self.judge_plots = dict()
 
     def get_figure(self):
         """
@@ -190,70 +215,62 @@ class LocGraph:
         """
         self.max_loc_value = loc
         self.ax.set_title(f"Racer LOC over Time w/ Max LOC = {self.max_loc_value} ms")
-        self.max_loc.main_plot.set_ydata([loc, loc])
+        self.max_loc.loc_plot.set_ydata([loc, loc])
 
-    def display_runners(self, selected_runners):
+    def display_athletes(self, selected_bibs):
         """
-        Displays runners on the graph.
+        Displays all selected runners on the graph.
 
-        :param selected_runners: A dictionary of runners to display, with their bib numbers as the key.
-        :type selected_runners: dict[any]
+        :param selected_bibs: A list of bib numbers corresponding to the athlete to be displayed
+        :type selected_bibs: list[int]
         """
         # Set up a list of visible lines to draw the legend from
         visible_lines = [self.max_loc]
 
-        for bib_key in self.data_plots.keys():
-            visible = bib_key in selected_runners
-
+        for bib in self.athlete_plots:
+            visible = bib in selected_bibs
+            plot = self.athlete_plots[bib]
             if visible:
-                visible_lines.append(self.data_plots[bib_key])
-
-            # Set main line to visible if selected or all
-            self.data_plots[bib_key].main_plot.set_visible(visible)
-
-            # Set LOC points to visible if selected or all, and we have the box checked
-            self.data_plots[bib_key].token_plots[0].set_visible(
-                self.display_loc and visible
-            )
-            self.data_plots[bib_key].token_plots[1].set_visible(
-                self.display_loc and visible
-            )
-
-            # Set bent knee points to visible if selected or all, and we have the box checked
-            self.data_plots[bib_key].token_plots[2].set_visible(
-                self.display_bent_knee and visible
-            )
-            self.data_plots[bib_key].token_plots[3].set_visible(
-                self.display_bent_knee and visible
-            )
+                visible_lines.append(plot)
+                plot.select()
+            else:
+                plot.deselect()
 
         # Redraw the legend based on visible lines
-        self.ax.legend(handles=[line.main_plot for line in visible_lines])
+        self.ax.legend(handles=[line.loc_plot for line in visible_lines])
 
-    def display_points(self, point_type, visible):
+    def display_judge_call_by_type(self, call_type, show):
         """
-        Change visibility of selected point type on the graph.
+        Select a type of judge call to be displayed.
 
-        :param point_type: The point type.
-        :type point_type: PointType
-        :param visible: Visibility of the point.
-        :type visible: bool
+        :param call_type: The type of judge call to show.
+        :type call_type: JudgeCallType
+        :param show: The user wants to see this type of judge call or not.
+        :type show: bool
         """
-        # No data variable, so we have to match to the label
-        if point_type == PointType.BENT_KNEE:
-            self.display_bent_knee = visible
+        if show:
+            for plot_group in self.call_type_plots[call_type]:
+                plot_group.select(JudgeCallPlotGroup.Selection.TYPE)
         else:
-            self.display_loc = visible
+            for plot_group in self.call_type_plots[call_type]:
+                plot_group.deselect(JudgeCallPlotGroup.Selection.TYPE)
 
-        for plot_group in self.data_plots.values():
-            # If the line for this athlete is visible, update the LOC and bent knee display values accordingly
-            if plot_group.main_plot.get_visible():
-                plot_group.token_plots[0].set_visible(self.display_loc)
-                plot_group.token_plots[1].set_visible(self.display_loc)
-                plot_group.token_plots[2].set_visible(self.display_bent_knee)
-                plot_group.token_plots[3].set_visible(self.display_bent_knee)
+    def display_judge_call_by_judges(self, selected_judges):
+        """
+        Select the judges that will have their judge calls displayed
 
-    def plot(self, loc_values, judge_data, athletes):
+        :param selected_judges: List of judge ids to be displayed.
+        :type selected_judges: list[int]
+        """
+        for judge in self.judge_plots:
+            if judge in selected_judges:
+                for plot_group in self.judge_plots[judge]:
+                    plot_group.select(JudgeCallPlotGroup.Selection.JUDGE)
+            else:
+                for plot_group in self.judge_plots[judge]:
+                    plot_group.deselect(JudgeCallPlotGroup.Selection.JUDGE)
+
+    def plot(self, loc_values, judge_data, athletes, judges):
         """
         Plot the given LOC values as well as judge calls, and make them invisible.
 
@@ -263,9 +280,9 @@ class LocGraph:
         :type judge_data: list[int]
         :param athletes: Information for each athlete that is graphed.
         :type athletes: list[str]
+        :param judges: A list of judge ids for the judges involved in this race
+        :type judges: list[int]
         """
-        self.reset()
-
         # setup colormap to avoid duplicate colors
         colors = pyplot.cm.nipy_spectral(np.linspace(0, 1, len(athletes)))
         self.ax.set_prop_cycle("color", colors)
@@ -277,19 +294,33 @@ class LocGraph:
         self.ax.xaxis.set_major_formatter(mpl_dates.DateFormatter("%H:%M:%S %p"))
 
         # Draw max LOC cutoff line
-        self.max_loc = PlotGroup(
+        self.max_loc = AthletePlotGroup(
             self.ax.axhline(y=self.max_loc_value, color="r", label="Max LOC")
         )
 
         for index, (last_name, first_name, bib_number) in enumerate(athletes):
             runner_data = loc_values[bib_number]
-            main_plot = self.ax.plot(
+            loc_plot = self.ax.plot(
                 runner_data["Time"],
                 runner_data["LOCAverage"],
                 label=f"{last_name}, {first_name} ({bib_number})",
                 marker="o",
                 visible=False,
             )[-1]
+
+            annotation = self.ax.annotate(
+                "",
+                xy=(0, 0),
+                ha="left",
+                bbox=dict(boxstyle="round", fc="w"),
+                arrowprops=dict(
+                    arrowstyle="->",
+                    connectionstyle="angle,angleA=0,angleB=90,rad=10",
+                ),
+                visible=False,
+            )
+
+            self.athlete_plots[bib_number] = AthletePlotGroup(loc_plot, annotation)
 
             judge_calls = judge_data[bib_number]
 
@@ -299,69 +330,68 @@ class LocGraph:
                 (runner_data["Time"].astype("int64") // 10**9).tolist(),
                 runner_data["LOCAverage"].tolist(),
             )
-            yellow_loc = judge_calls.query("Color == 'Yellow' & Infraction == '~'")
-            red_loc = judge_calls.query("Color == 'Red' & Infraction == '~'")
-            yellow_bent = judge_calls.query("Color == 'Yellow' & Infraction == '<'")
-            red_bent = judge_calls.query("Color == 'Red' & Infraction == '<'")
-
-            self.data_plots[bib_number] = PlotGroup(
-                main_plot=main_plot,
-                annotation=self.ax.annotate(
-                    "",
-                    xy=(0, 0),
-                    ha="left",
-                    bbox=dict(boxstyle="round", fc="w"),
-                    arrowprops=dict(
-                        arrowstyle="->",
-                        connectionstyle="angle,angleA=0,angleB=90,rad=10",
-                    ),
+            for judge in judges:
+                yellow_loc = judge_calls.query(
+                    f"Color == 'Yellow' & Infraction == '~' & IDJudge == {judge}"
+                )
+                red_loc = judge_calls.query(
+                    f"Color == 'Red' & Infraction == '~' & IDJudge == {judge}"
+                )
+                yellow_bent = judge_calls.query(
+                    f"Color == 'Yellow' & Infraction == '<' & IDJudge == {judge}"
+                )
+                red_bent = judge_calls.query(
+                    f"Color == 'Red' & Infraction == '<' & IDJudge == {judge}"
+                )
+                yellow_loc_plot = self.ax.scatter(
+                    x=yellow_loc["Time"],
+                    y=yellow_loc["LOCAverage"],
+                    label="LOC Yellow Card",
+                    color="y",
+                    marker="*",
                     visible=False,
-                ),
-                token_plots=[
-                    # Draw yellow LOC infractions
-                    self.ax.scatter(
-                        x=yellow_loc["Time"],
-                        y=yellow_loc["LOCAverage"],
-                        label="LOC Yellow Card",
-                        color="y",
-                        marker="*",
-                        visible=False,
-                    ),
-                    # Draw red LOC infractions
-                    self.ax.scatter(
-                        x=red_loc["Time"],
-                        y=red_loc["LOCAverage"],
-                        label="LOC Red Card",
-                        color="r",
-                        marker="*",
-                        visible=False,
-                    ),
-                    # Draw yellow bent knee infractions
-                    self.ax.scatter(
-                        x=yellow_bent["Time"],
-                        y=yellow_bent["LOCAverage"],
-                        label="Bent Knee Yellow Card",
-                        color="y",
-                        marker=">",
-                        visible=False,
-                    ),
-                    # Draw red bent knee infractions
-                    self.ax.scatter(
-                        x=red_bent["Time"],
-                        y=red_bent["LOCAverage"],
-                        label="Bent Knee Red Card",
-                        color="r",
-                        marker=">",
-                        visible=False,
-                    ),
-                ],
-            )
+                )
+                red_loc_plot = self.ax.scatter(
+                    x=red_loc["Time"],
+                    y=red_loc["LOCAverage"],
+                    label="LOC Red Card",
+                    color="r",
+                    marker="*",
+                    visible=False,
+                )
+                yellow_bent_plot = self.ax.scatter(
+                    x=yellow_bent["Time"],
+                    y=yellow_bent["LOCAverage"],
+                    label="Bent Knee Yellow Card",
+                    color="y",
+                    marker=">",
+                    visible=False,
+                )
+                red_bent_plot = self.ax.scatter(
+                    x=red_bent["Time"],
+                    y=red_bent["LOCAverage"],
+                    label="Bent Knee Red Card",
+                    color="r",
+                    marker=">",
+                    visible=False,
+                )
+                loc_plot = JudgeCallPlotGroup(yellow_loc_plot, red_loc_plot)
+                bent_plot = JudgeCallPlotGroup(yellow_bent_plot, red_bent_plot)
+                self.call_type_plots.setdefault(JudgeCallType.LOC, list()).append(
+                    loc_plot
+                )
+                self.call_type_plots.setdefault(JudgeCallType.BENT_KNEE, list()).append(
+                    bent_plot
+                )
+                self.judge_plots.setdefault(judge, list()).append(loc_plot)
+                self.judge_plots[judge].append(bent_plot)
+                self.athlete_plots[bib_number].add_judge_call_plot_group(loc_plot)
+                self.athlete_plots[bib_number].add_judge_call_plot_group(bent_plot)
 
         # Create a legend for the plot
-        self.ax.legend(handles=[self.max_loc.main_plot])
-        self.fig.canvas.draw_idle()
+        self.ax.legend(handles=[self.max_loc.loc_plot])
 
-    def redraw_annotations(self, plot_group, pos, text, previous_annotation=None):
+    def move_annotation(self, plot_group, pos, text, previous_annotation=None):
         """
         todo
         """
@@ -369,7 +399,7 @@ class LocGraph:
         plot_group.annotation.set_text(text)
         # Set annotation color to match that of the line
         plot_group.annotation.get_bbox_patch().set_facecolor(
-            plot_group.main_plot.get_c()
+            plot_group.loc_plot.get_c()
         )
 
         if previous_annotation:
@@ -401,32 +431,33 @@ class LocGraph:
             # Keep the last annotation drawn to be used to position subsequent annotations off the first visible one
             previous_annotation = None
             # If we're inbounds, look at every token plot to see if we're on one of their points
-            for plot_group in self.data_plots.values():
+            for plot_group in self.athlete_plots.values():
                 # If the main line isn't visible, neither will the token plots
-                if not plot_group.main_plot.get_visible():
+                if not plot_group.get_visible():
                     continue
 
                 pos = None
                 judge_calls = []
-                for scatter in plot_group.token_plots:
-                    # Check each token plot to see if we're on their point
-                    cont, ind = scatter.contains(event)
-                    if cont:
-                        # Set the position of the annotation
-                        pos = scatter.get_offsets()[ind["ind"][0]]
-                        # Add the judgement call to the annotation text
-                        # TODO: Tie in judge "data" value
-                        if (
-                            not f"{plot_group.main_plot.get_label()}: {scatter.get_label()}"
-                            in judge_calls
-                        ):
-                            judge_calls.append(
-                                f"{plot_group.main_plot.get_label()}: {scatter.get_label()}"
-                            )
+                for groups in plot_group.get_judge_call_plot_group():
+                    for scatter in groups.get_plots():
+                        # Check each token plot to see if we're on their point
+                        cont, ind = scatter.contains(event)
+                        if cont:
+                            # Set the position of the annotation
+                            pos = scatter.get_offsets()[ind["ind"][0]]
+                            # Add the judgement call to the annotation text
+                            # TODO: Tie in judge "data" value
+                            if (
+                                not f"{plot_group.loc_plot.get_label()}: {scatter.get_label()}"
+                                in judge_calls
+                            ):
+                                judge_calls.append(
+                                    f"{plot_group.loc_plot.get_label()}: {scatter.get_label()}"
+                                )
 
                 # If one of the points matches, draw the annotation
                 if judge_calls:
-                    self.redraw_annotations(
+                    self.move_annotation(
                         plot_group,
                         pos,
                         "\n".join(judge_calls).strip(),
