@@ -323,17 +323,6 @@ files = [
 ]
 
 [[package]]
-name = "epydoc"
-version = "3.0.1"
-description = "Edward Loper's API Documentation Generation Tool"
-optional = false
-python-versions = "*"
-files = [
-    {file = "epydoc-3.0.1.tar.gz", hash = "sha256:c81469b853fab06ec42b39e35dd7cccbe9938dfddef324683d89c1e5176e48f2"},
-    {file = "epydoc-3.0.1.zip", hash = "sha256:9e83f1eba2f35b8dbd0b4b25e90e5057170960a256e4eabb53c1931552fd1ade"},
-]
-
-[[package]]
 name = "fonttools"
 version = "4.49.0"
 description = "Tools to manipulate font files"
@@ -1010,17 +999,6 @@ dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
-name = "py2puml"
-version = "0.9.1"
-description = "Generate PlantUML class diagrams to document your Python application."
-optional = false
-python-versions = ">=3.8,<4.0"
-files = [
-    {file = "py2puml-0.9.1-py3-none-any.whl", hash = "sha256:2ddc41319374c81f78cfbf9cfdbadf3e87e9db9bc3c031974c8c9dd15b809208"},
-    {file = "py2puml-0.9.1.tar.gz", hash = "sha256:3aca8f696c017905053421463fde0e62fef6c3a9388a735d53575939b0ca30be"},
-]
-
-[[package]]
 name = "pygments"
 version = "2.17.2"
 description = "Pygments is a syntax highlighting package written in Python."
@@ -1526,4 +1504,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.11"
-content-hash = "bf22a36aa11aacecc4e74a7d64acd078f7fe0fb25367e4e299ac1cd4fe993746"
+content-hash = "5e6c764fc7ac6ef265582c3c3bfb39a57adde59e03972026ea5ef5585b9441a7"

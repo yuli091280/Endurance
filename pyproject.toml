@@ -20,8 +20,6 @@ black = "^23.9.1"
 pytest = "^7.4.2"
 pyinstaller = "^6.1.0"
 sphinx = "^7.2.6"
-py2puml = "^0.9.1"
-epydoc = "^3.0.1"
 appmap = "^1.19.0"
 pytest-qt = "^4.4.0"
 
