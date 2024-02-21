@@ -378,9 +378,7 @@ class LocGraph:
                     plot = JudgeCallPlotGroup(yellow_plot, red_plot)
                     self.call_type_plots.setdefault(call_type, list()).append(plot)
                     self.judge_plots.setdefault(judge_id, list()).append(plot)
-                    self.athlete_plots.setdefault(
-                        bib_number, list()
-                    ).add_judge_call_plot_group(plot)
+                    self.athlete_plots[bib_number].add_judge_call_plot_group(plot)
 
         # Create a legend for the plot
         self.ax.legend(handles=[self.max_loc.loc_plot])
