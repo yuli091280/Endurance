@@ -158,7 +158,7 @@ class PlotWidget(QtWidgets.QWidget):
             loc_values[bib]["Time"] = pd.to_datetime(
                 loc_values[bib]["Time"], format="%H:%M:%S %p"
             )
-            # can't sort with sql query because TOD is text for some goddamn reason
+            # can't sort with sql query because TOD is text for some reason
             loc_values[bib].sort_values("Time", inplace=True, ignore_index=True)
 
         # get athlete information
@@ -246,7 +246,7 @@ class PlotWidget(QtWidgets.QWidget):
                     self.db.get_judge_call_filtered(bib, race_id, judge_id, "Red", "<"),
                     columns=["Time"],
                 )
-                # can't sort with sql query because TOD is text for some goddamn reason
+                # can't sort with sql query because TOD is text for some reason
                 yellow_loc["Time"] = pd.to_datetime(
                     yellow_loc["Time"], format="%H:%M:%S %p"
                 )
