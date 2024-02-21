@@ -15,6 +15,7 @@ class PlotWidget(QtWidgets.QWidget):
     :param db: The database this widget will use in order to graph.
     :type db: DB
     """
+
     def __init__(self, window, db):
         super().__init__()
 
