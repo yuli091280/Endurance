@@ -192,7 +192,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.runner_list.add_items(items, item_ids)
 
         self.judge_list.clear_items()
-        items = [f"{judge[2]}, {judge[1]} ({judge[0]})" for judge in judges]
+        items = [f"{judge[2]}, {judge[1]}" for judge in judges]
         item_ids = [judge[0] for judge in judges]
         self.judge_list.add_items(items, item_ids)
 
