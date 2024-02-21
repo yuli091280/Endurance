@@ -8,6 +8,7 @@ class DB:
     :param db_path: Path to the database file.
     :type db_path: str
     """
+
     def __init__(self, db_path):
         self.connection = sqlite3.connect(db_path)
 
@@ -293,6 +294,22 @@ class DB:
             (race_id, bib_num),
         )
 
+    def get_judge_by_race(self, race_id):
+        """Query this database for judges involved in a given race.
+
+        :param race_id: Id of the race to get judge ids for.
+        :type race_id: int
+
+        :returns: A list of tuple, where each tuple contains information for a particular judge
+        :rtype: list[tuple[any]]
+        """
+        return self.execute_lookup_query(
+            "SELECT Judge.* FROM Judge "
+            "JOIN JudgeCall ON Judge.IDJudge = JudgeCall.IDJudge "
+            "WHERE JudgeCall.IDRace = ? GROUP BY Judge.IDJudge",
+            (race_id,),
+        )
+
     def get_races(self):
         """Query this database for all races.
 
@@ -302,4 +319,24 @@ class DB:
         return self.execute_lookup_query(
             "SELECT IDRace, Gender, Distance, DistanceUnits, RaceDate, StartTime FROM Race ORDER BY IDRace",
             (),
+        )
+
+    def get_judge_call_filtered(self, bib, race_id, judge_id, color, infraction):
+        """Query this database for judge calls for use in filtering judge calls on the graph
+
+        :param bib: Bib number of the athlete that the call was made against.
+        :type bib: int
+        :param race_id: The race where the call took place.
+        :type race_id: int
+        :param judge_id: Id of the judge who made the call.
+        :type judge_id: int
+        :param color: Color of the judge call.
+        :type color: str
+        :param infraction: Infraction that was called
+        :type infraction: str
+        """
+        return self.execute_lookup_query(
+            "SELECT TOD FROM JudgeCall "
+            "WHERE BibNumber = ? AND IDRace = ? AND IDJudge = ? AND Color = ? AND Infraction = ?",
+            (bib, race_id, judge_id, color, infraction),
         )
