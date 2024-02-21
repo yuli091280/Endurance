@@ -29,9 +29,6 @@ class AthletePlotGroup:
     """
 
     def __init__(self, loc_plot, annotation=None):
-        self.judge_calls = dict()
-        for call_type in JudgeCallType:
-            self.judge_calls[call_type] = dict()
         self.loc_plot = loc_plot
         self.annotation = annotation
         self.judge_call_plots = list()
