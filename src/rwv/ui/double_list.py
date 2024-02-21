@@ -10,10 +10,10 @@ class DoubleListWidget(QtWidgets.QWidget):
     :type comparison: function or None
     """
 
+    item_moved = QtCore.pyqtSignal()
+
     def __init__(self, comparison=None):
         super().__init__()
-
-        self.item_moved = QtCore.pyqtSignal()
 
         # Store the comparison function
         self._comparison = comparison
