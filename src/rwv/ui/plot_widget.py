@@ -195,9 +195,7 @@ class PlotWidget(QtWidgets.QWidget):
         item_ids = [judge[0] for judge in judges]
         self.judge_list.add_items(items, item_ids)
 
-        self.canvas.plot_new_race(
-            loc_values, judge_data, athletes, [judge[0] for judge in judges]
-        )
+        self.canvas.plot_new_race(loc_values, judge_data, athletes, item_ids)
         self.canvas.redraw_points(JudgeCallType.LOC, self.loc_checkbox.isChecked())
         self.canvas.redraw_points(
             JudgeCallType.BENT_KNEE, self.bent_knee_checkbox.isChecked()
