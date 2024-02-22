@@ -5,6 +5,7 @@ import matplotlib.backends.backend_qt5agg as mlp_backend
 
 from rwv.loc_graph import LocGraph, JudgeCallType
 from rwv.ui.double_list import DoubleListWidget
+from PyQt6.QtWidgets import QFileDialog
 
 
 class PlotWidget(QtWidgets.QWidget):
@@ -113,13 +114,9 @@ class PlotWidget(QtWidgets.QWidget):
         layout.addLayout(button_layout)
         layout.addWidget(self.canvas)
 
-        self.save_pdf_button = QtWidgets.QPushButton("Save Graph as PDF", self)
-        self.save_pdf_button.clicked.connect(self.save_current_graph_as_pdf)
-        layout.addWidget(self.save_pdf_button)
-
-        self.save_jpeg_button = QtWidgets.QPushButton("Save Graph as JPEG", self)
-        self.save_jpeg_button.clicked.connect(self.save_current_graph_as_jpeg)
-        layout.addWidget(self.save_jpeg_button)
+        self.save_button = QtWidgets.QPushButton("Save Graph", self)
+        layout.addWidget(self.save_button)
+        self.save_button.clicked.connect(self.save_current_graph)
 
         # Tell widget to use specified layout
         self.setLayout(layout)
@@ -270,27 +267,21 @@ class PlotWidget(QtWidgets.QWidget):
 
         return categorized_judge_calls
 
-    def save_current_graph_as_pdf(self):
+    def save_current_graph(self):
         """
-        Saves current graph as a PDF.
+        Opens window for the user to save the current graph as PDF or JPEG.
         """
-        file_path, _ = QtWidgets.QFileDialog.getSaveFileName(
-            self, "Save File", "", "PDF Files (*.pdf)"
-        )
+        file_path, save_choice = QFileDialog.getSaveFileName(self, "Save Graph","","PDF Files (*.pdf);;JPEG Files (*.jpeg;*.jpg)")
         if file_path:
-            if not file_path.endswith(".pdf"):
-                file_path += ".pdf"
-            self.canvas.save_figure_as_pdf(file_path)
-
-    def save_current_graph_as_jpeg(self):
-        file_path = QtWidgets.QFileDialog.getSaveFileName(
-            self, "Save Graph as JPEG", "", "JPEG Files (*.jpeg;*.jpg)"
-        )
-        file_path = file_path[0]
-        if file_path:
-            if not file_path.endswith((".jpeg", ".jpg")):
-                file_path += ".jpeg"
-            self.canvas.save_figure_as_jpeg(file_path)
+            if 'PDF' in save_choice and not file_path.endswith('.pdf'):
+                file_path += '.pdf'
+            elif ('JPEG' in save_choice or 'jpg' in save_choice) and not file_path.endswith(('.jpeg', '.jpg')):
+                file_path += '.jpeg'
+            
+            if 'PDF' in save_choice:
+                self.canvas.save_figure_as_pdf(file_path)
+            elif 'JPEG' in save_choice:
+                self.canvas.save_figure_as_jpeg(file_path)
 
 
 class MplCanvas(mlp_backend.FigureCanvasQTAgg):
@@ -382,4 +373,10 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         self.figure.savefig(file_path)
 
     def save_figure_as_jpeg(self, file_path):
-        self.figure.savefig(file_path, format="jpeg")
+        """
+        Saves the graph as a jpeg at a file path.
+
+        :param file_path: The file path to save the jpeg at.
+        :type file_path: str
+        """
+        self.figure.savefig(file_path, format='jpeg')
