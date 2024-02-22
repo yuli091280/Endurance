@@ -20,9 +20,8 @@ class DoubleListWidget(QtWidgets.QWidget):
     :param comparison: The optional comparison function.
     :type comparison: function or None
     """
-
-
     item_moved = QtCore.pyqtSignal(Side, list)
+    """signals for when items are moved in a doublelist"""
 
     def __init__(self, comparison=None):
         super().__init__()
