@@ -38,3 +38,22 @@ This is for packaging, you can run the project without building
 
 `make clean build`
 
+## Generating documentation
+
+### Generating HTML documentation
+
+1. `make docs-build`
+2. It will generate a website in docs/_build
+
+### Generating sequence diagram
+
+1. `make docs-appmap`
+2. It will generate in tmp/appmap/pytest
+3. Open the generated file in the [VS Code Appmap extension](https://marketplace.visualstudio.com/items?itemName=appland.appmap).
+   1. There might be multiple generated. The only one 
+   that works will be the only one that matters
+4. Export to .svg
+
+### Generate both the HTML docs and sequence diagrams
+
+1. `make docs-all`
