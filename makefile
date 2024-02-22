@@ -23,7 +23,7 @@ docs-build: docs-clean
 docs-appmap: docs-clean-appmap
 	APPMAP=true poetry run pytest test_plot_widget.py
 
-docs all: docs-appmap docs-build
+docs-all: docs-appmap docs-build
 
 ${EXECUTABLE_OUT}: ${PYINSTALLER_ENTRY}
 	poetry run pyinstaller ${PYINSTALLER_ENTRY}
