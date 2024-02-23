@@ -1,5 +1,16 @@
+from enum import IntEnum, auto
 from PyQt6 import QtWidgets, QtCore
 from PyQt6.QtWidgets import QListWidgetItem
+
+
+class Side(IntEnum):
+    """
+    Enum to reference the side of a doubleList
+    """
+
+    LEFT = auto()
+    RIGHT = auto()
+    BOTH = auto()
 
 
 class DoubleListWidget(QtWidgets.QWidget):
@@ -9,7 +20,8 @@ class DoubleListWidget(QtWidgets.QWidget):
     :param comparison: The optional comparison function.
     :param comparison: function or None
     """
-    item_moved = QtCore.pyqtSignal()
+
+    item_moved = QtCore.pyqtSignal(Side, list)
 
     def __init__(self, comparison=None):
         super().__init__()
@@ -62,7 +74,7 @@ class DoubleListWidget(QtWidgets.QWidget):
 
         self.setLayout(double_list)
 
-    def add_items(self, items, item_ids, list_side="left"):
+    def add_items(self, items, item_ids, list_side=Side.LEFT):
         """
         Add a list of items and item_ids to a list side.
 
@@ -71,13 +83,13 @@ class DoubleListWidget(QtWidgets.QWidget):
         :param item_ids: Item ids that will use to reference that item
         :type item_ids: list[str]
         :param list_side: Where the added items will be added... 'left' or 'right'.
-        :type list_side: str
+        :type list_side: Side
         """
         for item, item_id in zip(items, item_ids):
             self.add_item(item, item_id, list_side)
         self.sort_list(list_side)
 
-    def add_item(self, item, item_id, list_side="left"):
+    def add_item(self, item, item_id, list_side=Side.LEFT):
         """
         Add a list of items and item_ids to a list side.
 
@@ -86,28 +98,28 @@ class DoubleListWidget(QtWidgets.QWidget):
         :param item_id: Item id that will use to reference the item
         :type item_id: list[str]
         :param list_side: Where the added item will be added... 'left' or 'right'.
-        :type list_side: str
+        :type list_side: Side
         """
         new_item = QListWidgetItem(item)
         new_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_id)
-        if list_side == "left":
+        if list_side == Side.LEFT:
             self._left_list.addItem(new_item)
         else:
             self._right_list.addItem(new_item)
 
-    def clear_items(self, list_side="both"):
+    def clear_items(self, list_side=Side.BOTH):
         """
         Clear the items on a specific side or both.
 
         :param list_side: Which list will be clear... 'left', 'right' or 'both'.
         :type list_side: str
         """
-        if list_side in ["left", "both"]:
+        if list_side in [Side.LEFT, Side.BOTH]:
             self._left_list.clear()
-        if list_side in ["right", "both"]:
+        if list_side in [Side.RIGHT, Side.BOTH]:
             self._right_list.clear()
 
-    def get_selected_items(self, list_side="right"):
+    def get_selected_items(self, list_side=Side.RIGHT):
         """
         Return the selected item ids on a specific side or both.
 
@@ -116,7 +128,7 @@ class DoubleListWidget(QtWidgets.QWidget):
         :return: The selected item ids.
         :rtype: list[str]
         """
-        list_widget = self._right_list if list_side == "right" else self._left_list
+        list_widget = self._right_list if list_side == Side.RIGHT else self._left_list
         return [
             list_widget.item(i).data(QtCore.Qt.ItemDataRole.ToolTipRole)
             for i in range(list_widget.count())
@@ -124,31 +136,37 @@ class DoubleListWidget(QtWidgets.QWidget):
 
     def move_items(self, source, destination):
         """
-         Move the selected items from source to destination
+        Move the selected items from source to destination
 
-         :param source: The source list to get the selected items from.
-         :type source: QListWidget
-         :param destination: The destination list to move the selected items to.
-         :type source: QListWidget
-         """
+        :param source: The source list to get the selected items from.
+        :type source: QListWidget
+        :param destination: The destination list to move the selected items to.
+        :type source: QListWidget
+        """
         items = source.selectedItems()
-        if items:
-            for item in items:
-                source.takeItem(source.row(item))
-                destination.addItem(item)
-            self.item_moved.emit()
-            # Whenever move item is used it first appends to the bottom then sorts the given list
-            self.sort_list("right" if source is self._left_list else "left")
+        if len(items) == 0:
+            return
+
+        moved_ids = []
+        for item in items:
+            source.takeItem(source.row(item))
+            destination.addItem(item)
+            moved_ids.append(item.data(QtCore.Qt.ItemDataRole.ToolTipRole))
+
+        destination_side = Side.RIGHT if source is self._left_list else Side.LEFT
+        self.item_moved.emit(destination_side, moved_ids)
+        # Whenever move item is used it first appends to the bottom then sorts the given list
+        self.sort_list(destination_side)
 
     def sort_list(self, list_side):
         """
         Sort the list based on ID or the passed comparison function
 
         :param list_side: Which list will be sorted... 'left', 'right' or 'both'.
-        :type list_side: str
+        :type list_side: Side
         """
         # Sorts list based on the given comparison function.
-        list_widget = self._left_list if list_side == "left" else self._right_list
+        list_widget = self._left_list if list_side == Side.LEFT else self._right_list
         items = [
             (
                 list_widget.item(i).text(),

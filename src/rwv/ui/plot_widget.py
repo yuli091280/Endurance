@@ -3,7 +3,7 @@ from PyQt6 import QtWidgets
 
 import matplotlib.backends.backend_qt5agg as mlp_backend
 
-from rwv.loc_graph import LocGraph
+from rwv.loc_graph import LocGraph, JudgeCallType
 from rwv.ui.double_list import DoubleListWidget
 from PyQt6.QtWidgets import QFileDialog
 
@@ -16,6 +16,7 @@ class PlotWidget(QtWidgets.QWidget):
     :param db: The database this widget will use in order to graph.
     :type db: DB
     """
+
     def __init__(self, window, db):
         super().__init__()
 
@@ -55,14 +56,24 @@ class PlotWidget(QtWidgets.QWidget):
         # Initialize toolbar for interacting with plot
         toolbar = mlp_backend.NavigationToolbar2QT(self.canvas, self)
 
-        # Initialize combo box for selecting which athletes to draw
-        self.runner_list = DoubleListWidget()
-        self.runner_label = QtWidgets.QLabel("Runner:")
-        self.runner_label.setBuddy(self.runner_list)
+        runner_list_layout, self.runner_list = PlotWidget.make_double_list_layout(
+            "Runners"
+        )
         # Connect our redraw function to the selector
         self.runner_list.item_moved.connect(
             lambda: self.canvas.redraw_plot(self.runner_list.get_selected_items())
         )
+
+        judge_list_layout, self.judge_list = PlotWidget.make_double_list_layout(
+            "Judges"
+        )
+        self.judge_list.item_moved.connect(
+            lambda: self.canvas.select_new_judges(self.judge_list.get_selected_items())
+        )
+
+        selector_layout = QtWidgets.QHBoxLayout()
+        selector_layout.addLayout(runner_list_layout)
+        selector_layout.addLayout(judge_list_layout)
 
         # Initialize checkbox for choosing whether to draw bent knee points
         self.bent_knee_checkbox = QtWidgets.QCheckBox("Bent Knee", self)
@@ -70,9 +81,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.bent_knee_checkbox.setChecked(True)
         # Connect our redraw function to the selector
         self.bent_knee_checkbox.stateChanged.connect(
-            lambda checked: self.canvas.redraw_points(
-                self.bent_knee_checkbox.text(), checked
-            )
+            lambda checked: self.canvas.redraw_points(JudgeCallType.BENT_KNEE, checked)
         )
 
         # Initialize checkbox for choosing whether to draw LOC points
@@ -81,7 +90,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.loc_checkbox.setChecked(True)
         # Connect our redraw function to the selector
         self.loc_checkbox.stateChanged.connect(
-            lambda checked: self.canvas.redraw_points(self.loc_checkbox.text(), checked)
+            lambda checked: self.canvas.redraw_points(JudgeCallType.LOC, checked)
         )
 
         # Initialize UI values and graph
@@ -101,8 +110,7 @@ class PlotWidget(QtWidgets.QWidget):
         layout.addWidget(self.race_combo_box)
         layout.addWidget(self.max_loc_label)
         layout.addWidget(self.max_loc_combo_box)
-        layout.addWidget(self.runner_label)
-        layout.addWidget(self.runner_list)
+        layout.addLayout(selector_layout)
         layout.addLayout(button_layout)
         layout.addWidget(self.canvas)
 
@@ -113,8 +121,24 @@ class PlotWidget(QtWidgets.QWidget):
         # Tell widget to use specified layout
         self.setLayout(layout)
 
-    def init_data_for_race(self, race_id):
+    @staticmethod
+    def make_double_list_layout(label_text):
+        """
+        Create a double list layout consist of the doubleList and a label on top.
 
+        :param label_text: Text for the label.
+        :type label_text: str
+        """
+        layout = QtWidgets.QVBoxLayout()
+        double_list = DoubleListWidget()
+        label = QtWidgets.QLabel(f"{label_text}:")
+        label.setBuddy(double_list)
+
+        layout.addWidget(label)
+        layout.addWidget(double_list)
+        return layout, double_list
+
+    def init_data_for_race(self, race_id):
         """
         Returns data found in the race based on id.
 
@@ -132,7 +156,7 @@ class PlotWidget(QtWidgets.QWidget):
             loc_values[bib]["Time"] = pd.to_datetime(
                 loc_values[bib]["Time"], format="%H:%M:%S %p"
             )
-            # can't sort with sql query because TOD is text for some goddamn reason
+            # can't sort with sql query because TOD is text for some reason
             loc_values[bib].sort_values("Time", inplace=True, ignore_index=True)
 
         # get athlete information
@@ -141,27 +165,17 @@ class PlotWidget(QtWidgets.QWidget):
             athlete = self.db.get_athlete_by_race_and_bib(race_id, bib)
             athletes.append((athlete[2], athlete[1], bib))
 
-        # Get judge data to plot
-        judge_data = dict()
-        for bib in bibs:
-            data = self.db.get_judge_data_by_race_and_bib(race_id, bib)
-            judge_data[bib] = pd.DataFrame(
-                data=data, columns=["Time", "IDJudge", "Infraction", "Color"]
-            )
-            judge_data[bib]["Time"] = pd.to_datetime(
-                judge_data[bib]["Time"], format="%H:%M:%S %p"
-            )
-            # can't sort with sql query because TOD is text for some goddamn reason
-            judge_data[bib].sort_values("Time", inplace=True, ignore_index=True)
-        # TODO: combine code above this and the similar loc code somehow
+        judges = self.db.get_judge_by_race(race_id)
 
-        return loc_values, judge_data, athletes
+        judge_data = self.fetch_judge_data(judges, bibs, race_id)
+
+        return loc_values, judge_data, athletes, judges
 
     def init_interface_for_race(self):
         """
         Plots the data based on the current race selected.
         """
-        loc_values, judge_data, athletes = self.init_data_for_race(
+        loc_values, judge_data, athletes, judges = self.init_data_for_race(
             self.race_combo_box.currentData()
         )
 
@@ -174,7 +188,84 @@ class PlotWidget(QtWidgets.QWidget):
         item_ids = [athlete[2] for athlete in athletes]
         self.runner_list.add_items(items, item_ids)
 
-        self.graph.plot(loc_values, judge_data, athletes)
+        self.judge_list.clear_items()
+        items = [f"{judge[2]}, {judge[1]}" for judge in judges]
+        item_ids = [judge[0] for judge in judges]
+        self.judge_list.add_items(items, item_ids)
+
+        self.canvas.plot_new_race(loc_values, judge_data, athletes, item_ids)
+        self.canvas.redraw_points(JudgeCallType.LOC, self.loc_checkbox.isChecked())
+        self.canvas.redraw_points(
+            JudgeCallType.BENT_KNEE, self.bent_knee_checkbox.isChecked()
+        )
+
+    def fetch_judge_data(self, judges, bibs, race_id):
+        """
+        Fetch judge call data from the database, placing them into various buckets based on the involved bib and judge,
+        as well as their call type. Also performs time conversion.
+
+        :param judges: Judge information for all judges in this race.
+        :type judges: list[tuple]
+        :param bibs: All athlete bibs in this race.
+        :type bibs: list[int]
+        :param race_id: Id of this race.
+        :type race_id: int
+        :returns: A map of judge calls where each judge call is categorized first by bib number, then by judge, finally
+        by their type.
+        :rtype: dict
+        """
+        categorized_judge_calls = dict()
+        for bib in bibs:
+            calls_for_this_athlete = dict()
+            for judge in judges:
+                judge_id = judge[0]
+                calls_for_this_judge = dict()
+                yellow_loc = pd.DataFrame(
+                    data=self.db.get_judge_call_filtered(
+                        bib, race_id, judge_id, "Yellow", "~"
+                    ),
+                    columns=["Time"],
+                )
+                red_loc = pd.DataFrame(
+                    data=self.db.get_judge_call_filtered(
+                        bib, race_id, judge_id, "Red", "~"
+                    ),
+                    columns=["Time"],
+                )
+                yellow_bent = pd.DataFrame(
+                    self.db.get_judge_call_filtered(
+                        bib, race_id, judge_id, "Yellow", "<"
+                    ),
+                    columns=["Time"],
+                )
+                red_bent = pd.DataFrame(
+                    self.db.get_judge_call_filtered(bib, race_id, judge_id, "Red", "<"),
+                    columns=["Time"],
+                )
+                # can't sort with sql query because TOD is text for some reason
+                yellow_loc["Time"] = pd.to_datetime(
+                    yellow_loc["Time"], format="%H:%M:%S %p"
+                )
+                red_loc["Time"] = pd.to_datetime(red_loc["Time"], format="%H:%M:%S %p")
+                yellow_bent["Time"] = pd.to_datetime(
+                    yellow_bent["Time"], format="%H:%M:%S %p"
+                )
+                red_bent["Time"] = pd.to_datetime(
+                    red_bent["Time"], format="%H:%M:%S %p"
+                )
+
+                if yellow_loc.shape[0] > 0 or red_loc.shape[0] > 0:
+                    calls_for_this_judge[JudgeCallType.LOC] = (yellow_loc, red_loc)
+                if yellow_bent.shape[0] > 0 or red_bent.shape[0] > 0:
+                    calls_for_this_judge[JudgeCallType.BENT_KNEE] = (
+                        yellow_bent,
+                        red_bent,
+                    )
+                if len(calls_for_this_judge) > 0:
+                    calls_for_this_athlete[judge_id] = calls_for_this_judge
+            categorized_judge_calls[bib] = calls_for_this_athlete
+
+        return categorized_judge_calls
 
     def save_current_graph(self):
         """
@@ -192,6 +283,7 @@ class PlotWidget(QtWidgets.QWidget):
             elif 'JPEG' in save_choice:
                 self.canvas.save_figure_as_jpeg(file_path)
 
+
 class MplCanvas(mlp_backend.FigureCanvasQTAgg):
     """
     MplCanvas sets up the graph canvas.
@@ -199,8 +291,10 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
     :param graph: The graph object being passed to display on the canvas.
     :type graph: LocGraph
     """
+
     def __init__(self, graph):
-        """Create the canvas that will display our graph.
+        """
+        Create the canvas that will display our graph.
 
         :param graph: The graph object to be displayed.
         :type graph: LocGraph
@@ -208,6 +302,23 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         self.graph = graph
         super(MplCanvas, self).__init__(graph.get_figure())
         self.mpl_connect("motion_notify_event", self.graph.on_hover)
+        self.draw_idle()
+
+    def plot_new_race(self, loc_values, judge_data, athletes, judges):
+        """
+        Plot this graph based on new race data, removing all existing plots
+
+        :param loc_values: The LOC values to graph.
+        :type loc_values: list[int]
+        :param judge_data: The judge calls to graph.
+        :type judge_data: list[int]
+        :param athletes: Information for each athlete that is graphed.
+        :type athletes: list[str]
+        :param judges: A list of judge ids for the judges involved in this race
+        :type judges: list[int]
+        """
+        self.graph.reset()
+        self.graph.plot(loc_values, judge_data, athletes, judges)
         self.draw_idle()
 
     def redraw_loc(self, loc):
@@ -227,7 +338,7 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         :param selected_runners: An array of runners.
         :type selected_runners: list[str]
         """
-        self.graph.display_runners(selected_runners)
+        self.graph.display_athletes(selected_runners)
         self.draw_idle()
 
     def redraw_points(self, point_type, visible):
@@ -235,11 +346,21 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         Redraw the specific point type.
 
         :param point_type: The point type to draw.
-        :type point_type: str
+        :type point_type: loc_graph.JudgeCallType
         :param visible: Is the point visible
         :type visible: bool
         """
-        self.graph.display_points(point_type, visible)
+        self.graph.display_judge_call_by_type(point_type, visible)
+        self.draw_idle()
+
+    def select_new_judges(self, selected_judges):
+        """
+        Select new judges for which the judge calls will be shown.
+
+        :param selected_judges: A list of selected judges.
+        :type selected_judges: list[int]
+        """
+        self.graph.display_judge_call_by_judges(selected_judges)
         self.draw_idle()
 
     def save_figure_as_pdf(self, file_path):

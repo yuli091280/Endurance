@@ -10,6 +10,7 @@ class MainWindow(QtWidgets.QMainWindow):
     :param screen: The screen this app will be displayed on.
     :type screen: QScreen
     """
+
     def __init__(self, screen):
         super().__init__()
 
@@ -21,8 +22,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.reset()
 
     def open_db(self):
-        """Event handler for when the user opens a new db.
-        """
+        """Event handler for when the user opens a new db."""
 
         file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
             self, "Open Database", "", "db files (*.db)"
@@ -41,8 +41,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.show()
 
     def reset(self):
-        """Return the main window to before a DB was opened.
-        """
+        """Return the main window to before a DB was opened."""
 
         self.hide()
         layout = QtWidgets.QVBoxLayout()
