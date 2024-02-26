@@ -3,9 +3,9 @@ import sqlite3
 
 class DB:
     """
-    Class that handles retrieving data from the SQLite database
+    Class that handles retrieving data from the SQLite database.
 
-    :param db_path: Path to the database file.
+    :param db_path: Path to the database file
     :type db_path: str
     """
 
@@ -17,13 +17,13 @@ class DB:
 
     def execute_lookup_query(self, query, params):
         """
-        Executes the sql query
+        Executes the sql query.
 
-        :param query: sql query to run.
+        :param query: sql query to run
         :type query: str
-        :param params: parameter to pass to sql query..
-        :type params: list[any]
-        :return: Data returned from sql query.
+        :param params: parameters to pass to sql query
+        :type params: tuple[any]
+        :return: Data returned from sql query
         :rtype: list[tuple[any]]
         """
         cursor = self.connection.cursor()
@@ -36,11 +36,11 @@ class DB:
     @staticmethod
     def single_query_result(query_result):
         """
-        Filters a given sql query result for only the first item
+        Filters a given sql query result for only the first item.
 
         :param query_result: The SQL query result to filter
-        :type query_result: str
-        :return: Filtered result.
+        :type query_result: list[tuple[any]]
+        :return: Filtered result
         :rtype: tuple[any]
         """
         if len(query_result) > 0:
@@ -50,11 +50,11 @@ class DB:
 
     def judge_by_id(self, judge_id):
         """
-        Query this database for information on a particular judge
+        Query this database for information on a particular judge.
 
-        :param judge_id: Id of the judge
+        :param judge_id: ID of the judge
         :type judge_id: int
-        :return: Judge based on id.
+        :return: Judge based on ID
         :rtype: list[tuple[any]]
         """
         result = self.execute_lookup_query(
@@ -63,9 +63,9 @@ class DB:
         return DB.single_query_result(result)
 
     def get_athlete_by_race_and_bib(self, race_id, bib_num):
-        """Query this database for athlete information matching the given race id and bib number
+        """Query this database for athlete information matching the given race ID and bib number
 
-        :param race_id: race id for this query
+        :param race_id: race ID for this query
         :type race_id: int
         :param bib_num: bib number for this query
         :type bib_num: int
@@ -85,9 +85,9 @@ class DB:
         """
         Returns race based on race id.
 
-        :param race_id: race id
+        :param race_id: race ID
         :type race_id: int
-        :return: Race based on race id.
+        :return: Race based on race ID
         :rtype: tuple[any]
         """
         result = self.execute_lookup_query(
@@ -99,11 +99,11 @@ class DB:
         """
         Returns judge calls for a particular race and bib number
 
-        :param race_id: race id
+        :param race_id: race ID
         :type race_id: int
         :param bib_num: bib number
         :type bib_num: int
-        :return: Judge call data based on ID and Bib Number
+        :return: Judge call data based on ID and bib number
         :rtype: list[tuple[any]]
         """
         result = self.execute_lookup_query(
@@ -117,7 +117,7 @@ class DB:
         """
         Judge infraction data.
 
-        :return: Judge infraction data.
+        :return: Judge infraction data
         :rtype: list[tuple[any]]
         """
         return self.execute_lookup_query(
@@ -137,7 +137,7 @@ class DB:
         """
         Judge/Athlete infraction data.
 
-        :return: Judge/Athlete infraction data.
+        :return: Judge/Athlete infraction data
         :rtype: list[tuple[any]]
         """
         return self.execute_lookup_query(
@@ -159,7 +159,7 @@ class DB:
         """
         Athlete infraction data.
 
-        :return: Athlete infraction data.
+        :return: Athlete infraction data
         :rtype: list[tuple[any]]
         """
         return self.execute_lookup_query(
@@ -180,7 +180,7 @@ class DB:
         """
         Get data where there is a red card but no yellow card.
 
-        :return: Data where there is a red card but no yellow card.
+        :return: Data where there is a red card but no yellow card
         :rtype: list[tuple[any]]
         """
         return self.execute_lookup_query(
@@ -204,7 +204,7 @@ class DB:
         """
         Get data where there is a yellow card but no red card.
 
-        :return: Data where there is a yellow card but no red card.
+        :return: Data where there is a yellow card but no red card
         :rtype: list[tuple[any]]
         """
         return self.execute_lookup_query(
@@ -232,7 +232,7 @@ class DB:
         """
         Get data per athlete call.
 
-        :return: Data per athlete call.
+        :return: Data per athlete call
         :rtype: list[tuple[any]]
         """
         return self.execute_lookup_query(
@@ -250,10 +250,11 @@ class DB:
     def get_bibs_by_race(self, race_id):
         """Query this database for all bib numbers of a race.
 
-        :param race_id: Race id for this query.
+        :param race_id: Race ID for this query
         :type race_id: int
 
-        :returns: A list of bib numbers.
+        :returns: A list of bib numbers
+        :rtype: list[tuple[any]]
         """
         return self.execute_lookup_query(
             "SELECT DISTINCT BibNumber FROM VideoObservation "
@@ -262,14 +263,15 @@ class DB:
         )
 
     def get_loc_by_race_and_bib(self, race_id, bib_num):
-        """Query this database for LOC information matching the given race id and bib number.
+        """Query this database for LOC information matching the given race ID and bib number.
 
-        :param race_id: Race id for this query.
+        :param race_id: Race ID for this query
         :type race_id: int
-        :param bib_num: Bib number for this query.
+        :param bib_num: Bib number for this query
         :type bib_num: str
 
-        :returns: A list of LOC information in the database, each instance is a tuple of (LOC value, Time of day).
+        :returns: A list of LOC information in the database, each instance is a tuple of (LOC value, Time of day)
+        :rtype: list[tuple[any]]
         """
         return self.execute_lookup_query(
             "SELECT LOCAverage, TOD as Time FROM VideoObservation "
@@ -278,14 +280,14 @@ class DB:
         )
 
     def get_judge_data_by_race_and_bib(self, race_id, bib_num):
-        """Query this database for judge data matching the given race id and bib number.
+        """Query this database for judge data matching the given race ID and bib number.
 
-        :param race_id: Race id for this query.
+        :param race_id: Race ID for this query.
         :type race_id: int
         :param bib_num: Bib number for this query.
-        :type bib_num: str
+        :type bib_num: int
 
-        :returns: A list of judge data in the database, each instance is a tuple of (Time, IDJudge, Infraction, Color).
+        :returns: A list of judge data in the database, each instance is a tuple of (Time, IDJudge, Infraction, Color)
         :rtype: list[tuple[any]]
         """
         return self.execute_lookup_query(
@@ -297,7 +299,7 @@ class DB:
     def get_judge_by_race(self, race_id):
         """Query this database for judges involved in a given race.
 
-        :param race_id: Id of the race to get judge ids for.
+        :param race_id: ID of the race to get judge ids for
         :type race_id: int
 
         :returns: A list of tuple, where each tuple contains information for a particular judge
@@ -313,7 +315,7 @@ class DB:
     def get_races(self):
         """Query this database for all races.
 
-        :returns: A list of race data, each instance is a tuple of (IDRace, Gender, Distance, DistanceUnits, RaceDate, StartTime).
+        :returns: A list of race data, each instance is a tuple of (IDRace, Gender, Distance, DistanceUnits, RaceDate, StartTime)
         :rtype: list[tuple[any]]
         """
         return self.execute_lookup_query(
@@ -322,15 +324,15 @@ class DB:
         )
 
     def get_judge_call_filtered(self, bib, race_id, judge_id, color, infraction):
-        """Query this database for judge calls for use in filtering judge calls on the graph
+        """Query this database for judge calls for use in filtering judge calls on the graph.
 
-        :param bib: Bib number of the athlete that the call was made against.
+        :param bib: Bib number of the athlete that the call was made against
         :type bib: int
-        :param race_id: The race where the call took place.
+        :param race_id: The race where the call took place
         :type race_id: int
-        :param judge_id: Id of the judge who made the call.
+        :param judge_id: ID of the judge who made the call
         :type judge_id: int
-        :param color: Color of the judge call.
+        :param color: Color of the judge call
         :type color: str
         :param infraction: Infraction that was called
         :type infraction: str
