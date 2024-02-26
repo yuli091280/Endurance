@@ -6,7 +6,7 @@ from rwv.ui.main_window import MainWindow
 
 
 def test_plot_widget_user_interaction(qtbot):
-    app = QApplication([])
+    app = QApplication.instance()
 
     window = MainWindow(app.primaryScreen())
 
