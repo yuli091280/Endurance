@@ -17,8 +17,8 @@ docs-clean-appmap:
 	rm -rf tmp
 
 docs-build: docs-clean
-	cd docs && sphinx-apidoc -o . ../src
-	cd docs && sphinx-build -b html . ./_build
+	cd docs && poetry run sphinx-apidoc -o . ../src
+	cd docs && poetry run sphinx-build -b html . ./_build
 
 docs-appmap: docs-clean-appmap
 	APPMAP=true poetry run pytest test_plot_widget.py
