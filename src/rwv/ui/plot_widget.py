@@ -5,14 +5,15 @@ import matplotlib.backends.backend_qt5agg as mlp_backend
 
 from rwv.loc_graph import LocGraph, JudgeCallType
 from rwv.ui.double_list import DoubleListWidget
+from PyQt6.QtWidgets import QFileDialog
 
 
 class PlotWidget(QtWidgets.QWidget):
-    """A widget containing the plot and its controls
+    """A widget containing the plot and its controls.
 
-    :param window: The window where this widget will be on.
+    :param window: The window where this widget will be on
     :type window: MainWindow
-    :param db: The database this widget will use in order to graph.
+    :param db: The database this widget will use in order to graph
     :type db: DB
     """
 
@@ -113,13 +114,9 @@ class PlotWidget(QtWidgets.QWidget):
         layout.addLayout(button_layout)
         layout.addWidget(self.canvas)
 
-        self.save_pdf_button = QtWidgets.QPushButton("Save Graph as PDF", self)
-        self.save_pdf_button.clicked.connect(self.save_current_graph_as_pdf)
-        layout.addWidget(self.save_pdf_button)
-
-        self.save_jpeg_button = QtWidgets.QPushButton("Save Graph as JPEG", self)
-        self.save_jpeg_button.clicked.connect(self.save_current_graph_as_jpeg)
-        layout.addWidget(self.save_jpeg_button)
+        self.save_button = QtWidgets.QPushButton("Save Graph", self)
+        layout.addWidget(self.save_button)
+        self.save_button.clicked.connect(self.save_current_graph)
 
         # Tell widget to use specified layout
         self.setLayout(layout)
@@ -129,7 +126,7 @@ class PlotWidget(QtWidgets.QWidget):
         """
         Create a double list layout consist of the doubleList and a label on top.
 
-        :param label_text: Text for the label.
+        :param label_text: Text for the label
         :type label_text: str
         """
         layout = QtWidgets.QVBoxLayout()
@@ -143,11 +140,11 @@ class PlotWidget(QtWidgets.QWidget):
 
     def init_data_for_race(self, race_id):
         """
-        Returns data found in the race based on id.
+        Returns data found in the race based on id
 
-        :param race_id: The ID of the race to initialize data for.
+        :param race_id: The ID of the race to initialize data for
         :type race_id: int
-        :return: A tuple containing location values, judge data, and athletes.
+        :return: A tuple containing location values, judge data, and athletes
         :rtype: tuple
         """
         # Get LOC values to plot
@@ -192,7 +189,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.runner_list.add_items(items, item_ids)
 
         self.judge_list.clear_items()
-        items = [f"{judge[2]}, {judge[1]} ({judge[0]})" for judge in judges]
+        items = [f"{judge[2]}, {judge[1]}" for judge in judges]
         item_ids = [judge[0] for judge in judges]
         self.judge_list.add_items(items, item_ids)
 
@@ -207,11 +204,11 @@ class PlotWidget(QtWidgets.QWidget):
         Fetch judge call data from the database, placing them into various buckets based on the involved bib and judge,
         as well as their call type. Also performs time conversion.
 
-        :param judges: Judge information for all judges in this race.
+        :param judges: Judge information for all judges in this race
         :type judges: list[tuple]
-        :param bibs: All athlete bibs in this race.
+        :param bibs: All athlete bibs in this race
         :type bibs: list[int]
-        :param race_id: Id of this race.
+        :param race_id: ID of this race
         :type race_id: int
         :returns: A map of judge calls where each judge call is categorized first by bib number, then by judge, finally by their type.
         :rtype: dict
@@ -269,34 +266,32 @@ class PlotWidget(QtWidgets.QWidget):
 
         return categorized_judge_calls
 
-    def save_current_graph_as_pdf(self):
+    def save_current_graph(self):
         """
-        Saves current graph as a PDF.
+        Opens window for the user to save the current graph as PDF or JPEG.
         """
-        file_path, _ = QtWidgets.QFileDialog.getSaveFileName(
-            self, "Save File", "", "PDF Files (*.pdf)"
+        file_path, save_choice = QFileDialog.getSaveFileName(
+            self, "Save Graph", "", "PDF Files (*.pdf);;JPEG Files (*.jpeg;*.jpg)"
         )
         if file_path:
-            if not file_path.endswith(".pdf"):
+            if "PDF" in save_choice and not file_path.endswith(".pdf"):
                 file_path += ".pdf"
-            self.canvas.save_figure_as_pdf(file_path)
-
-    def save_current_graph_as_jpeg(self):
-        file_path = QtWidgets.QFileDialog.getSaveFileName(
-            self, "Save Graph as JPEG", "", "JPEG Files (*.jpeg;*.jpg)"
-        )
-        file_path = file_path[0]
-        if file_path:
-            if not file_path.endswith((".jpeg", ".jpg")):
+            elif (
+                "JPEG" in save_choice or "jpg" in save_choice
+            ) and not file_path.endswith((".jpeg", ".jpg")):
                 file_path += ".jpeg"
-            self.canvas.save_figure_as_jpeg(file_path)
+
+            if "PDF" in save_choice:
+                self.canvas.save_figure_as_pdf(file_path)
+            elif "JPEG" in save_choice:
+                self.canvas.save_figure_as_jpeg(file_path)
 
 
 class MplCanvas(mlp_backend.FigureCanvasQTAgg):
     """
     MplCanvas sets up the graph canvas.
 
-    :param graph: The graph object being passed to display on the canvas.
+    :param graph: The graph object being passed to display on the canvas
     :type graph: LocGraph
     """
 
@@ -304,7 +299,7 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         """
         Create the canvas that will display our graph.
 
-        :param graph: The graph object to be displayed.
+        :param graph: The graph object to be displayed
         :type graph: LocGraph
         """
         self.graph = graph
@@ -316,12 +311,12 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         """
         Plot this graph based on new race data, removing all existing plots
 
-        :param loc_values: The LOC values to graph.
-        :type loc_values: list[int]
-        :param judge_data: The judge calls to graph.
-        :type judge_data: list[int]
-        :param athletes: Information for each athlete that is graphed.
-        :type athletes: list[str]
+        :param loc_values: The LOC values to graph
+        :type loc_values: dict[int, pandas.DataFrame]
+        :param judge_data: The judge calls to graph
+        :type judge_data: dict[int, dict[int, pandas.DataFrame]]
+        :param athletes: Information for each athlete that is graphed
+        :type athletes: list[tuple[str, str, int]]
         :param judges: A list of judge ids for the judges involved in this race
         :type judges: list[int]
         """
@@ -333,27 +328,27 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         """
         Redraw the loc line based on request.
 
-        :param loc: The loc value where the new line should be drawn.
+        :param loc: The loc value where the new line should be drawn
         :type loc: int
         """
         self.graph.redraw_max_loc(loc)
         self.draw_idle()
 
-    def redraw_plot(self, selected_runners):
+    def redraw_plot(self, selected_athletes):
         """
-        Redraws the graph with the runners list.
+        Redraws the graph to display selected athletes.
 
-        :param selected_runners: An array of runners.
-        :type selected_runners: list[str]
+        :param selected_athletes: An array of bib numbers corresponding to athletes
+        :type selected_athletes: list[int]
         """
-        self.graph.display_athletes(selected_runners)
+        self.graph.display_athletes(selected_athletes)
         self.draw_idle()
 
     def redraw_points(self, point_type, visible):
         """
         Redraw the specific point type.
 
-        :param point_type: The point type to draw.
+        :param point_type: The point type to draw
         :type point_type: loc_graph.JudgeCallType
         :param visible: Is the point visible
         :type visible: bool
@@ -365,7 +360,7 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         """
         Select new judges for which the judge calls will be shown.
 
-        :param selected_judges: A list of selected judges.
+        :param selected_judges: A list of selected judges
         :type selected_judges: list[int]
         """
         self.graph.display_judge_call_by_judges(selected_judges)
@@ -375,10 +370,16 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         """
         Saves the graph as a pdf at a file path.
 
-        :param file_path: The file path to save the pdf at.
+        :param file_path: The file path to save the pdf to
         :type file_path: str
         """
         self.figure.savefig(file_path)
 
     def save_figure_as_jpeg(self, file_path):
+        """
+        Saves the graph as a jpeg at a file path.
+
+        :param file_path: The file path to save the jpeg to
+        :type file_path: str
+        """
         self.figure.savefig(file_path, format="jpeg")

@@ -17,7 +17,7 @@ class DoubleListWidget(QtWidgets.QWidget):
     """
     Double List UI Widget
 
-    :param comparison: The optional comparison function.
+    :param comparison: An optional function to use when comparing items
     :type comparison: function or None
     """
     item_moved = QtCore.pyqtSignal(Side, list)
@@ -78,11 +78,11 @@ class DoubleListWidget(QtWidgets.QWidget):
         """
         Add a list of items and item_ids to a list side.
 
-        :param items: Item strings that will show on the list.
+        :param items: List of strings to add
         :type items: list[str]
-        :param item_ids: Item ids that will use to reference that item
+        :param item_ids: Item ids that will use to reference the associated items
         :type item_ids: list[str]
-        :param list_side: Where the added items will be added... 'left' or 'right'.
+        :param list_side: Where the added items will be added... 'left' or 'right'
         :type list_side: Side
         """
         for item, item_id in zip(items, item_ids):
@@ -93,11 +93,11 @@ class DoubleListWidget(QtWidgets.QWidget):
         """
         Add a list of items and item_ids to a list side.
 
-        :param item: Item string that will show on the list.
+        :param item: Item string that will show on the list
         :type item: str
-        :param item_id: Item id that will use to reference the item
+        :param item_id: Item ID that will use to reference the item
         :type item_id: list[str]
-        :param list_side: Where the added item will be added... 'left' or 'right'.
+        :param list_side: Where the added item will be added... 'left' or 'right'
         :type list_side: Side
         """
         new_item = QListWidgetItem(item)
@@ -111,8 +111,8 @@ class DoubleListWidget(QtWidgets.QWidget):
         """
         Clear the items on a specific side or both.
 
-        :param list_side: Which list will be clear... 'left', 'right' or 'both'.
-        :type list_side: str
+        :param list_side: Which list will be clear... 'left', 'right' or 'both'
+        :type list_side: Side
         """
         if list_side in [Side.LEFT, Side.BOTH]:
             self._left_list.clear()
@@ -123,10 +123,10 @@ class DoubleListWidget(QtWidgets.QWidget):
         """
         Return the selected item ids on a specific side or both.
 
-        :param list_side: Which list will the selected item ids be returned... 'left', 'right' or 'both'.
-        :type list_side: str
-        :return: The selected item ids.
-        :rtype: list[str]
+        :param list_side: Which list will the selected item ids be returned... 'left', 'right' or 'both'
+        :type list_side: Side
+        :return: The selected item ids
+        :rtype: list[int]
         """
         list_widget = self._right_list if list_side == Side.RIGHT else self._left_list
         return [
@@ -136,12 +136,12 @@ class DoubleListWidget(QtWidgets.QWidget):
 
     def move_items(self, source, destination):
         """
-        Move the selected items from source to destination
+        Move the selected items from source to destination.
 
-        :param source: The source list to get the selected items from.
-        :type source: QListWidget
-        :param destination: The destination list to move the selected items to.
-        :type source: QListWidget
+        :param source: The source list to get the selected items from
+        :type source: PyQt6.QtWidgets.QListWidget
+        :param destination: The destination list to move the selected items to
+        :type source: PyQt6.QtWidgets.QListWidget
         """
         items = source.selectedItems()
         if len(items) == 0:
@@ -160,9 +160,9 @@ class DoubleListWidget(QtWidgets.QWidget):
 
     def sort_list(self, list_side):
         """
-        Sort the list based on ID or the passed comparison function
+        Sort the list based on ID or the passed comparison function.
 
-        :param list_side: Which list will be sorted... 'left', 'right' or 'both'.
+        :param list_side: Which list will be sorted... 'left', 'right' or 'both'
         :type list_side: Side
         """
         # Sorts list based on the given comparison function.
