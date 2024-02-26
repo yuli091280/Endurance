@@ -210,8 +210,7 @@ class PlotWidget(QtWidgets.QWidget):
         :type bibs: list[int]
         :param race_id: ID of this race
         :type race_id: int
-        :returns: A map of judge calls where each judge call is categorized first by bib number, then by judge, finally
-        by their type
+        :returns: A map of judge calls where each judge call is categorized first by bib number, then by judge, finally by their type.
         :rtype: dict
         """
         categorized_judge_calls = dict()

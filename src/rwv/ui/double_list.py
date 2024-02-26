@@ -22,6 +22,7 @@ class DoubleListWidget(QtWidgets.QWidget):
     """
 
     item_moved = QtCore.pyqtSignal(Side, list)
+    """signals for when items are moved in a doublelist"""
 
     def __init__(self, comparison=None):
         super().__init__()
