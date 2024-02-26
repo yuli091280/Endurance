@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import sys
-import os
 
 import matplotlib
 from PyQt6.QtWidgets import QApplication
@@ -14,7 +13,8 @@ matplotlib.use("QtAgg")
 def main():
     """Entry point for this app.
 
-    :returns: 0 if the app exited properly, an error code otherwise.
+    :returns: 0 if the app exited properly, an error code otherwise
+    :rtype: int
     """
     app = QApplication(sys.argv)
 
