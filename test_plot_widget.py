@@ -17,14 +17,19 @@ def test_plot_widget_user_interaction(qtbot):
     qtbot.addWidget(widget)
 
     # Simulate selecting the first race
-    qtbot.mouseClick(widget.race_combo_box.view().viewport(), QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(
+        widget.race_combo_box.view().viewport(), QtCore.Qt.MouseButton.LeftButton
+    )
 
     # Simulate clicking 60 ms
     widget.max_loc_combo_box.setCurrentIndex(1)
 
     # Simulate double clicking on the first item of the left list of the runner list
-    qtbot.mouseDClick(widget.runner_list._left_list.viewport(), QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseDClick(
+        widget.runner_list._left_list.viewport(), QtCore.Qt.MouseButton.LeftButton
+    )
 
     # Simulate double clicking on the first item of the left list of the judge list
-    qtbot.mouseDClick(widget.judge_list._left_list.viewport(), QtCore.Qt.MouseButton.LeftButton)
-
+    qtbot.mouseDClick(
+        widget.judge_list._left_list.viewport(), QtCore.Qt.MouseButton.LeftButton
+    )
