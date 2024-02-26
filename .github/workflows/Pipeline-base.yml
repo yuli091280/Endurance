@@ -1,4 +1,4 @@
-name: Pipeline base
+name: Sanity check
 
 on:
   push:
@@ -12,7 +12,7 @@ permissions:
 jobs:
   test:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Git checkout
@@ -24,13 +24,13 @@ jobs:
       with:
         python-version: "3.11.0"
         cache: 'poetry'
+    - name: Install Python dependencies
+      run: poetry install
     - name: Install Qt6
       run: |
         sudo apt-get update
-        sudo apt-get install qt6-base-dev qt6-base-dev-tools
-    - name: Install python dependencies
-      run: poetry install
-    - run: apt list | grep installed | grep qt6
-    - name: Generate docs
-      run: |
-        make docs-all
+        sudo apt-get install qt6-base-dev
+    - name: Test run
+      run: poetry run pytest -s --no-qt-log test_plot_widget.py
+      env:
+        QT_QPA_PLATFORM: "offscreen"
