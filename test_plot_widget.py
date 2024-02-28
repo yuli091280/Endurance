@@ -11,7 +11,7 @@ def test_plot_widget_user_interaction(qtbot):
     window = MainWindow(app.primaryScreen())
 
     # Create a real DB object with the database file
-    db = DB("new.db")
+    db = DB("test.db")
     # Create the PlotWidget with the real DB
     widget = PlotWidget(window, db)
     qtbot.addWidget(widget)
