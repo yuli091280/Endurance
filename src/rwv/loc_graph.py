@@ -273,7 +273,7 @@ class LocGraph:
         :type judges: dict[int, str]
         """
         # setup colormap to avoid duplicate colors
-        colors = pyplot.cm.nipy_spectral(np.linspace(0, 1, len(athletes)))
+        colors = pyplot.cm.gist_ncar(np.linspace(0, 1, len(athletes)))
         self.ax.set_prop_cycle("color", colors)
 
         # Set plot title and axis labels
