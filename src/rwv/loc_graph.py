@@ -1,5 +1,6 @@
 from enum import IntEnum, IntFlag, auto
 
+import matplotlib.dates
 import numpy as np
 
 from matplotlib import pyplot
@@ -270,8 +271,8 @@ class LocGraph:
         :type judge_data: dict[int, dict[int, pandas.DataFrame]]
         :param athletes: Information for each athlete that is graphed
         :type athletes: list[tuple[str, str, int]]
-        :param judges: A list of judge ids for the judges involved in this race
-        :type judges: list[int]
+        :param judges: A dictionary of judge ids and names for the judges involved in this race
+        :type judges: dict[int, str]
         """
         # setup colormap to avoid duplicate colors
         colors = pyplot.cm.nipy_spectral(np.linspace(0, 1, len(athletes)))
@@ -316,6 +317,7 @@ class LocGraph:
 
             for judge_id in per_athlete_judge_calls:
                 per_judge_calls = per_athlete_judge_calls[judge_id]
+                judge_name = judges[judge_id]
                 for call_type in per_judge_calls:
                     yellow_data = per_judge_calls[call_type][0]
                     red_data = per_judge_calls[call_type][1]
@@ -337,7 +339,7 @@ class LocGraph:
                         yellow_plot = self.ax.scatter(
                             x=yellow_data["Time"],
                             y=yellow_data["LOCAverage"],
-                            label="LOC Yellow Card",
+                            label=f"LOC Yellow Card\n - {judge_name}",
                             color="y",
                             marker="*",
                             visible=False,
@@ -345,7 +347,7 @@ class LocGraph:
                         red_plot = self.ax.scatter(
                             x=red_data["Time"],
                             y=red_data["LOCAverage"],
-                            label="LOC Red Card",
+                            label=f"LOC Red Card\n - {judge_name}",
                             color="r",
                             marker="*",
                             visible=False,
@@ -354,7 +356,7 @@ class LocGraph:
                         yellow_plot = self.ax.scatter(
                             x=yellow_data["Time"],
                             y=yellow_data["LOCAverage"],
-                            label="Bent Knee Yellow Card",
+                            label=f"Bent Knee Yellow Card\n - {judge_name}",
                             color="y",
                             marker=">",
                             visible=False,
@@ -362,7 +364,7 @@ class LocGraph:
                         red_plot = self.ax.scatter(
                             x=red_data["Time"],
                             y=red_data["LOCAverage"],
-                            label="Bent Knee Red Card",
+                            label=f"Bent Knee Red Card\n - {judge_name}",
                             color="r",
                             marker=">",
                             visible=False,
@@ -450,14 +452,10 @@ class LocGraph:
                             # Set the position of the annotation
                             pos = scatter.get_offsets()[ind["ind"][0]]
                             # Add the judgement call to the annotation text
-                            # TODO: Tie in judge "data" value
-                            if (
-                                not f"{plot_group.loc_plot.get_label()}: {scatter.get_label()}"
-                                in judge_calls
-                            ):
-                                judge_calls.append(
-                                    f"{plot_group.loc_plot.get_label()}: {scatter.get_label()}"
-                                )
+                            dt = matplotlib.dates.num2date(pos[0]).strftime("%I:%M%p")
+                            info_str = f"{plot_group.loc_plot.get_label()}: {scatter.get_label()} @ {dt}"
+                            if info_str not in judge_calls:
+                                judge_calls.append(info_str)
 
                 # If one of the points matches, draw the annotation
                 if judge_calls:

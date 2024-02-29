@@ -191,9 +191,10 @@ class PlotWidget(QtWidgets.QWidget):
         self.judge_list.clear_items()
         items = [f"{judge[2]}, {judge[1]}" for judge in judges]
         item_ids = [judge[0] for judge in judges]
+        judge_dict = dict(zip(item_ids, items))
         self.judge_list.add_items(items, item_ids)
 
-        self.canvas.plot_new_race(loc_values, judge_data, athletes, item_ids)
+        self.canvas.plot_new_race(loc_values, judge_data, athletes, judge_dict)
         self.canvas.redraw_points(JudgeCallType.LOC, self.loc_checkbox.isChecked())
         self.canvas.redraw_points(
             JudgeCallType.BENT_KNEE, self.bent_knee_checkbox.isChecked()
@@ -317,8 +318,8 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         :type judge_data: dict[int, dict[int, pandas.DataFrame]]
         :param athletes: Information for each athlete that is graphed
         :type athletes: list[tuple[str, str, int]]
-        :param judges: A list of judge ids for the judges involved in this race
-        :type judges: list[int]
+        :param judges: A dictionary of judge ids and names for the judges involved in this race
+        :type judges: dict[int, str]
         """
         self.graph.reset()
         self.graph.plot(loc_values, judge_data, athletes, judges)
