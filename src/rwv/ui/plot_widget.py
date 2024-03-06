@@ -24,7 +24,7 @@ class PlotWidget(QtWidgets.QWidget):
         races = db.get_races()
 
         close_db_button = QtWidgets.QPushButton("Close current DB")
-        close_db_button.clicked.connect(window.reset)
+        close_db_button.clicked.connect(lambda: window.reset())
 
         # Initialize combo box for selecting which race to fetch data for
         self.race_combo_box = QtWidgets.QComboBox(self)
