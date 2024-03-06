@@ -237,6 +237,8 @@ class LocGraph:
         :param show: Whether the user wants to see this type of judge call or not
         :type show: bool
         """
+        if call_type not in self.call_type_plots:
+            return
         if show:
             for plot_group in self.call_type_plots[call_type]:
                 plot_group.select(JudgeCallPlotGroup.Selection.TYPE)
