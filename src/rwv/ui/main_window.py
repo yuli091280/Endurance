@@ -17,7 +17,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.screen = screen
 
         # Set window title
-        self.setWindowTitle("Race Walking Visualization")
+        self.setWindowTitle("Endurance")
 
         self.reset()
 

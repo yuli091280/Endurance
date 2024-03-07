@@ -20,11 +20,9 @@ class PlotWidget(QtWidgets.QWidget):
     def __init__(self, window, db):
         super().__init__()
 
+        self.window = window
         self.db = db
         races = db.get_races()
-
-        close_db_button = QtWidgets.QPushButton("Close current DB")
-        close_db_button.clicked.connect(window.reset)
 
         # Initialize combo box for selecting which race to fetch data for
         self.race_combo_box = QtWidgets.QComboBox(self)
@@ -40,13 +38,15 @@ class PlotWidget(QtWidgets.QWidget):
             lambda: self.init_interface_for_race()
         )
 
-        self.max_loc_combo_box = QtWidgets.QComboBox(self)
-        self.max_loc_combo_box.addItem("60 ms", 60)
-        self.max_loc_combo_box.addItem("45 ms", 45)
-        self.max_loc_label = QtWidgets.QLabel("Max LOC:")
+        self.max_loc_combo_box = QtWidgets.QLineEdit(self)
+        self.max_loc_combo_box.setText("60")
+        self.max_loc_label = QtWidgets.QLabel("Max LOC (ms):")
         self.race_label.setBuddy(self.max_loc_combo_box)
-        self.max_loc_combo_box.currentIndexChanged.connect(
-            lambda: self.canvas.redraw_loc(self.max_loc_combo_box.currentData())
+
+        self.max_loc_combo_box.textChanged.connect(
+            lambda: self.canvas.redraw_loc(
+                    int(self.max_loc_combo_box.text()) if self.max_loc_combo_box.text().strip() != '' else 0
+                )
         )
 
         # Set up graph
@@ -104,22 +104,35 @@ class PlotWidget(QtWidgets.QWidget):
         button_layout.addWidget(self.bent_knee_checkbox)
         button_layout.addWidget(self.loc_checkbox)
 
-        layout.addWidget(close_db_button)
-        layout.addWidget(toolbar)
         layout.addWidget(self.race_label)
         layout.addWidget(self.race_combo_box)
         layout.addWidget(self.max_loc_label)
         layout.addWidget(self.max_loc_combo_box)
         layout.addLayout(selector_layout)
         layout.addLayout(button_layout)
+        layout.addWidget(toolbar)
         layout.addWidget(self.canvas)
 
-        self.save_button = QtWidgets.QPushButton("Save Graph", self)
-        layout.addWidget(self.save_button)
-        self.save_button.clicked.connect(self.save_current_graph)
-
         # Tell widget to use specified layout
+        self._createMenuBar()
         self.setLayout(layout)
+
+    def _createMenuBar(self):
+        menu_bar = QtWidgets.QMenuBar(self)
+        # Creating menus using a QMenu object
+        file_menu = QtWidgets.QMenu("&File", self)
+        menu_bar.addMenu(file_menu)
+        close_current_db = file_menu.addAction("Close Current DB")
+        close_current_db.triggered.connect(lambda: self.window.reset())
+
+        save_graph = file_menu.addAction("Save Graph")
+        save_graph.triggered.connect(lambda: self.save_current_graph())
+
+        exit_action = file_menu.addAction("Exit")
+        exit_action.triggered.connect(self.close)
+        exit_action.setShortcut('Ctrl+Q')
+
+        menu_bar.show()
 
     @staticmethod
     def make_double_list_layout(label_text):
