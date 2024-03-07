@@ -50,7 +50,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.hide()
 
         db_button = QtWidgets.QPushButton("Open a new database", self)
-        db_button.clicked.connect(self.open_db)
+        db_button.clicked.connect(lambda: self.open_db())
 
         # Tell window to use specified widget
         self.setCentralWidget(db_button)
