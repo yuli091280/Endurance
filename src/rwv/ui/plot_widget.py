@@ -20,9 +20,15 @@ class PlotWidget(QtWidgets.QWidget):
     def __init__(self, window, db):
         super().__init__()
 
+        self.bent_knee = None
+        self.loc = None
+
         self.window = window
         self.db = db
         races = db.get_races()
+
+        # Initialize the menu bar for the application
+        self._createMenuBar()
 
         # Initialize combo box for selecting which race to fetch data for
         self.race_combo_box = QtWidgets.QComboBox(self)
@@ -75,46 +81,21 @@ class PlotWidget(QtWidgets.QWidget):
         selector_layout.addLayout(runner_list_layout)
         selector_layout.addLayout(judge_list_layout)
 
-        # Initialize checkbox for choosing whether to draw bent knee points
-        self.bent_knee_checkbox = QtWidgets.QCheckBox("Bent Knee", self)
-        # Set default value to true
-        self.bent_knee_checkbox.setChecked(True)
-        # Connect our redraw function to the selector
-        self.bent_knee_checkbox.stateChanged.connect(
-            lambda checked: self.canvas.redraw_points(JudgeCallType.BENT_KNEE, checked)
-        )
-
-        # Initialize checkbox for choosing whether to draw LOC points
-        self.loc_checkbox = QtWidgets.QCheckBox("LOC", self)
-        # Set default value to true
-        self.loc_checkbox.setChecked(True)
-        # Connect our redraw function to the selector
-        self.loc_checkbox.stateChanged.connect(
-            lambda checked: self.canvas.redraw_points(JudgeCallType.LOC, checked)
-        )
-
         # Initialize UI values and graph
         self.init_interface_for_race()
 
         # widget layout
         layout = QtWidgets.QVBoxLayout()
 
-        # Checkbox layout
-        button_layout = QtWidgets.QHBoxLayout()
-        button_layout.addWidget(self.bent_knee_checkbox)
-        button_layout.addWidget(self.loc_checkbox)
-
+        layout.addWidget(toolbar)
+        layout.addWidget(self.canvas)
         layout.addWidget(self.race_label)
         layout.addWidget(self.race_combo_box)
         layout.addWidget(self.max_loc_label)
         layout.addWidget(self.max_loc_combo_box)
         layout.addLayout(selector_layout)
-        layout.addLayout(button_layout)
-        layout.addWidget(toolbar)
-        layout.addWidget(self.canvas)
 
         # Tell widget to use specified layout
-        self._createMenuBar()
         self.setLayout(layout)
 
     def _createMenuBar(self):
@@ -122,6 +103,7 @@ class PlotWidget(QtWidgets.QWidget):
         # Creating menus using a QMenu object
         file_menu = QtWidgets.QMenu("&File", self)
         menu_bar.addMenu(file_menu)
+
         close_current_db = file_menu.addAction("Close Current DB")
         close_current_db.triggered.connect(lambda: self.window.reset())
 
@@ -131,6 +113,23 @@ class PlotWidget(QtWidgets.QWidget):
         exit_action = file_menu.addAction("Exit")
         exit_action.triggered.connect(self.close)
         exit_action.setShortcut('Ctrl+Q')
+
+        edit_menu = QtWidgets.QMenu("&Edit", self)
+        menu_bar.addMenu(edit_menu)
+
+        self.bent_knee = edit_menu.addAction("Bent Knee")
+        self.bent_knee.setCheckable(True)
+        self.bent_knee.setChecked(True)
+        self.bent_knee.triggered.connect(
+            lambda checked: self.canvas.redraw_points(JudgeCallType.LOC, checked)
+        )
+
+        self.loc = edit_menu.addAction("LOC")
+        self.loc.setCheckable(True)
+        self.loc.setChecked(True)
+        self.loc.triggered.connect(
+            lambda checked: self.canvas.redraw_points(JudgeCallType.LOC, checked)
+        )
 
         menu_bar.show()
 
@@ -208,9 +207,9 @@ class PlotWidget(QtWidgets.QWidget):
         self.judge_list.add_items(items, item_ids)
 
         self.canvas.plot_new_race(loc_values, judge_data, athletes, judge_dict)
-        self.canvas.redraw_points(JudgeCallType.LOC, self.loc_checkbox.isChecked())
+        self.canvas.redraw_points(JudgeCallType.LOC, self.loc.isChecked())
         self.canvas.redraw_points(
-            JudgeCallType.BENT_KNEE, self.bent_knee_checkbox.isChecked()
+            JudgeCallType.BENT_KNEE, self.bent_knee.isChecked()
         )
 
     def fetch_judge_data(self, judges, bibs, race_id):
