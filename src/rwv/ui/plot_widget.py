@@ -2,6 +2,7 @@ import pandas as pd
 from PyQt6 import QtWidgets
 
 import matplotlib.backends.backend_qt5agg as mlp_backend
+from PyQt6.QtGui import QIntValidator
 
 from rwv.loc_graph import LocGraph, JudgeCallType
 from rwv.ui.double_list import DoubleListWidget
@@ -47,6 +48,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.max_loc_text_box = QtWidgets.QLineEdit(self)
         self.max_loc_text_box.setText("60")
         self.max_loc_label = QtWidgets.QLabel("Max LOC (ms):")
+        self.max_loc_text_box.setValidator(QIntValidator(1, 999, self))
         self.race_label.setBuddy(self.max_loc_text_box)
 
         self.max_loc_text_box.textChanged.connect(
