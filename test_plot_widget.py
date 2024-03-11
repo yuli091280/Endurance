@@ -21,8 +21,8 @@ def test_plot_widget_user_interaction(qtbot):
         widget.race_combo_box.view().viewport(), QtCore.Qt.MouseButton.LeftButton
     )
 
-    # Simulate clicking 60 ms
-    widget.max_loc_combo_box.setCurrentIndex(1)
+    # Simulate typing in 60 ms.
+    widget.max_loc_text_box.setText("60")
 
     # Simulate double clicking on the first item of the left list of the runner list
     qtbot.mouseDClick(

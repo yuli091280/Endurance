@@ -28,7 +28,7 @@ class PlotWidget(QtWidgets.QWidget):
         races = db.get_races()
 
         # Initialize the menu bar for the application
-        self._createMenuBar()
+        self.create_menu_bar()
 
         # Initialize combo box for selecting which race to fetch data for
         self.race_combo_box = QtWidgets.QComboBox(self)
@@ -44,14 +44,14 @@ class PlotWidget(QtWidgets.QWidget):
             lambda: self.init_interface_for_race()
         )
 
-        self.max_loc_combo_box = QtWidgets.QLineEdit(self)
-        self.max_loc_combo_box.setText("60")
+        self.max_loc_text_box = QtWidgets.QLineEdit(self)
+        self.max_loc_text_box.setText("60")
         self.max_loc_label = QtWidgets.QLabel("Max LOC (ms):")
-        self.race_label.setBuddy(self.max_loc_combo_box)
+        self.race_label.setBuddy(self.max_loc_text_box)
 
-        self.max_loc_combo_box.textChanged.connect(
+        self.max_loc_text_box.textChanged.connect(
             lambda: self.canvas.redraw_loc(
-                    int(self.max_loc_combo_box.text()) if self.max_loc_combo_box.text().strip() != '' else 0
+                    int(self.max_loc_text_box.text()) if self.max_loc_text_box.text().strip() != '' else 0
                 )
         )
 
@@ -92,31 +92,43 @@ class PlotWidget(QtWidgets.QWidget):
         layout.addWidget(self.race_label)
         layout.addWidget(self.race_combo_box)
         layout.addWidget(self.max_loc_label)
-        layout.addWidget(self.max_loc_combo_box)
+        layout.addWidget(self.max_loc_text_box)
         layout.addLayout(selector_layout)
 
         # Tell widget to use specified layout
         self.setLayout(layout)
 
-    def _createMenuBar(self):
+    def create_menu_bar(self):
+        """
+        Creates and shows the menu bar. This contains actions for users relating to saving, closing the DB, and
+        toggling the display of Bent Knee and LOC on the graph.
+        """
+        # Initialize the menu bar.
         menu_bar = QtWidgets.QMenuBar(self)
-        # Creating menus using a QMenu object
+
+        # Initialize the File button on the menu bar.
         file_menu = QtWidgets.QMenu("&File", self)
         menu_bar.addMenu(file_menu)
 
+        # Action to close the database file.
         close_current_db = file_menu.addAction("Close Current DB")
         close_current_db.triggered.connect(lambda: self.window.reset())
 
+        # Action to save the graph.
         save_graph = file_menu.addAction("Save Graph")
         save_graph.triggered.connect(lambda: self.save_current_graph())
+        save_graph.setShortcut('Ctrl+S')
 
+        # Action to exit the application.
         exit_action = file_menu.addAction("Exit")
         exit_action.triggered.connect(self.close)
         exit_action.setShortcut('Ctrl+Q')
 
+        # Initialize the Edit button on the meny bar.
         edit_menu = QtWidgets.QMenu("&Edit", self)
         menu_bar.addMenu(edit_menu)
 
+        # Action to toggle the display of Bent Knee.
         self.bent_knee = edit_menu.addAction("Bent Knee")
         self.bent_knee.setCheckable(True)
         self.bent_knee.setChecked(True)
@@ -124,6 +136,7 @@ class PlotWidget(QtWidgets.QWidget):
             lambda checked: self.canvas.redraw_points(JudgeCallType.LOC, checked)
         )
 
+        # Action to toggle the display of LOC.
         self.loc = edit_menu.addAction("LOC")
         self.loc.setCheckable(True)
         self.loc.setChecked(True)
@@ -131,6 +144,7 @@ class PlotWidget(QtWidgets.QWidget):
             lambda checked: self.canvas.redraw_points(JudgeCallType.LOC, checked)
         )
 
+        # Show the menu bar.
         menu_bar.show()
 
     @staticmethod
