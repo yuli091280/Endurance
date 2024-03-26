@@ -116,7 +116,7 @@ class PlotWidget(QtWidgets.QWidget):
 
         self.save_button = QtWidgets.QPushButton("Save Graph", self)
         layout.addWidget(self.save_button)
-        self.save_button.clicked.connect(self.save_current_graph)
+        self.save_button.clicked.connect(lambda: self.save_current_graph())
 
         # Tell widget to use specified layout
         self.setLayout(layout)
