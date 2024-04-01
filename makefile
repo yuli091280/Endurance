@@ -26,4 +26,4 @@ docs-appmap: docs-clean-appmap
 docs-all: docs-appmap docs-build
 
 ${EXECUTABLE_OUT}: ${PYINSTALLER_ENTRY}
-	poetry run pyinstaller ${PYINSTALLER_ENTRY}
+	poetry run pyinstaller --onefile ${PYINSTALLER_ENTRY}
