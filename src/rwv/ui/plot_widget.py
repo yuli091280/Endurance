@@ -101,6 +101,9 @@ class PlotWidget(QtWidgets.QWidget):
         self.create_canvas_window()
 
     def create_canvas_window(self):
+        """
+        Creates window that displays the generate chart.
+        """
         self.canvas_window = QtWidgets.QWidget()
         self.canvas_window.setWindowTitle("Endurance")
         self.canvas_window.closeEvent = self.close_application
@@ -114,6 +117,9 @@ class PlotWidget(QtWidgets.QWidget):
         self.canvas_window.show()
 
     def close_application(self):
+        """
+        Closes both of the windows once one is closed.
+        """
         self.canvas_window.close()
         self.close()
 
