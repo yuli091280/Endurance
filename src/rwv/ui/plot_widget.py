@@ -103,7 +103,7 @@ class PlotWidget(QtWidgets.QWidget):
     def create_canvas_window(self):
         self.canvas_window = QtWidgets.QWidget()
         self.canvas_window.setWindowTitle("Endurance")
-        self.canvas_window.closeEvent = self.close
+        self.canvas_window.closeEvent = self.close_application
 
         layout = QtWidgets.QVBoxLayout(self.canvas_window)
         layout.addWidget(self.toolbar)
@@ -112,6 +112,10 @@ class PlotWidget(QtWidgets.QWidget):
         self.canvas_window.setLayout(layout)
 
         self.canvas_window.show()
+
+    def close_application(self):
+        self.canvas_window.close()
+        self.close()
 
     def create_menu_bar(self):
         """
@@ -136,7 +140,7 @@ class PlotWidget(QtWidgets.QWidget):
 
         # Action to exit the application.
         exit_action = file_menu.addAction("Exit")
-        exit_action.triggered.connect(self.close)
+        exit_action.triggered.connect(self.close_application)
         exit_action.setShortcut('Ctrl+Q')
 
         # Initialize the Edit button on the meny bar.
