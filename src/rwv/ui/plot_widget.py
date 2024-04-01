@@ -1,12 +1,12 @@
-import pandas as pd
-from PyQt6 import QtWidgets
-
 import matplotlib.backends.backend_qt5agg as mlp_backend
+import pandas as pd
+
+from PyQt6 import QtWidgets
 from PyQt6.QtGui import QIntValidator
+from PyQt6.QtWidgets import QFileDialog
 
 from rwv.loc_graph import LocGraph, JudgeCallType
 from rwv.ui.double_list import DoubleListWidget
-from PyQt6.QtWidgets import QFileDialog
 
 
 class PlotWidget(QtWidgets.QWidget):
@@ -22,6 +22,7 @@ class PlotWidget(QtWidgets.QWidget):
         super().__init__()
 
         self.bent_knee = None
+        self.canvas_window = None
         self.loc = None
 
         self.window = window
@@ -62,7 +63,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.canvas = MplCanvas(self.graph)
 
         # Initialize toolbar for interacting with plot
-        toolbar = mlp_backend.NavigationToolbar2QT(self.canvas, self)
+        self.toolbar = mlp_backend.NavigationToolbar2QT(self.canvas, self)
 
         runner_list_layout, self.runner_list = PlotWidget.make_double_list_layout(
             "Runners"
@@ -88,9 +89,6 @@ class PlotWidget(QtWidgets.QWidget):
 
         # widget layout
         layout = QtWidgets.QVBoxLayout()
-
-        layout.addWidget(toolbar)
-        layout.addWidget(self.canvas)
         layout.addWidget(self.race_label)
         layout.addWidget(self.race_combo_box)
         layout.addWidget(self.max_loc_label)
@@ -99,6 +97,21 @@ class PlotWidget(QtWidgets.QWidget):
 
         # Tell widget to use specified layout
         self.setLayout(layout)
+
+        self.create_canvas_window()
+
+    def create_canvas_window(self):
+        self.canvas_window = QtWidgets.QWidget()
+        self.canvas_window.setWindowTitle("Endurance")
+        self.canvas_window.closeEvent = self.close
+
+        layout = QtWidgets.QVBoxLayout(self.canvas_window)
+        layout.addWidget(self.toolbar)
+        layout.addWidget(self.canvas)
+
+        self.canvas_window.setLayout(layout)
+
+        self.canvas_window.show()
 
     def create_menu_bar(self):
         """
