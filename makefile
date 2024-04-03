@@ -1,7 +1,7 @@
 PYINSTALLER_ENTRY = src/rwv/main.py
 EXECUTABLE_OUT = dist/main
 
-.PHONY: build clean
+.PHONY: build clean docs-clean docs-clean-appmap docs-build docs-appmap docs-all
 
 build: ${EXECUTABLE_OUT}
 
@@ -19,9 +19,11 @@ docs-clean-appmap:
 docs-build: docs-clean
 	cd docs && poetry run sphinx-apidoc -o . ../src
 	cd docs && poetry run sphinx-build -b html . ./_build
+	cd docs && rm *.log
 
 docs-appmap: docs-clean-appmap
 	APPMAP=true poetry run pytest test_plot_widget.py
+	rm *.log
 
 docs-all: docs-appmap docs-build
 
