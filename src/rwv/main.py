@@ -18,7 +18,7 @@ def main():
     """
     app = QApplication(sys.argv)
 
-    window = MainWindow(app.primaryScreen())
+    window = MainWindow()
 
     return app.exec()
 
