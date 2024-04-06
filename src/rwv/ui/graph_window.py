@@ -35,3 +35,9 @@ class GraphWindow(QtWidgets.QWidget):
         Shows the window.
         """
         self.show()
+
+    def close_window(self):
+        """
+        Hides the window.
+        """
+        self.hide()

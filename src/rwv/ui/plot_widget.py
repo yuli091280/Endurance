@@ -118,7 +118,8 @@ class PlotWidget(QtWidgets.QWidget):
         """
         Closes both of the windows once one is closed.
         """
-        self.graph_window.close_window()
+        if self.graph_window is not None:
+            self.graph_window.close_window()
         self.close()
 
     def create_menu_bar(self):
