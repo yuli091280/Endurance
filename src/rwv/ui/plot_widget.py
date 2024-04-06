@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import QFileDialog
 
 from rwv.loc_graph import LocGraph, JudgeCallType
 from rwv.ui.double_list import DoubleListWidget
+from rwv.ui.graph_window import GraphWindow
 
 
 class PlotWidget(QtWidgets.QWidget):
@@ -22,12 +23,14 @@ class PlotWidget(QtWidgets.QWidget):
         super().__init__()
 
         self.bent_knee = None
-        self.canvas_window = None
+        self.graph_window = None
         self.loc = None
 
         self.window = window
         self.db = db
         races = db.get_races()
+
+        self.toolbar = None
 
         # Initialize the menu bar for the application
         self.create_menu_bar()
@@ -62,9 +65,6 @@ class PlotWidget(QtWidgets.QWidget):
         self.graph = LocGraph(width=12, height=7, dpi=100)
         self.canvas = MplCanvas(self.graph)
 
-        # Initialize toolbar for interacting with plot
-        self.toolbar = mlp_backend.NavigationToolbar2QT(self.canvas, self)
-
         runner_list_layout, self.runner_list = PlotWidget.make_double_list_layout(
             "Runners"
         )
@@ -87,6 +87,10 @@ class PlotWidget(QtWidgets.QWidget):
         # Initialize UI values and graph
         self.init_interface_for_race()
 
+        # Create a button for showing the graph
+        self.show_graph_button = QtWidgets.QPushButton('Show Graph', self)
+        self.show_graph_button.clicked.connect(lambda: self.create_graph_window())
+
         # widget layout
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.race_label)
@@ -94,33 +98,27 @@ class PlotWidget(QtWidgets.QWidget):
         layout.addWidget(self.max_loc_label)
         layout.addWidget(self.max_loc_text_box)
         layout.addLayout(selector_layout)
+        layout.addWidget(self.show_graph_button)
 
         # Tell widget to use specified layout
         self.setLayout(layout)
 
-        self.create_canvas_window()
-
-    def create_canvas_window(self):
+    def create_graph_window(self):
         """
         Creates window that displays the generate chart.
         """
-        self.canvas_window = QtWidgets.QWidget()
-        self.canvas_window.setWindowTitle("Endurance")
-        self.canvas_window.closeEvent = self.close_application
-
-        layout = QtWidgets.QVBoxLayout(self.canvas_window)
-        layout.addWidget(self.toolbar)
-        layout.addWidget(self.canvas)
-
-        self.canvas_window.setLayout(layout)
-
-        self.canvas_window.show()
+        if self.graph_window is None or not self.graph_window.isVisible():
+            # Initialize toolbar for interacting with plot
+            self.toolbar = mlp_backend.NavigationToolbar2QT(self.canvas, self)
+            self.graph_window = GraphWindow(self.toolbar, self.canvas, self.show_graph_button)
+            self.show_graph_button.hide()
+            self.graph_window.show_window()
 
     def close_application(self):
         """
         Closes both of the windows once one is closed.
         """
-        self.canvas_window.close()
+        self.graph_window.close_window()
         self.close()
 
     def create_menu_bar(self):
@@ -146,7 +144,7 @@ class PlotWidget(QtWidgets.QWidget):
 
         # Action to exit the application.
         exit_action = file_menu.addAction("Exit")
-        exit_action.triggered.connect(self.close_application)
+        exit_action.triggered.connect(lambda: self.close_application())
         exit_action.setShortcut('Ctrl+Q')
 
         # Initialize the Edit button on the meny bar.
