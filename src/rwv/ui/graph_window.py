@@ -40,4 +40,4 @@ class GraphWindow(QtWidgets.QWidget):
         """
         Hides the window.
         """
-        self.hide()
+        self.close()
