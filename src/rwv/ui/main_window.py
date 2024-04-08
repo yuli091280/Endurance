@@ -60,6 +60,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def center(self):
+        """
+        Move this window to the center of the screen.
+        """
         screen_center = self.screen().availableGeometry().center()
         window_center = (self.frameGeometry().bottomRight() - self.frameGeometry().topLeft())/2
         self.move(screen_center - window_center)
