@@ -12,10 +12,8 @@ class MainWindow(QtWidgets.QMainWindow):
     :type screen: PyQt6.QtGui.QScreen
     """
 
-    def __init__(self, screen):
+    def __init__(self):
         super().__init__()
-
-        self.screen = screen
 
         # Set window title
         self.setWindowTitle("Endurance")
@@ -45,8 +43,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(plot_widget)
 
         # center this window
-        self.move(self.screen.geometry().center() - self.frameGeometry().center())
         self.show()
+        self.center()
+
 
     def reset(self):
         """
@@ -62,5 +61,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(db_button)
 
         # center this window
-        self.move(self.screen.geometry().center() - self.frameGeometry().center())
         self.show()
+        self.center()
+
+
+    def center(self):
+        """
+        Move this window to the center of the screen.
+        """
+        screen_center = self.screen().availableGeometry().center()
+        window_center = (self.frameGeometry().bottomRight() - self.frameGeometry().topLeft())/2
+        self.move(screen_center - window_center)

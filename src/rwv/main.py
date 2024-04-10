@@ -18,11 +18,11 @@ def main():
     """
     app = QApplication(sys.argv)
 
-    with open('rwv/ui/styles/style.qss', 'r') as f:
+    with open('./ui/styles/style.qss', 'r') as f:
         stylesheet = f.read()
         app.setStyleSheet(stylesheet)
 
-    window = MainWindow(app.primaryScreen())
+    window = MainWindow()
 
     return app.exec()
 
