@@ -1,6 +1,7 @@
 from PyQt6 import QtWidgets
 
 from rwv.ui.plot_widget import PlotWidget
+from rwv.ui.loading_dialog import LoadingDialog
 from rwv.db import DB
 
 
@@ -33,8 +34,13 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.critical(self, "", "Invalid file")
             return
 
+        loading_dialog = LoadingDialog(self)
+        loading_dialog.show()
+
         db = DB(file_path)
         self.hide()
+        loading_dialog.close()
+
         plot_widget = PlotWidget(self, db)
         self.setCentralWidget(plot_widget)
 
