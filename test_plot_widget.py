@@ -8,7 +8,7 @@ from rwv.ui.main_window import MainWindow
 def test_plot_widget_user_interaction(qtbot):
     app = QApplication.instance()
 
-    window = MainWindow(app.primaryScreen())
+    window = MainWindow()
 
     # Create a real DB object with the database file
     db = DB("test.db")
