@@ -33,6 +33,25 @@ class DB:
 
         return result
 
+    def execute_lookup_query_with_headers(self, query, params):
+        """
+        Executes the sql query.
+
+        :param query: sql query to run
+        :type query: str
+        :param params: parameters to pass to sql query
+        :type params: tuple[any]
+        :return: Data returned from sql query
+        :rtype: list[tuple[any]]
+        """
+        cursor = self.connection.cursor()
+        cursor.execute(query, params)
+        result = cursor.fetchall()
+        headers = [item[0] for item in cursor.description]
+        cursor.close()
+
+        return headers, result
+
     @staticmethod
     def single_query_result(query_result):
         """
@@ -141,6 +160,28 @@ class DB:
         :rtype: list[tuple[any]]
         """
         return self.execute_lookup_query(
+            "SELECT B.BibNumber, A.FirstName , A.LastName, J.FirstName, J.LastName,"
+            "(CASE WHEN Color = 'Yellow' AND Infraction = '~' THEN 'x' ELSE NULL END) AS `Yellow ~`,"
+            "(CASE WHEN Color = 'Red' AND Infraction = '~' THEN 'x' ELSE NULL END) AS `Red ~`,"
+            "(CASE WHEN Color = 'Yellow' AND Infraction = '<' THEN 'x' ELSE NULL END) AS `Yellow <`,"
+            "(CASE WHEN Color = 'Red' AND Infraction = '<' THEN 'x' ELSE NULL END) AS `Red <` "
+            "FROM Judge J "
+            "JOIN JudgeCall JC ON J.IDJudge = JC.IDJudge "
+            "JOIN Bib B ON JC.BibNumber = B.BibNumber "
+            "JOIN Athlete A ON B.IDAthlete = A.IDAthlete "
+            "GROUP BY A.IDAthlete, J.IDJudge "
+            "ORDER BY B.BibNumber, J.FirstName, J.LastName",
+            (),
+        )
+
+    def get_athlete_judge_infraction_summary_with_headers(self):
+        """
+        Judge/Athlete infraction data.
+
+        :return: Judge/Athlete infraction data
+        :rtype: list[tuple[any]]
+        """
+        return self.execute_lookup_query_with_headers(
             "SELECT B.BibNumber, A.FirstName , A.LastName, J.FirstName, J.LastName,"
             "(CASE WHEN Color = 'Yellow' AND Infraction = '~' THEN 'x' ELSE NULL END) AS `Yellow ~`,"
             "(CASE WHEN Color = 'Red' AND Infraction = '~' THEN 'x' ELSE NULL END) AS `Red ~`,"
