@@ -27,22 +27,14 @@ class PlotWidget(QtWidgets.QWidget):
         self.loc = None
 
         self.window = window
-        self.db = db
-        races = db.get_races()
 
         self.toolbar = None
 
         # Initialize the menu bar for the application
         self.create_menu_bar()
 
-        # Initialize combo box for selecting which race to fetch data for
         self.race_combo_box = QtWidgets.QComboBox(self)
-        for race in races:
-            # Add athletes in the form "Race IDRace - Gender Distance DistanceUnits (RaceDate @ StartTime)"
-            self.race_combo_box.addItem(
-                f"Race {race[0]} - {race[1]} {race[2]}{race[3]} ({race[4]} @ {race[5]})",
-                race[0],
-            )
+
         self.race_label = QtWidgets.QLabel("Race:")
         self.race_label.setBuddy(self.race_combo_box)
         self.race_combo_box.currentIndexChanged.connect(
@@ -84,12 +76,11 @@ class PlotWidget(QtWidgets.QWidget):
         selector_layout.addLayout(runner_list_layout)
         selector_layout.addLayout(judge_list_layout)
 
-        # Initialize UI values and graph
-        self.init_interface_for_race()
-
         # Create a button for showing the graph
         self.show_graph_button = QtWidgets.QPushButton('Show Graph', self)
         self.show_graph_button.clicked.connect(lambda: self.create_graph_window())
+
+        self.set_db(db)
 
         # widget layout
         layout = QtWidgets.QVBoxLayout()
@@ -102,6 +93,26 @@ class PlotWidget(QtWidgets.QWidget):
 
         # Tell widget to use specified layout
         self.setLayout(layout)
+
+    def set_db(self, db):
+        """
+        Switch to a new db to visualize.
+
+        :param db: new db to switch to
+        :type db: DB
+        """
+        self.db = db
+        races = db.get_races()
+
+        self.race_combo_box.clear_items()
+        for race in races:
+            # Add athletes in the form "Race IDRace - Gender Distance DistanceUnits (RaceDate @ StartTime)"
+            self.race_combo_box.addItem(
+                f"Race {race[0]} - {race[1]} {race[2]}{race[3]} ({race[4]} @ {race[5]})",
+                race[0],
+            )
+
+        self.init_interface_for_race()
 
     def create_graph_window(self):
         """
