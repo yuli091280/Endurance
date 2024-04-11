@@ -18,7 +18,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.reset()
 
-
     def open_db(self):
         """
         Event handler for when the user opens a new database.
@@ -34,7 +33,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # center this window
         self.show()
         self.center()
-
 
     def reset(self):
         """
@@ -52,7 +50,6 @@ class MainWindow(QtWidgets.QMainWindow):
         # center this window
         self.show()
         self.center()
-
 
     def center(self):
         """
