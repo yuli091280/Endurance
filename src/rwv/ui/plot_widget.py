@@ -78,11 +78,11 @@ class PlotWidget(QtWidgets.QWidget):
         selector_layout.addLayout(runner_list_layout)
         selector_layout.addLayout(judge_list_layout)
 
+        self.set_db(db)
+
         # Create a button for showing the graph
         self.show_graph_button = QtWidgets.QPushButton("Show Graph", self)
         self.show_graph_button.clicked.connect(lambda: self.create_graph_window())
-
-        self.set_db(db)
 
         # widget layout
         layout = QtWidgets.QVBoxLayout()
@@ -117,7 +117,6 @@ class PlotWidget(QtWidgets.QWidget):
                 race[0],
             )
 
-        self.init_interface_for_race()
 
     def create_graph_window(self):
         """
