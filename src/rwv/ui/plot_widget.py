@@ -117,7 +117,6 @@ class PlotWidget(QtWidgets.QWidget):
                 race[0],
             )
 
-
     def create_graph_window(self):
         """
         Creates window that displays the generate chart.
