@@ -341,7 +341,7 @@ class LocGraph:
                             y=yellow_data["LOCAverage"],
                             label=f"LOC Yellow Card\n - {judge_name}",
                             color="y",
-                            marker="*",
+                            marker=r"$\sim$",
                             visible=False,
                         )
                         red_plot = self.ax.scatter(
@@ -349,7 +349,7 @@ class LocGraph:
                             y=red_data["LOCAverage"],
                             label=f"LOC Red Card\n - {judge_name}",
                             color="r",
-                            marker="*",
+                            marker=r"$\sim$",
                             visible=False,
                         )
                     elif call_type == JudgeCallType.BENT_KNEE:
@@ -358,7 +358,7 @@ class LocGraph:
                             y=yellow_data["LOCAverage"],
                             label=f"Bent Knee Yellow Card\n - {judge_name}",
                             color="y",
-                            marker=">",
+                            marker="$>$",
                             visible=False,
                         )
                         red_plot = self.ax.scatter(
@@ -366,7 +366,7 @@ class LocGraph:
                             y=red_data["LOCAverage"],
                             label=f"Bent Knee Red Card\n - {judge_name}",
                             color="r",
-                            marker=">",
+                            marker="$>$",
                             visible=False,
                         )
                     else:
