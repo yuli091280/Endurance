@@ -1,5 +1,7 @@
 import matplotlib.backends.backend_qt5agg as mlp_backend
 import pandas as pd
+from matplotlib.backends.backend_pdf import PdfPages
+
 
 from PyQt6 import QtWidgets
 from PyQt6.QtGui import QIntValidator
@@ -416,6 +418,33 @@ class MplCanvas(mlp_backend.FigureCanvasQTAgg):
         """
         self.graph.display_judge_call_by_judges(selected_judges)
         self.draw_idle()
+
+
+    def save_judge_summary_as_pdf(self):
+        raw_data = self.db.get_judge_infraction_summary() #from db.pg
+        columns = ['FirstName', 'LastName', 'Red ~', 'Red <', 'Yellow ~', 'Yellow <']
+        dataframe = pd.DataFrame(raw_data, columns=columns)
+        
+        file_path, _ = QFileDialog.getSaveFileName(self, "Save Judge Summary", "", "PDF Files (*.pdf)")
+        if file_path:
+            if not file_path.endswith(".pdf"):
+                file_path += ".pdf"
+            self.save_dataframe_as_pdf(dataframe, file_path)
+
+    @staticmethod
+    def save_dataframe_as_pdf(dataframe, file_path):
+        fig, ax = plt.subplots(figsize=(8, 3))
+        ax.axis('off')
+        testTable = ax.table(cellText=dataframe.values, colLabels=dataframe.columns, loc='center')
+        testTable.auto_set_font_size(False)
+        testTable.set_fontsize(8)
+        testTable.scale(1.2, 1.2)
+        
+        pp = PdfPages(file_path)
+        pp.savefig(fig, bbox_inches='tight')
+        pp.close()
+        plt.close(fig)
+
 
     def save_figure_as_pdf(self, file_path):
         """
