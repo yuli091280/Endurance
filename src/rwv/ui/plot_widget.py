@@ -9,6 +9,8 @@ from rwv.loc_graph import LocGraph, JudgeCallType
 from rwv.ui.double_list import DoubleListWidget
 from rwv.ui.graph_window import GraphWindow
 
+from rwv.db import DB
+
 
 class PlotWidget(QtWidgets.QWidget):
     """A widget containing the plot and its controls.
@@ -19,14 +21,12 @@ class PlotWidget(QtWidgets.QWidget):
     :type db: DB
     """
 
-    def __init__(self, window, db):
+    def __init__(self, db):
         super().__init__()
 
         self.bent_knee = None
         self.graph_window = None
         self.loc = None
-
-        self.window = window
 
         self.toolbar = None
 
@@ -101,10 +101,13 @@ class PlotWidget(QtWidgets.QWidget):
         :param db: new db to switch to
         :type db: DB
         """
+        if not db:
+            return
+
         self.db = db
         races = db.get_races()
 
-        self.race_combo_box.clear_items()
+        self.race_combo_box.clear()
         for race in races:
             # Add athletes in the form "Race IDRace - Gender Distance DistanceUnits (RaceDate @ StartTime)"
             self.race_combo_box.addItem(
@@ -146,8 +149,8 @@ class PlotWidget(QtWidgets.QWidget):
         menu_bar.addMenu(file_menu)
 
         # Action to close the database file.
-        close_current_db = file_menu.addAction("Close Current DB")
-        close_current_db.triggered.connect(lambda: self.window.reset())
+        close_current_db = file_menu.addAction("Open a new database")
+        close_current_db.triggered.connect(lambda: self.set_db(PlotWidget.db_file_dialog(self)))
 
         # Action to save the graph.
         save_graph = file_menu.addAction("Save Graph")
@@ -198,6 +201,23 @@ class PlotWidget(QtWidgets.QWidget):
         layout.addWidget(label)
         layout.addWidget(double_list)
         return layout, double_list
+
+    @staticmethod
+    def db_file_dialog(parent):
+        """
+        Show a file dialog that prompts the user for a db file
+
+        :param parent: The parent window of the dialog
+        :type parent: QtWidgets.QWindow
+        """
+        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            parent, "Open Database", "", "db files (*.db)"
+        )
+        if not file_path:
+            QtWidgets.QMessageBox.critical(parent, "", "Invalid file")
+            return
+
+        return DB(file_path)
 
     def init_data_for_race(self, race_id):
         """
