@@ -48,6 +48,7 @@ class TableWindow(QtWidgets.QWidget):
 
         # table view
         table = QtWidgets.QTableView()
+        table.setSortingEnabled(True)
         table.setModel(filter_proxy_model)
         layout.addWidget(table)
 
