@@ -27,6 +27,7 @@ class TableWindow(QtWidgets.QWidget):
         filter_proxy_model = QtCore.QSortFilterProxyModel()
         filter_proxy_model.setSourceModel(model)
         filter_proxy_model.setFilterKeyColumn(2)  # third column
+        filter_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseSensitivity.CaseInsensitive)
 
         # line edit for filtering
         layout = QtWidgets.QGridLayout(widget)
@@ -48,6 +49,7 @@ class TableWindow(QtWidgets.QWidget):
 
         # table view
         table = QtWidgets.QTableView()
+        table.setSortingEnabled(True)
         table.setModel(filter_proxy_model)
         layout.addWidget(table)
 
