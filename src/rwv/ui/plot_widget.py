@@ -153,6 +153,7 @@ class PlotWidget(QtWidgets.QWidget):
         # Action to close the database file.
         open_db = file_menu.addAction("Open new database")
         open_db.triggered.connect(lambda: self.set_db(PlotWidget.db_file_dialog(self)))
+        open_db.setShortcut("Ctrl+O")
 
         # Action to save the graph.
         save_graph = file_menu.addAction("Save Graph")
