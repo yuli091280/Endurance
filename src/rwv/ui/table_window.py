@@ -11,7 +11,6 @@ class TableWindow(QtWidgets.QWidget):
         self.show_table_button = show_table_button
 
         self.db = db
-        headers, res = self.db.get_athlete_judge_infraction_summary_with_headers()
 
         self.widget = QtWidgets.QWidget()
         self.model = QtGui.QStandardItemModel()
@@ -27,6 +26,23 @@ class TableWindow(QtWidgets.QWidget):
         self.report_combo_box = QtWidgets.QComboBox()
         report_label = QtWidgets.QLabel("Report:")
         report_label.setBuddy(self.report_combo_box)
+
+        summaries = {
+            "Get Judge Infraction Summary": self.db.get_judge_infraction_summary,
+            "Get Athlete Infraction Summary": self.db.get_athlete_infraction_summary,
+            "Get Athlete Judge Infraction Summary": self.db.get_athlete_judge_infraction_summary,
+            "Get Red Cards Without Yellow Summary": self.db.get_red_without_yellow_summary,
+            "Get Yellow Cards Without Red Summary": self.db.get_yellow_without_red_summary,
+            "Get Per Athlete Calls Summary": self.db.get_per_athlete_calls_summary,
+            "Get Judge Consistency Report": self.db.get_judge_consistency_report,
+        }
+        for key in summaries.keys():
+            self.report_combo_box.addItem(key, key)
+        self.report_combo_box.currentIndexChanged.connect(
+            lambda _: self.initialize_table(
+                *(summaries[self.report_combo_box.currentData()]())
+            )
+        )
 
         # Initialize line edit for filtering
         self.line_edit = QtWidgets.QLineEdit()
@@ -46,9 +62,12 @@ class TableWindow(QtWidgets.QWidget):
         table.setSortingEnabled(True)
         table.setModel(self.filter_proxy_model)
 
-        self.initialize_table(headers, res)
+        # Initialize table
+        self.initialize_table(*(summaries[self.report_combo_box.currentData()]()))
 
         layout = QtWidgets.QGridLayout()
+        layout.addWidget(report_label, 0, 0)
+        layout.addWidget(self.report_combo_box, 1, 0)
         layout.addWidget(line_edit_label, 2, 0, 1, 1)
         layout.addWidget(self.line_edit, 3, 0, 1, 2)
         layout.addWidget(column_label, 2, 2, 1, 1)
