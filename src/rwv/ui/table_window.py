@@ -13,47 +13,75 @@ class TableWindow(QtWidgets.QWidget):
         self.db = db
         headers, res = self.db.get_athlete_judge_infraction_summary_with_headers()
 
-        widget = QtWidgets.QWidget()
+        self.widget = QtWidgets.QWidget()
+        self.model = QtGui.QStandardItemModel()
 
-        model = QtGui.QStandardItemModel(0, len(headers))
-        model.setHorizontalHeaderLabels(headers)
-        for index, row in enumerate(res):
-            items = []
-            for col in row:
-                items.append(QtGui.QStandardItem(str(col or "")))
-            model.insertRow(index, items)
+        # Initialize proxy model
+        self.filter_proxy_model = QtCore.QSortFilterProxyModel()
+        self.filter_proxy_model.setSourceModel(self.model)
+        self.filter_proxy_model.setFilterCaseSensitivity(
+            QtCore.Qt.CaseSensitivity.CaseInsensitive
+        )
 
-        # filter proxy model
-        filter_proxy_model = QtCore.QSortFilterProxyModel()
-        filter_proxy_model.setSourceModel(model)
-        filter_proxy_model.setFilterKeyColumn(2)  # third column
-        filter_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseSensitivity.CaseInsensitive)
+        # Initialize combo box to select report to view
+        self.report_combo_box = QtWidgets.QComboBox()
+        report_label = QtWidgets.QLabel("Report:")
+        report_label.setBuddy(self.report_combo_box)
 
-        # line edit for filtering
-        layout = QtWidgets.QGridLayout(widget)
-        line_edit = QtWidgets.QLineEdit()
-        line_edit.textChanged.connect(filter_proxy_model.setFilterRegularExpression)
-
+        # Initialize line edit for filtering
+        self.line_edit = QtWidgets.QLineEdit()
+        self.line_edit.textChanged.connect(
+            self.filter_proxy_model.setFilterRegularExpression
+        )
         line_edit_label = QtWidgets.QLabel("Filter:")
-        line_edit_label.setBuddy(line_edit)
+        line_edit_label.setBuddy(self.line_edit)
 
-        layout.addWidget(line_edit_label, 0, 0, 1, 1)
-        layout.addWidget(line_edit, 1, 0, 1, 2)
-
-        column_combo_box = QtWidgets.QComboBox()
-        for index, col in enumerate(headers):
-            column_combo_box.addItem(col, index)
-
+        # Initialize combo box for selecting column to filter
+        self.column_combo_box = QtWidgets.QComboBox()
         column_label = QtWidgets.QLabel("Column:")
-        column_label.setBuddy(column_combo_box)
+        column_label.setBuddy(self.column_combo_box)
 
-        # table view
+        # Set up table view
         table = QtWidgets.QTableView()
         table.setSortingEnabled(True)
-        table.setModel(filter_proxy_model)
-        layout.addWidget(table)
+        table.setModel(self.filter_proxy_model)
 
-        self.setLayout(layout)
+        self.initialize_table(headers, res)
+
+        layout = QtWidgets.QGridLayout()
+        layout.addWidget(line_edit_label, 2, 0, 1, 1)
+        layout.addWidget(self.line_edit, 3, 0, 1, 2)
+        layout.addWidget(column_label, 2, 2, 1, 1)
+        layout.addWidget(self.column_combo_box, 3, 2, 1, 1)
+
+        total_layout = QtWidgets.QVBoxLayout()
+        total_layout.addLayout(layout)
+        total_layout.addWidget(table)
+
+        self.setLayout(total_layout)
+
+    def initialize_table(self, headers, data):
+        self.model.clear()
+        self.column_combo_box.clear()
+        self.line_edit.clear()
+
+        self.model.setHorizontalHeaderLabels(headers)
+
+        # Initialize row values in table
+        for index, row in enumerate(data):
+            items = []
+            for col in row:
+                items.append(QtGui.QStandardItem(str(col or " ")))
+            self.model.insertRow(index, items)
+
+        # Initialize table headers in filter selection box
+        for index, col in enumerate(headers):
+            self.column_combo_box.addItem(col, index)
+
+        # Connect
+        self.column_combo_box.currentIndexChanged.connect(
+            self.filter_proxy_model.setFilterKeyColumn
+        )
 
     def closeEvent(self, event):
         """
