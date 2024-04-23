@@ -10,6 +10,8 @@ from rwv.ui.double_list import DoubleListWidget
 from rwv.ui.graph_window import GraphWindow
 from rwv.ui.table_window import TableWindow
 
+from rwv.db import DB
+
 
 class PlotWidget(QtWidgets.QWidget):
     """A widget containing the plot and its controls.
@@ -20,7 +22,7 @@ class PlotWidget(QtWidgets.QWidget):
     :type db: DB
     """
 
-    def __init__(self, window, db):
+    def __init__(self, db):
         super().__init__()
 
         self.bent_knee = None
@@ -28,23 +30,13 @@ class PlotWidget(QtWidgets.QWidget):
         self.table_window = None
         self.loc = None
 
-        self.window = window
-        self.db = db
-        races = db.get_races()
-
         self.toolbar = None
 
         # Initialize the menu bar for the application
         self.create_menu_bar()
 
-        # Initialize combo box for selecting which race to fetch data for
         self.race_combo_box = QtWidgets.QComboBox(self)
-        for race in races:
-            # Add athletes in the form "Race IDRace - Gender Distance DistanceUnits (RaceDate @ StartTime)"
-            self.race_combo_box.addItem(
-                f"Race {race[0]} - {race[1]} {race[2]}{race[3]} ({race[4]} @ {race[5]})",
-                race[0],
-            )
+
         self.race_label = QtWidgets.QLabel("Race:")
         self.race_label.setBuddy(self.race_combo_box)
         self.race_combo_box.currentIndexChanged.connect(
@@ -88,8 +80,7 @@ class PlotWidget(QtWidgets.QWidget):
         selector_layout.addLayout(runner_list_layout)
         selector_layout.addLayout(judge_list_layout)
 
-        # Initialize UI values and graph
-        self.init_interface_for_race()
+        self.set_db(db)
 
         # Create a button for showing the graph
         self.show_graph_button = QtWidgets.QPushButton("Show Graph", self)
@@ -111,6 +102,27 @@ class PlotWidget(QtWidgets.QWidget):
 
         # Tell widget to use specified layout
         self.setLayout(layout)
+
+    def set_db(self, db):
+        """
+        Switch to a new db to visualize.
+
+        :param db: new db to switch to
+        :type db: DB
+        """
+        if not db:
+            return
+
+        self.db = db
+        races = db.get_races()
+
+        self.race_combo_box.clear()
+        for race in races:
+            # Add athletes in the form "Race IDRace - Gender Distance DistanceUnits (RaceDate @ StartTime)"
+            self.race_combo_box.addItem(
+                f"Race {race[0]} - {race[1]} {race[2]}{race[3]} ({race[4]} @ {race[5]})",
+                race[0],
+            )
 
     def create_graph_window(self):
         """
@@ -154,8 +166,9 @@ class PlotWidget(QtWidgets.QWidget):
         menu_bar.addMenu(file_menu)
 
         # Action to close the database file.
-        close_current_db = file_menu.addAction("Close Current DB")
-        close_current_db.triggered.connect(lambda: self.window.reset())
+        open_db = file_menu.addAction("Open new database")
+        open_db.triggered.connect(lambda: self.set_db(PlotWidget.db_file_dialog(self)))
+        open_db.setShortcut("Ctrl+O")
 
         # Action to save the graph.
         save_graph = file_menu.addAction("Save Graph")
@@ -206,6 +219,25 @@ class PlotWidget(QtWidgets.QWidget):
         layout.addWidget(label)
         layout.addWidget(double_list)
         return layout, double_list
+
+    @staticmethod
+    def db_file_dialog(parent):
+        """
+        Show a file dialog that prompts the user for a db file
+
+        :param parent: The parent window of the dialog
+        :type parent: QtWidgets.QWindow
+        :return: Opened DB object on success, none otherwise
+        :rtype: DB | None
+        """
+        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            parent, "Open Database", "", "db files (*.db)"
+        )
+        if not file_path:
+            QtWidgets.QMessageBox.critical(parent, "", "Invalid file")
+            return None
+
+        return DB(file_path)
 
     def init_data_for_race(self, race_id):
         """

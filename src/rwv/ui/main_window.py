@@ -1,7 +1,6 @@
 from PyQt6 import QtWidgets
 
 from rwv.ui.plot_widget import PlotWidget
-from rwv.db import DB
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -24,16 +23,11 @@ class MainWindow(QtWidgets.QMainWindow):
         Event handler for when the user opens a new database.
         """
 
-        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
-            self, "Open Database", "", "db files (*.db)"
-        )
-        if not file_path:
-            QtWidgets.QMessageBox.critical(self, "", "Invalid file")
+        db = PlotWidget.db_file_dialog(self)
+        if not db:
             return
-
-        db = DB(file_path)
         self.hide()
-        plot_widget = PlotWidget(self, db)
+        plot_widget = PlotWidget(db)
         self.setCentralWidget(plot_widget)
 
         # center this window
