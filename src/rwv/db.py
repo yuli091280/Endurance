@@ -139,7 +139,7 @@ class DB:
         :return: Judge infraction data
         :rtype: list[tuple[any]]
         """
-        return self.execute_lookup_query(
+        return self.execute_lookup_query_with_headers(
             "SELECT FirstName, LastName,"
             "SUM(CASE WHEN Color = 'Red' AND Infraction = '~' THEN 1 ELSE 0 END) AS `Red ~`,"
             "SUM(CASE WHEN Color = 'Red' AND Infraction = '<' THEN 1 ELSE 0 END) AS `Red <`,"
@@ -153,28 +153,6 @@ class DB:
         )
 
     def get_athlete_judge_infraction_summary(self):
-        """
-        Judge/Athlete infraction data.
-
-        :return: Judge/Athlete infraction data
-        :rtype: list[tuple[any]]
-        """
-        return self.execute_lookup_query(
-            "SELECT B.BibNumber, A.FirstName , A.LastName, J.FirstName, J.LastName,"
-            "(CASE WHEN Color = 'Yellow' AND Infraction = '~' THEN 'x' ELSE NULL END) AS `Yellow ~`,"
-            "(CASE WHEN Color = 'Red' AND Infraction = '~' THEN 'x' ELSE NULL END) AS `Red ~`,"
-            "(CASE WHEN Color = 'Yellow' AND Infraction = '<' THEN 'x' ELSE NULL END) AS `Yellow <`,"
-            "(CASE WHEN Color = 'Red' AND Infraction = '<' THEN 'x' ELSE NULL END) AS `Red <` "
-            "FROM Judge J "
-            "JOIN JudgeCall JC ON J.IDJudge = JC.IDJudge "
-            "JOIN Bib B ON JC.BibNumber = B.BibNumber "
-            "JOIN Athlete A ON B.IDAthlete = A.IDAthlete "
-            "GROUP BY A.IDAthlete, J.IDJudge "
-            "ORDER BY B.BibNumber, J.FirstName, J.LastName",
-            (),
-        )
-
-    def get_athlete_judge_infraction_summary_with_headers(self):
         """
         Judge/Athlete infraction data.
 
@@ -203,7 +181,7 @@ class DB:
         :return: Athlete infraction data
         :rtype: list[tuple[any]]
         """
-        return self.execute_lookup_query(
+        return self.execute_lookup_query_with_headers(
             "SELECT B.BibNumber, A.FirstName AS 'Athlete First Name', A.LastName AS 'Athlete First Name',"
             "SUM(CASE WHEN Color = 'Yellow' AND Infraction = '~' THEN 1 ELSE 0 END) AS `Yellow ~`,"
             "SUM(CASE WHEN Color = 'Yellow' AND Infraction = '<' THEN 1 ELSE 0 END) AS `Yellow <`,"
@@ -224,7 +202,7 @@ class DB:
         :return: Data where there is a red card but no yellow card
         :rtype: list[tuple[any]]
         """
-        return self.execute_lookup_query(
+        return self.execute_lookup_query_with_headers(
             "SELECT FirstName, LastName,"
             "        SUM(CASE WHEN Color = 'Red' AND Infraction = '~' AND NOT EXISTS ("
             "                SELECT * FROM JudgeCall J2"
@@ -248,7 +226,7 @@ class DB:
         :return: Data where there is a yellow card but no red card
         :rtype: list[tuple[any]]
         """
-        return self.execute_lookup_query(
+        return self.execute_lookup_query_with_headers(
             "SELECT FirstName, LastName,"
             "        SUM(CASE WHEN Color = 'Yellow' AND Infraction = '~' AND NOT EXISTS ("
             "                SELECT * FROM JudgeCall J2"
@@ -266,8 +244,37 @@ class DB:
         )
 
     def get_judge_consistency_report(self):
-        # todo: write the sql query
-        return None
+        return self.execute_lookup_query_with_headers(
+            """SELECT Judge.FirstName, Judge.LastName, 
+     MAX(CASE WHEN Infraction='~' AND Color='Red' THEN MajorityNumber Else 0 END) MajorityMatchedLOCRed, 
+     MAX(CASE WHEN Infraction='<' AND Color='Red' THEN MajorityNumber Else 0 END) MajorityMatchedBentRed, 
+     MAX(CASE WHEN Infraction='~' AND Color='Yellow' THEN MajorityNumber Else 0 END) MajorityMatchedLOCYellow, 
+     MAX(CASE WHEN Infraction='<' AND Color='Yellow'THEN MajorityNumber Else 0 END) MajorityMatchedBentYellow 
+     FROM 
+          (SELECT JudgeCall.IDJudge, COUNT(JudgeCall.BibNumber) AS MajorityNumber, 
+          JudgeCall.Infraction, 
+          JudgeCall.Color 
+     FROM 
+          JudgeCall 
+     INNER JOIN 
+          (SELECT JudgeCall.BibNumber, JudgeCall.IDRace, JudgeCall.Color, JudgeCall.Infraction 
+     FROM 
+          JudgeCall 
+     WHERE 
+          JudgeCall.IDRace = 3 GROUP BY JudgeCall.BibNumber, 
+          JudgeCall.IDRace, 
+          JudgeCall.Color, 
+          JudgeCall.Infraction HAVING (COUNT(JudgeCall.Infraction))>=(SELECT COUNT(idJudge)/2 FROM RaceJudge 
+     WHERE 
+          RaceJudge.IDRace=3)) MajorityCallPerAthlete ON (JudgeCall.Infraction = MajorityCallPerAthlete.Infraction) 
+          AND (JudgeCall.Color = MajorityCallPerAthlete.Color) 
+          AND (JudgeCall.BibNumber = MajorityCallPerAthlete.BibNumber) 
+          AND (JudgeCall.IDRace = MajorityCallPerAthlete.IDRace) 
+          GROUP BY JudgeCall.IDJudge, JudgeCall.Color, JudgeCall.Infraction) MajorityCallByJudge 
+          LEFT JOIN Judge ON Judge.IDJudge=MajorityCallByJudge.IDJudge 
+          GROUP BY MajorityCallByJudge.IDJudge ORDER BY Judge.LastName, Judge.FirstName""",
+            (),
+        )
 
     def get_per_athlete_calls_summary(self):
         """
@@ -276,7 +283,7 @@ class DB:
         :return: Data per athlete call
         :rtype: list[tuple[any]]
         """
-        return self.execute_lookup_query(
+        return self.execute_lookup_query_with_headers(
             "SELECT B.BibNumber, A.FirstName AS 'Athlete First Name', A.LastName AS 'Athlete First Name',"
             "SUM(CASE WHEN Color = 'Yellow' THEN 1 ELSE 0 END) AS '# of Yellow Paddles',"
             "SUM(CASE WHEN Color = 'Red' THEN 1 ELSE 0 END) AS '# of Red Cards' "
