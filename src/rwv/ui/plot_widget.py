@@ -65,12 +65,12 @@ class PlotWidget(QtWidgets.QWidget):
         self.graph = LocGraph(width=12, height=7, dpi=100)
         self.canvas = MplCanvas(self.graph)
 
-        runner_list_layout, self.runner_list = PlotWidget.make_double_list_layout(
-            "Runners"
+        walker_list_layout, self.walker_list = PlotWidget.make_double_list_layout(
+            "Walkers"
         )
         # Connect our redraw function to the selector
-        self.runner_list.item_moved.connect(
-            lambda: self.canvas.redraw_plot(self.runner_list.get_selected_items())
+        self.walker_list.item_moved.connect(
+            lambda: self.canvas.redraw_plot(self.walker_list.get_selected_items())
         )
 
         judge_list_layout, self.judge_list = PlotWidget.make_double_list_layout(
@@ -81,7 +81,7 @@ class PlotWidget(QtWidgets.QWidget):
         )
 
         selector_layout = QtWidgets.QHBoxLayout()
-        selector_layout.addLayout(runner_list_layout)
+        selector_layout.addLayout(walker_list_layout)
         selector_layout.addLayout(judge_list_layout)
 
         # Initialize UI values and graph
@@ -230,13 +230,13 @@ class PlotWidget(QtWidgets.QWidget):
         )
 
         # Clear old values
-        self.runner_list.clear_items()
+        self.walker_list.clear_items()
 
         # Initialize combo box for selecting which athletes to draw
         # Add athletes in the form "LastName, FirstName (BibNumber)"
         items = [f"{athlete[0]}, {athlete[1]} ({athlete[2]})" for athlete in athletes]
         item_ids = [athlete[2] for athlete in athletes]
-        self.runner_list.add_items(items, item_ids)
+        self.walker_list.add_items(items, item_ids)
 
         self.judge_list.clear_items()
         items = [f"{judge[2]}, {judge[1]}" for judge in judges]

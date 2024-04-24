@@ -18,7 +18,7 @@ def main():
     """
     app = QApplication(sys.argv)
 
-    with open('./ui/styles/style.qss', 'r') as f:
+    with open('/Users/andrewrodebaugh/Race-Walking-Visualization/src/rwv/ui/styles/style.qss', 'r') as f:
         stylesheet = f.read()
         app.setStyleSheet(stylesheet)
 

@@ -290,10 +290,10 @@ class LocGraph:
         )
 
         for index, (last_name, first_name, bib_number) in enumerate(athletes):
-            runner_data = loc_values[bib_number]
+            walker_data = loc_values[bib_number]
             loc_plot = self.ax.plot(
-                runner_data["Time"],
-                runner_data["LOCAverage"],
+                walker_data["Time"],
+                walker_data["LOCAverage"],
                 label=f"{last_name}, {first_name} ({bib_number})",
                 marker="o",
                 visible=False,
@@ -325,15 +325,15 @@ class LocGraph:
                         # Converts the datetimes to seconds since epoch, which is how
                         # matplotlib converts these internally
                         (yellow_data["Time"].astype("int64") // 10**9).tolist(),
-                        (runner_data["Time"].astype("int64") // 10**9).tolist(),
-                        runner_data["LOCAverage"].tolist(),
+                        (walker_data["Time"].astype("int64") // 10**9).tolist(),
+                        walker_data["LOCAverage"].tolist(),
                     )
                     red_data["LOCAverage"] = np.interp(
                         # Converts the datetimes to seconds since epoch, which is how
                         # matplotlib converts these internally
                         (red_data["Time"].astype("int64") // 10**9).tolist(),
-                        (runner_data["Time"].astype("int64") // 10**9).tolist(),
-                        runner_data["LOCAverage"].tolist(),
+                        (walker_data["Time"].astype("int64") // 10**9).tolist(),
+                        walker_data["LOCAverage"].tolist(),
                     )
                     if call_type == JudgeCallType.LOC:
                         yellow_plot = self.ax.scatter(

@@ -26,7 +26,7 @@ def test_plot_widget_user_interaction(qtbot):
 
     # Simulate double clicking on the first item of the left list of the runner list
     qtbot.mouseDClick(
-        widget.runner_list._left_list.viewport(), QtCore.Qt.MouseButton.LeftButton
+        widget.walker_list._left_list.viewport(), QtCore.Qt.MouseButton.LeftButton
     )
 
     # Simulate double clicking on the first item of the left list of the judge list
