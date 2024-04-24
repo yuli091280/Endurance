@@ -203,7 +203,7 @@ class LocGraph:
         :type loc: int
         """
         self.max_loc = loc
-        self.ax.set_title(f"Racer LOC over Time w/ Max LOC = {self.max_loc} ms")
+        self.ax.set_title(f"Walker LOC over Time w/ Max LOC = {self.max_loc} ms")
         self.max_loc_line.loc_plot.set_ydata([loc, loc])
 
     def display_athletes(self, selected_bibs):
@@ -279,8 +279,8 @@ class LocGraph:
         self.ax.set_prop_cycle("color", colors)
 
         # Set plot title and axis labels
-        self.ax.set_title(f"Racer LOC over Time w/ Max LOC = {self.max_loc} ms")
-        self.ax.set_ylabel("Racer LOC (ms)")
+        self.ax.set_title(f"Walker LOC over Time w/ Max LOC = {self.max_loc} ms")
+        self.ax.set_ylabel("Walker LOC (ms)")
         self.ax.set_xlabel("Time")
         self.ax.xaxis.set_major_formatter(mpl_dates.DateFormatter("%H:%M:%S %p"))
 
