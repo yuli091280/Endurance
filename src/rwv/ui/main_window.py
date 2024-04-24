@@ -25,11 +25,8 @@ class MainWindow(QtWidgets.QMainWindow):
         Event handler for when the user opens a new database.
         """
 
-        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
-            self, "Open Database", "", "db files (*.db)"
-        )
-        if not file_path:
-            QtWidgets.QMessageBox.critical(self, "", "Invalid file")
+        db = PlotWidget.db_file_dialog(self)
+        if not db:
             return
 
         loading_dialog = LoadingDialog(self)
@@ -38,14 +35,12 @@ class MainWindow(QtWidgets.QMainWindow):
         db = DB(file_path)
         self.hide()
         loading_dialog.close()
-
-        plot_widget = PlotWidget(self, db)
+        plot_widget = PlotWidget(db)
         self.setCentralWidget(plot_widget)
 
         # center this window
         self.show()
         self.center()
-
 
     def reset(self):
         """
@@ -64,11 +59,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.show()
         self.center()
 
-
     def center(self):
         """
         Move this window to the center of the screen.
         """
         screen_center = self.screen().availableGeometry().center()
-        window_center = (self.frameGeometry().bottomRight() - self.frameGeometry().topLeft())/2
+        window_center = (
+            self.frameGeometry().bottomRight() - self.frameGeometry().topLeft()
+        ) / 2
         self.move(screen_center - window_center)

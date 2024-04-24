@@ -13,7 +13,7 @@ def test_plot_widget_user_interaction(qtbot):
     # Create a real DB object with the database file
     db = DB("test.db")
     # Create the PlotWidget with the real DB
-    widget = PlotWidget(window, db)
+    widget = PlotWidget(db)
     qtbot.addWidget(widget)
 
     # Simulate selecting the first race
