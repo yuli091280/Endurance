@@ -1,5 +1,6 @@
 from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import QFileDialog
+from rwv.loc_graph import LocGraph, JudgeCallType
 
 class GraphWindow(QtWidgets.QWidget):
     """A window that displays a generated chart.
@@ -24,6 +25,9 @@ class GraphWindow(QtWidgets.QWidget):
         file_menu = QtWidgets.QMenu("&File", self)
         menu_bar.addMenu(file_menu)
 
+        edit_menu = QtWidgets.QMenu("&Edit", self)
+        menu_bar.addMenu(edit_menu)
+
         # Add actions to the file menu
         save_graph = file_menu.addAction("Save Graph")
         save_graph.triggered.connect(self.save_current_graph)
@@ -34,10 +38,40 @@ class GraphWindow(QtWidgets.QWidget):
         exit_action.triggered.connect(self.close_application)
         exit_action.setShortcut('Ctrl+Q')
 
+
+        self.bent_knee = edit_menu.addAction("Bent Knee")
+        self.bent_knee.setCheckable(True)
+        self.bent_knee.setChecked(True)
+        self.bent_knee.triggered.connect(
+            lambda checked: self.redraw_points(JudgeCallType.BENT_KNEE, checked)
+        )
+
+        self.loc = edit_menu.addAction("LOC")
+        self.loc.setCheckable(True)
+        self.loc.setChecked(True)
+        self.loc.triggered.connect(
+            lambda checked: self.redraw_points(JudgeCallType.LOC, checked)
+        )
+
         layout.setMenuBar(menu_bar)
         layout.addWidget(toolbar)
         layout.addWidget(canvas)
         self.setLayout(layout)
+
+
+    def redraw_points(self, point_type, visible):
+        """
+        Redraws specific point types based on visibility toggle.
+
+        :param point_type: The type of points to draw (e.g., LOC, BENT_KNEE)
+        :type point_type: loc_graph.JudgeCallType
+        :param visible: Determines if the points should be visible
+        :type visible: bool
+        """
+        if hasattr(self.canvas, 'graph'):
+            self.canvas.graph.display_judge_call_by_type(point_type, visible)
+            self.canvas.draw_idle()
+    
 
     def save_current_graph(self, checked=False):
         """
