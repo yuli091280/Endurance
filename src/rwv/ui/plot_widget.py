@@ -174,7 +174,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.bent_knee.setCheckable(True)
         self.bent_knee.setChecked(True)
         self.bent_knee.triggered.connect(
-            lambda checked: self.canvas.redraw_points(JudgeCallType.LOC, checked)
+            lambda checked: self.canvas.redraw_points(JudgeCallType.BENT_KNEE, checked)
         )
 
         # Action to toggle the display of LOC.

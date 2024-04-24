@@ -25,14 +25,12 @@ class MainWindow(QtWidgets.QMainWindow):
         Event handler for when the user opens a new database.
         """
 
-        db = PlotWidget.db_file_dialog(self)
-        if not db:
-            return
-
         loading_dialog = LoadingDialog(self)
         loading_dialog.show()
 
-        db = DB(file_path)
+        db = PlotWidget.db_file_dialog(self)
+        if not db:
+            return
         self.hide()
         loading_dialog.close()
         plot_widget = PlotWidget(db)
