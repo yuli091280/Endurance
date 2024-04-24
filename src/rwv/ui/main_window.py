@@ -15,6 +15,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.loading_dialog = LoadingDialog(self)
+
         # Set window title
         self.setWindowTitle("Endurance")
 
@@ -25,14 +27,11 @@ class MainWindow(QtWidgets.QMainWindow):
         Event handler for when the user opens a new database.
         """
 
-        loading_dialog = LoadingDialog(self)
-        loading_dialog.show()
-
         db = PlotWidget.db_file_dialog(self)
         if not db:
             return
         self.hide()
-        loading_dialog.close()
+        self.loading_dialog.close()
         plot_widget = PlotWidget(db)
         self.setCentralWidget(plot_widget)
 

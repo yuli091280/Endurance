@@ -222,6 +222,8 @@ class PlotWidget(QtWidgets.QWidget):
             QtWidgets.QMessageBox.critical(parent, "", "Invalid file")
             return None
 
+        parent.loading_dialog.show()
+
         return DB(file_path)
 
     def init_data_for_race(self, race_id):
