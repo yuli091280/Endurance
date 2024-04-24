@@ -20,9 +20,9 @@ def main():
     app = QApplication(sys.argv)
 
     script_dir = os.path.dirname(__file__)
-    rel_path = 'ui/styles/style.qss'
+    rel_path = "ui/styles/style.qss"
     abs_file_path = os.path.join(script_dir, rel_path)
-    with open(abs_file_path, 'r') as f:
+    with open(abs_file_path, "r") as f:
         stylesheet = f.read()
         app.setStyleSheet(stylesheet)
 
