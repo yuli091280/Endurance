@@ -278,7 +278,7 @@ class PlotWidget(QtWidgets.QWidget):
         items = [f"{judge[2]}, {judge[1]}" for judge in judges]
         item_ids = [judge[0] for judge in judges]
         judge_dict = dict(zip(item_ids, items))
-        self.judge_list.add_items(items, item_ids)
+        self.judge_list.add_items(items, items)
 
         self.canvas.plot_new_race(loc_values, judge_data, athletes, judge_dict)
         self.canvas.redraw_points(JudgeCallType.LOC, self.loc.isChecked())
