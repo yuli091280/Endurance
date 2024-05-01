@@ -1,6 +1,6 @@
 from PyQt6 import QtWidgets, QtCore, QtGui
 
-
+RACE_ID = 1
 class TableWindow(QtWidgets.QWidget):
     """A window that displays a table."""
 
@@ -28,19 +28,19 @@ class TableWindow(QtWidgets.QWidget):
         report_label.setBuddy(self.report_combo_box)
 
         summaries = {
-            "Get Judge Infraction Summary": self.db.get_judge_infraction_summary,
-            "Get Athlete Infraction Summary": self.db.get_athlete_infraction_summary,
-            "Get Athlete Judge Infraction Summary": self.db.get_athlete_judge_infraction_summary,
-            "Get Red Cards Without Yellow Summary": self.db.get_red_without_yellow_summary,
-            "Get Yellow Cards Without Red Summary": self.db.get_yellow_without_red_summary,
-            "Get Per Athlete Calls Summary": self.db.get_per_athlete_calls_summary,
-            "Get Judge Consistency Report": self.db.get_judge_consistency_report,
+            "Get Judge Infraction Summary": self.db.get_judge_infraction_summary_by_race,
+            "Get Athlete Infraction Summary": self.db.get_athlete_infraction_summary_by_race,
+            "Get Athlete Judge Infraction Summary": self.db.get_athlete_judge_infraction_summary_by_race,
+            "Get Red Cards Without Yellow Summary": self.db.get_red_without_yellow_summary_by_race,
+            "Get Yellow Cards Without Red Summary": self.db.get_yellow_without_red_summary_by_race,
+            "Get Per Athlete Calls Summary": self.db.get_per_athlete_calls_summary_by_race,
+            "Get Judge Consistency Report": self.db.get_judge_consistency_report_by_race,
         }
         for key in summaries.keys():
             self.report_combo_box.addItem(key, key)
         self.report_combo_box.currentIndexChanged.connect(
             lambda _: self.initialize_table(
-                *(summaries[self.report_combo_box.currentData()]())
+                *(summaries[self.report_combo_box.currentData()](RACE_ID))
             )
         )
 
@@ -63,7 +63,7 @@ class TableWindow(QtWidgets.QWidget):
         table.setModel(self.filter_proxy_model)
 
         # Initialize table
-        self.initialize_table(*(summaries[self.report_combo_box.currentData()]()))
+        self.initialize_table(*(summaries[self.report_combo_box.currentData()](RACE_ID)))
 
         layout = QtWidgets.QGridLayout()
         layout.addWidget(report_label, 0, 0)

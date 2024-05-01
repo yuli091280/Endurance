@@ -386,6 +386,9 @@ class PlotWidget(QtWidgets.QWidget):
             elif "JPEG" in save_choice:
                 self.canvas.save_figure_as_jpeg(file_path)
 
+    def get_selected_race_id(self):
+        self.race_combo_box.currentData()
+
 
 class MplCanvas(mlp_backend.FigureCanvasQTAgg):
     """
