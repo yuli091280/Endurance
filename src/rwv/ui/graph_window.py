@@ -1,4 +1,5 @@
 from PyQt6 import QtWidgets
+from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtWidgets import QFileDialog
 from rwv.loc_graph import LocGraph, JudgeCallType
 
@@ -117,11 +118,22 @@ class GraphWindow(QtWidgets.QWidget):
         self.close()
 
 
-    def close_window(self):
-        ""
+    def closeEvent(self, event):
+        """
+        Overrides the closeEvent function to close the window and show the show graph button.
+        """
         self.show_graph_button.show()
         self.close()
+        event.accept()
 
     def show_window(self):
-        ""
+        """
+        Shows the window.
+        """
         self.show()
+
+    def close_window(self):
+        """
+        Hides the window.
+        """
+        self.close()
