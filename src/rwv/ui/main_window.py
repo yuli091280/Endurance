@@ -1,7 +1,6 @@
 from PyQt6 import QtWidgets
 
 from rwv.ui.plot_widget import PlotWidget
-from rwv.ui.loading_dialog import LoadingDialog
 from rwv.db import DB
 
 
@@ -14,8 +13,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self):
         super().__init__()
-
-        self.loading_dialog = LoadingDialog(self)
 
         # Set window title
         self.setWindowTitle("Endurance")
@@ -33,9 +30,6 @@ class MainWindow(QtWidgets.QMainWindow):
         plot_widget = PlotWidget(db)
         self.hide()
         self.setCentralWidget(plot_widget)
-
-        if self.loading_dialog.isVisible():
-            self.loading_dialog.close()
 
         # center this window
         self.show()
