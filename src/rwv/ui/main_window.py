@@ -30,10 +30,12 @@ class MainWindow(QtWidgets.QMainWindow):
         db = PlotWidget.db_file_dialog(self)
         if not db:
             return
-        self.hide()
-        self.loading_dialog.close()
         plot_widget = PlotWidget(db)
+        self.hide()
         self.setCentralWidget(plot_widget)
+
+        if self.loading_dialog.isVisible():
+            self.loading_dialog.close()
 
         # center this window
         self.show()

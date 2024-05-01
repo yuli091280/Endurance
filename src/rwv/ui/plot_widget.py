@@ -10,6 +10,7 @@ from rwv.ui.double_list import DoubleListWidget
 from rwv.ui.graph_window import GraphWindow
 
 from rwv.db import DB
+from rwv.ui.loading_dialog import LoadingDialog
 
 
 class PlotWidget(QtWidgets.QWidget):
@@ -23,6 +24,8 @@ class PlotWidget(QtWidgets.QWidget):
 
     def __init__(self, db):
         super().__init__()
+
+        self.loading_dialog = LoadingDialog(self)
 
         self.bent_knee = None
         self.graph_window = None
@@ -116,6 +119,9 @@ class PlotWidget(QtWidgets.QWidget):
                 f"Race {race[0]} - {race[1]} {race[2]}{race[3]} ({race[4]} @ {race[5]})",
                 race[0],
             )
+
+        if self.loading_dialog.isVisible():
+            self.loading_dialog.close()
 
     def create_graph_window(self):
         """
@@ -222,7 +228,8 @@ class PlotWidget(QtWidgets.QWidget):
             QtWidgets.QMessageBox.critical(parent, "", "Invalid file")
             return None
 
-        parent.loading_dialog.show()
+        if hasattr(parent, 'loading_dialog'):
+            parent.loading_dialog.show()
 
         return DB(file_path)
 
