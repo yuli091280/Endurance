@@ -228,7 +228,7 @@ class PlotWidget(QtWidgets.QWidget):
             QtWidgets.QMessageBox.critical(parent, "", "Invalid file")
             return None
 
-        if hasattr(parent, 'loading_dialog'):
+        if hasattr(parent, "loading_dialog"):
             parent.loading_dialog.show()
 
         return DB(file_path)
