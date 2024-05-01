@@ -3,6 +3,7 @@ from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtWidgets import QFileDialog
 from rwv.loc_graph import LocGraph, JudgeCallType
 
+
 class GraphWindow(QtWidgets.QWidget):
     """A window that displays a generated chart.
 
@@ -32,13 +33,11 @@ class GraphWindow(QtWidgets.QWidget):
         # Add actions to the file menu
         save_graph = file_menu.addAction("Save Graph")
         save_graph.triggered.connect(self.save_current_graph)
-        save_graph.setShortcut('Ctrl+S')
-
+        save_graph.setShortcut("Ctrl+S")
 
         exit_action = file_menu.addAction("Close Graph")
         exit_action.triggered.connect(self.close_application)
-        exit_action.setShortcut('Ctrl+Q')
-
+        exit_action.setShortcut("Ctrl+Q")
 
         self.bent_knee = edit_menu.addAction("Bent Knee")
         self.bent_knee.setCheckable(True)
@@ -59,7 +58,6 @@ class GraphWindow(QtWidgets.QWidget):
         layout.addWidget(canvas)
         self.setLayout(layout)
 
-
     def redraw_points(self, point_type, visible):
         """
         Redraws specific point types based on visibility toggle.
@@ -69,10 +67,9 @@ class GraphWindow(QtWidgets.QWidget):
         :param visible: Determines if the points should be visible
         :type visible: bool
         """
-        if hasattr(self.canvas, 'graph'):
+        if hasattr(self.canvas, "graph"):
             self.canvas.graph.display_judge_call_by_type(point_type, visible)
             self.canvas.draw_idle()
-    
 
     def save_current_graph(self, checked=False):
         """
@@ -84,14 +81,15 @@ class GraphWindow(QtWidgets.QWidget):
         if file_path:
             if "PDF" in save_choice and not file_path.endswith(".pdf"):
                 file_path += ".pdf"
-            elif ("JPEG" in save_choice or "jpg" in save_choice) and not file_path.endswith((".jpeg", ".jpg")):
+            elif (
+                "JPEG" in save_choice or "jpg" in save_choice
+            ) and not file_path.endswith((".jpeg", ".jpg")):
                 file_path += ".jpeg"
 
             if "PDF" in save_choice:
                 self.save_figure_as_pdf(file_path)
             elif "JPEG" in save_choice:
                 self.save_figure_as_jpeg(file_path)
-
 
     def save_figure_as_pdf(self, file_path):
         """
@@ -109,14 +107,13 @@ class GraphWindow(QtWidgets.QWidget):
         :param file_path: The file path to save the jpeg to
         :type file_path: str
         """
-        self.canvas.figure.savefig(file_path, format='jpeg')
+        self.canvas.figure.savefig(file_path, format="jpeg")
 
     def close_application(self, checked=False):
         """
         Closes the entire graph window.
         """
         self.close()
-
 
     def closeEvent(self, event):
         """

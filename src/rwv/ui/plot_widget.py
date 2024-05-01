@@ -57,8 +57,10 @@ class PlotWidget(QtWidgets.QWidget):
 
         self.max_loc_text_box.textChanged.connect(
             lambda: self.canvas.redraw_loc(
-                    int(self.max_loc_text_box.text()) if self.max_loc_text_box.text().strip() != '' else 0
-                )
+                int(self.max_loc_text_box.text())
+                if self.max_loc_text_box.text().strip() != ""
+                else 0
+            )
         )
 
         # Set up graph
@@ -88,7 +90,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.init_interface_for_race()
 
         # Create a button for showing the graph
-        self.show_graph_button = QtWidgets.QPushButton('Show Graph', self)
+        self.show_graph_button = QtWidgets.QPushButton("Show Graph", self)
         self.show_graph_button.clicked.connect(lambda: self.create_graph_window())
 
         # widget layout
@@ -110,7 +112,9 @@ class PlotWidget(QtWidgets.QWidget):
         if self.graph_window is None or not self.graph_window.isVisible():
             # Initialize toolbar for interacting with plot
             self.toolbar = mlp_backend.NavigationToolbar2QT(self.canvas, self)
-            self.graph_window = GraphWindow(self.toolbar, self.canvas, self.show_graph_button)
+            self.graph_window = GraphWindow(
+                self.toolbar, self.canvas, self.show_graph_button
+            )
             self.show_graph_button.hide()
             self.graph_window.show_window()
 
@@ -141,12 +145,12 @@ class PlotWidget(QtWidgets.QWidget):
         # Action to save the graph.
         save_graph = file_menu.addAction("Save Graph")
         save_graph.triggered.connect(lambda: self.save_current_graph())
-        save_graph.setShortcut('Ctrl+S')
+        save_graph.setShortcut("Ctrl+S")
 
         # Action to exit the application.
         exit_action = file_menu.addAction("Exit")
         exit_action.triggered.connect(lambda: self.close_application())
-        exit_action.setShortcut('Ctrl+Q')
+        exit_action.setShortcut("Ctrl+Q")
 
         # Initialize the Edit button on the meny bar.
         edit_menu = QtWidgets.QMenu("&Edit", self)
@@ -246,9 +250,7 @@ class PlotWidget(QtWidgets.QWidget):
 
         self.canvas.plot_new_race(loc_values, judge_data, athletes, judge_dict)
         self.canvas.redraw_points(JudgeCallType.LOC, self.loc.isChecked())
-        self.canvas.redraw_points(
-            JudgeCallType.BENT_KNEE, self.bent_knee.isChecked()
-        )
+        self.canvas.redraw_points(JudgeCallType.BENT_KNEE, self.bent_knee.isChecked())
 
     def fetch_judge_data(self, judges, bibs, race_id):
         """

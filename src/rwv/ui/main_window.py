@@ -40,7 +40,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.show()
         self.center()
 
-
     def reset(self):
         """
         Return the main window to before a database was opened.
@@ -58,11 +57,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.show()
         self.center()
 
-
     def center(self):
         """
         Move this window to the center of the screen.
         """
         screen_center = self.screen().availableGeometry().center()
-        window_center = (self.frameGeometry().bottomRight() - self.frameGeometry().topLeft())/2
+        window_center = (
+            self.frameGeometry().bottomRight() - self.frameGeometry().topLeft()
+        ) / 2
         self.move(screen_center - window_center)
