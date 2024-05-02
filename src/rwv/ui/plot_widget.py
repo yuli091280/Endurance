@@ -139,7 +139,9 @@ class PlotWidget(QtWidgets.QWidget):
 
     def create_table_window(self):
         if self.table_window is None or not self.table_window.isVisible():
-            self.table_window = TableWindow(self.show_table_button, self.db, self.get_selected_race_id())
+            self.table_window = TableWindow(
+                self.show_table_button, self.db, self.get_selected_race_id()
+            )
             self.show_table_button.hide()
             self.table_window.show_window()
 

@@ -173,7 +173,7 @@ class DB:
             "WHERE JC.IDRace = ? "
             "GROUP BY A.IDAthlete, J.IDJudge "
             "ORDER BY B.BibNumber, J.FirstName, J.LastName",
-            (race_id, ),
+            (race_id,),
         )
 
     def get_athlete_infraction_summary_by_race(self, race_id):

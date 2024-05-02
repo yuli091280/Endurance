@@ -4,7 +4,7 @@ from PyQt6 import QtWidgets, QtCore, QtGui
 class TableWindow(QtWidgets.QWidget):
     """A window that displays a table."""
 
-    def __init__(self, show_table_button, db, race_id = 0):
+    def __init__(self, show_table_button, db, race_id=0):
         super().__init__()
 
         self.setWindowTitle("Endurance")
@@ -42,7 +42,11 @@ class TableWindow(QtWidgets.QWidget):
             self.report_combo_box.addItem(key, key)
         self.report_combo_box.currentIndexChanged.connect(
             lambda _: self.initialize_table(
-                *(self.summaries[self.report_combo_box.currentData()](self.selected_race))
+                *(
+                    self.summaries[self.report_combo_box.currentData()](
+                        self.selected_race
+                    )
+                )
             )
         )
 
@@ -65,7 +69,9 @@ class TableWindow(QtWidgets.QWidget):
         table.setModel(self.filter_proxy_model)
 
         # Initialize table
-        self.initialize_table(*(self.summaries[self.report_combo_box.currentData()](self.selected_race)))
+        self.initialize_table(
+            *(self.summaries[self.report_combo_box.currentData()](self.selected_race))
+        )
 
         layout = QtWidgets.QGridLayout()
         layout.addWidget(report_label, 0, 0)
@@ -83,7 +89,9 @@ class TableWindow(QtWidgets.QWidget):
 
     def set_selected_race(self, race_id):
         self.selected_race = race_id
-        self.initialize_table(*(self.summaries[self.report_combo_box.currentData()](race_id)))
+        self.initialize_table(
+            *(self.summaries[self.report_combo_box.currentData()](race_id))
+        )
 
     def initialize_table(self, headers, data):
         self.model.clear()
