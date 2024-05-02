@@ -132,7 +132,7 @@ class DB:
         return result
 
     # Queries for tables in the report
-    def get_judge_infraction_summary(self):
+    def get_judge_infraction_summary_by_race(self, race_id):
         """
         Judge infraction data.
 
@@ -147,12 +147,13 @@ class DB:
             "SUM(CASE WHEN Color = 'Yellow' AND Infraction = '<' THEN 1 ELSE 0 END) AS 'Yellow <' "
             "FROM Judge J "
             "JOIN JudgeCall JC ON J.IDJudge = JC.IDJudge "
+            "WHERE IDRace = ? "
             "GROUP by J.IDJudge "
             "ORDER BY J.FirstName, J.LastName",
-            (),
+            (race_id,),
         )
 
-    def get_athlete_judge_infraction_summary(self):
+    def get_athlete_judge_infraction_summary_by_race(self, race_id):
         """
         Judge/Athlete infraction data.
 
@@ -169,12 +170,13 @@ class DB:
             "JOIN JudgeCall JC ON J.IDJudge = JC.IDJudge "
             "JOIN Bib B ON JC.BibNumber = B.BibNumber "
             "JOIN Athlete A ON B.IDAthlete = A.IDAthlete "
+            "WHERE JC.IDRace = ? "
             "GROUP BY A.IDAthlete, J.IDJudge "
             "ORDER BY B.BibNumber, J.FirstName, J.LastName",
-            (),
+            (race_id,),
         )
 
-    def get_athlete_infraction_summary(self):
+    def get_athlete_infraction_summary_by_race(self, race_id):
         """
         Athlete infraction data.
 
@@ -190,12 +192,13 @@ class DB:
             "FROM JudgeCall JC "
             "JOIN Bib B ON JC.BibNumber = B.BibNumber "
             "JOIN Athlete A ON B.IDAthlete = A.IDAthlete "
+            "WHERE JC.IDRace = ? "
             "GROUP BY A.IDAthlete "
             "ORDER BY B.BibNumber ",
-            (),
+            (race_id,),
         )
 
-    def get_red_without_yellow_summary(self):
+    def get_red_without_yellow_summary_by_race(self, race_id):
         """
         Get data where there is a red card but no yellow card.
 
@@ -214,12 +217,13 @@ class DB:
             "        THEN 1 ELSE 0 END) AS `# of < Red cards without Yellow` "
             "FROM JudgeCall J1 "
             "JOIN Judge J ON J1.IDJudge = J.IDJudge "
+            "WHERE IDRace = ? "
             "Group By J1.IDJudge "
             "Order By FirstName, LastName",
-            (),
+            (race_id,),
         )
 
-    def get_yellow_without_red_summary(self):
+    def get_yellow_without_red_summary_by_race(self, race_id):
         """
         Get data where there is a yellow card but no red card.
 
@@ -238,12 +242,13 @@ class DB:
             "        THEN 1 ELSE 0 END) AS `# of < Yellow not followed by a Red` "
             "FROM JudgeCall J1 "
             "JOIN Judge J ON J1.IDJudge = J.IDJudge "
+            "WHERE IDRace = ? "
             "Group By J1.IDJudge "
             "Order By FirstName, LastName",
-            (),
+            (race_id,),
         )
 
-    def get_judge_consistency_report(self):
+    def get_judge_consistency_report_by_race(self, race_id):
         return self.execute_lookup_query_with_headers(
             """SELECT Judge.FirstName, Judge.LastName, 
      MAX(CASE WHEN Infraction='~' AND Color='Red' THEN MajorityNumber Else 0 END) MajorityMatchedLOCRed, 
@@ -261,22 +266,22 @@ class DB:
      FROM 
           JudgeCall 
      WHERE 
-          JudgeCall.IDRace = 3 GROUP BY JudgeCall.BibNumber, 
+          JudgeCall.IDRace = ? GROUP BY JudgeCall.BibNumber, 
           JudgeCall.IDRace, 
           JudgeCall.Color, 
           JudgeCall.Infraction HAVING (COUNT(JudgeCall.Infraction))>=(SELECT COUNT(idJudge)/2 FROM RaceJudge 
      WHERE 
-          RaceJudge.IDRace=3)) MajorityCallPerAthlete ON (JudgeCall.Infraction = MajorityCallPerAthlete.Infraction) 
+          RaceJudge.IDRace = ?)) MajorityCallPerAthlete ON (JudgeCall.Infraction = MajorityCallPerAthlete.Infraction) 
           AND (JudgeCall.Color = MajorityCallPerAthlete.Color) 
           AND (JudgeCall.BibNumber = MajorityCallPerAthlete.BibNumber) 
           AND (JudgeCall.IDRace = MajorityCallPerAthlete.IDRace) 
           GROUP BY JudgeCall.IDJudge, JudgeCall.Color, JudgeCall.Infraction) MajorityCallByJudge 
           LEFT JOIN Judge ON Judge.IDJudge=MajorityCallByJudge.IDJudge 
           GROUP BY MajorityCallByJudge.IDJudge ORDER BY Judge.LastName, Judge.FirstName""",
-            (),
+            (race_id, race_id),
         )
 
-    def get_per_athlete_calls_summary(self):
+    def get_per_athlete_calls_summary_by_race(self, race_id):
         """
         Get data per athlete call.
 
@@ -290,9 +295,10 @@ class DB:
             "FROM JudgeCall JC "
             "JOIN Bib B ON JC.BibNumber = B.BibNumber "
             "JOIN Athlete A ON B.IDAthlete = A.IDAthlete "
+            "WHERE JC.IDRace = ? "
             "GROUP BY A.IDAthlete "
             "ORDER BY B.BibNumber",
-            (),
+            (race_id,),
         )
 
     def get_bibs_by_race(self, race_id):

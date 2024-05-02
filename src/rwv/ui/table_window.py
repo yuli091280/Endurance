@@ -5,7 +5,7 @@ from rwv.table_to_ppt import generate_powerpoint, add_button_functionality
 class TableWindow(QtWidgets.QWidget):
     """A window that displays a table."""
 
-    def __init__(self, show_table_button, db):
+    def __init__(self, show_table_button, db, race_id=0):
         super().__init__()
 
         self.setWindowTitle("Endurance")
@@ -17,6 +17,8 @@ class TableWindow(QtWidgets.QWidget):
 
         self.widget = QtWidgets.QWidget()
         self.model = QtGui.QStandardItemModel()
+
+        self.selected_race = race_id
 
         # Initialize proxy model
         self.filter_proxy_model = QtCore.QSortFilterProxyModel()
@@ -30,20 +32,24 @@ class TableWindow(QtWidgets.QWidget):
         report_label = QtWidgets.QLabel("Report:")
         report_label.setBuddy(self.report_combo_box)
 
-        summaries = {
-            "Get Judge Infraction Summary": self.db.get_judge_infraction_summary,
-            "Get Athlete Infraction Summary": self.db.get_athlete_infraction_summary,
-            "Get Athlete Judge Infraction Summary": self.db.get_athlete_judge_infraction_summary,
-            "Get Red Cards Without Yellow Summary": self.db.get_red_without_yellow_summary,
-            "Get Yellow Cards Without Red Summary": self.db.get_yellow_without_red_summary,
-            "Get Per Athlete Calls Summary": self.db.get_per_athlete_calls_summary,
-            "Get Judge Consistency Report": self.db.get_judge_consistency_report,
+        self.summaries = {
+            "Get Judge Infraction Summary": self.db.get_judge_infraction_summary_by_race,
+            "Get Athlete Infraction Summary": self.db.get_athlete_infraction_summary_by_race,
+            "Get Athlete Judge Infraction Summary": self.db.get_athlete_judge_infraction_summary_by_race,
+            "Get Red Cards Without Yellow Summary": self.db.get_red_without_yellow_summary_by_race,
+            "Get Yellow Cards Without Red Summary": self.db.get_yellow_without_red_summary_by_race,
+            "Get Per Athlete Calls Summary": self.db.get_per_athlete_calls_summary_by_race,
+            "Get Judge Consistency Report": self.db.get_judge_consistency_report_by_race,
         }
-        for key in summaries.keys():
+        for key in self.summaries.keys():
             self.report_combo_box.addItem(key, key)
         self.report_combo_box.currentIndexChanged.connect(
             lambda _: self.initialize_table(
-                *(summaries[self.report_combo_box.currentData()]())
+                *(
+                    self.summaries[self.report_combo_box.currentData()](
+                        self.selected_race
+                    )
+                )
             )
         )
 
@@ -70,7 +76,9 @@ class TableWindow(QtWidgets.QWidget):
         export_button.clicked.connect(lambda: self.export())
 
         # Initialize table
-        self.initialize_table(*(summaries[self.report_combo_box.currentData()]()))
+        self.initialize_table(
+            *(self.summaries[self.report_combo_box.currentData()](self.selected_race))
+        )
 
         layout = QtWidgets.QGridLayout()
         layout.addWidget(report_label, 0, 0)
@@ -86,6 +94,12 @@ class TableWindow(QtWidgets.QWidget):
         total_layout.addWidget(export_button)
 
         self.setLayout(total_layout)
+
+    def set_selected_race(self, race_id):
+        self.selected_race = race_id
+        self.initialize_table(
+            *(self.summaries[self.report_combo_box.currentData()](race_id))
+        )
 
     def initialize_table(self, headers, data):
         self.model.clear()
