@@ -1,4 +1,5 @@
 from PyQt6 import QtWidgets, QtCore, QtGui
+from rwv.table_to_ppt import generate_powerpoint, add_button_functionality
 
 
 class TableWindow(QtWidgets.QWidget):
@@ -11,6 +12,8 @@ class TableWindow(QtWidgets.QWidget):
         self.show_table_button = show_table_button
 
         self.db = db
+        self._data = None
+        self._headers = None
 
         self.widget = QtWidgets.QWidget()
         self.model = QtGui.QStandardItemModel()
@@ -62,6 +65,10 @@ class TableWindow(QtWidgets.QWidget):
         table.setSortingEnabled(True)
         table.setModel(self.filter_proxy_model)
 
+        # Add export button
+        export_button = QtWidgets.QPushButton("Export", self)
+        export_button.clicked.connect(lambda: self.export())
+
         # Initialize table
         self.initialize_table(*(summaries[self.report_combo_box.currentData()]()))
 
@@ -76,6 +83,7 @@ class TableWindow(QtWidgets.QWidget):
         total_layout = QtWidgets.QVBoxLayout()
         total_layout.addLayout(layout)
         total_layout.addWidget(table)
+        total_layout.addWidget(export_button)
 
         self.setLayout(total_layout)
 
@@ -93,6 +101,10 @@ class TableWindow(QtWidgets.QWidget):
                 items.append(QtGui.QStandardItem(str(col or " ")))
             self.model.insertRow(index, items)
 
+        # TODO: Find a less garbage way to pass data to ppt function
+        self._data = data
+        self._headers = headers
+
         # Initialize table headers in filter selection box
         for index, col in enumerate(headers):
             self.column_combo_box.addItem(col, index)
@@ -101,6 +113,23 @@ class TableWindow(QtWidgets.QWidget):
         self.column_combo_box.currentIndexChanged.connect(
             self.filter_proxy_model.setFilterKeyColumn
         )
+
+    def export(self):
+        file_path, save_choice = QtWidgets.QFileDialog.getSaveFileName(
+            self, "Save Table", "", "Powerpoint (*.pptx)"
+        )
+
+        if not file_path:
+            return
+
+        if not file_path.endswith(".pptx"):
+            file_path += ".pptx"
+
+        # TODO: Clean this up
+        generate_powerpoint(
+            self.report_combo_box.currentData(), self._data, self._headers
+        )
+        add_button_functionality(file_path)
 
     def closeEvent(self, event):
         """
