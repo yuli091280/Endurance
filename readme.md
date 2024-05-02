@@ -12,15 +12,11 @@ A pyqt-6 GUI app to visualize various data pertaining to race walking from a sql
 
 Make sure you have python3.11 installed, then:
 
-On Windows, do these:
+On Windows, download and install the [Qt6](https://www.qt.io/download) runtime library
 
-- find and install the qt6 runtime library
+On Linux, do `sudo apt update && sudo apt install qt6-base-dev`
 
-On Linux, do these:
-
-- `sudo apt update && sudo apt install qt6-base-dev`
-
-then do these for python stuff:
+then do these for python dependencies:
 
 - `pip install poetry`
 - `poetry install`
@@ -29,8 +25,6 @@ then do these for python stuff:
 
 - get in the shell by `poetry shell`
 - run the program with `rwv`
-
-First argument to the program needs to be a db file
 
 ## Building the project
 
