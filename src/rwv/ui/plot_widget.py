@@ -139,7 +139,7 @@ class PlotWidget(QtWidgets.QWidget):
 
     def create_table_window(self):
         if self.table_window is None or not self.table_window.isVisible():
-            self.table_window = TableWindow(self.show_table_button, self.db)
+            self.table_window = TableWindow(self.show_table_button, self.db, self.get_selected_race_id())
             self.show_table_button.hide()
             self.table_window.show_window()
 
@@ -276,8 +276,11 @@ class PlotWidget(QtWidgets.QWidget):
         """
         Plots the data based on the current race selected.
         """
+        selected_race = self.get_selected_race_id()
+        if self.table_window is not None:
+            self.table_window.set_selected_race(selected_race)
         loc_values, judge_data, athletes, judges = self.init_data_for_race(
-            self.race_combo_box.currentData()
+            selected_race
         )
 
         # Clear old values
@@ -387,7 +390,7 @@ class PlotWidget(QtWidgets.QWidget):
                 self.canvas.save_figure_as_jpeg(file_path)
 
     def get_selected_race_id(self):
-        self.race_combo_box.currentData()
+        return self.race_combo_box.currentData()
 
 
 class MplCanvas(mlp_backend.FigureCanvasQTAgg):
