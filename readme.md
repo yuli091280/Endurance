@@ -1,6 +1,6 @@
-# Race Walking Visualization Tool
+# Endurance
 
-A pyqt-6 GUI app to visualize various data pertaining to race walking from a sqlite database.
+A PyQt-6 GUI app to visualize various data pertaining to race walking from a sqlite database.
 
 ## Features
 
@@ -31,6 +31,8 @@ then do these for python dependencies:
 This is for packaging, you can run the project without building
 
 `make clean build`
+
+The packaged binary will be in the `dist` directory
 
 ## Generating documentation
 
