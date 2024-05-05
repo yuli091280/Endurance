@@ -161,7 +161,7 @@ class DB:
         :rtype: list[tuple[any]]
         """
         return self.execute_lookup_query_with_headers(
-            "SELECT B.BibNumber AS 'Bib Number', A.FirstName AS 'Athlete First Name', A.LastName AS 'Athlete Last Name', " 
+            "SELECT B.BibNumber AS 'Bib Number', A.FirstName AS 'Athlete First Name', A.LastName AS 'Athlete Last Name', "
             "J.FirstName AS 'Judge First Name', J.LastName AS 'Judge Last Name', "
             "(CASE WHEN Color = 'Yellow' AND Infraction = '~' THEN 'x' ELSE NULL END) AS `Yellow ~`,"
             "(CASE WHEN Color = 'Red' AND Infraction = '~' THEN 'x' ELSE NULL END) AS `Red ~`,"
