@@ -1,6 +1,7 @@
 from PyQt6 import QtWidgets
 
 from rwv.ui.plot_widget import PlotWidget
+from rwv.db import DB
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -26,8 +27,8 @@ class MainWindow(QtWidgets.QMainWindow):
         db = PlotWidget.db_file_dialog(self)
         if not db:
             return
-        self.hide()
         plot_widget = PlotWidget(db)
+        self.hide()
         self.setCentralWidget(plot_widget)
 
         # center this window
