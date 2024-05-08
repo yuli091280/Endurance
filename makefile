@@ -1,5 +1,6 @@
 PYINSTALLER_ENTRY = src/rwv/main.py
-EXECUTABLE_OUT = dist/main
+EXE_NAME = Endurance
+EXECUTABLE_OUT = dist/${EXE_NAME}
 
 .PHONY: build clean
 
@@ -26,4 +27,4 @@ docs-appmap: docs-clean-appmap
 docs-all: docs-appmap docs-build
 
 ${EXECUTABLE_OUT}: ${PYINSTALLER_ENTRY}
-	poetry run pyinstaller --onefile ${PYINSTALLER_ENTRY}
+	poetry run pyinstaller -n ${EXE_NAME} --onefile ${PYINSTALLER_ENTRY}
