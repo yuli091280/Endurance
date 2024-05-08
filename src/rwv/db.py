@@ -140,7 +140,7 @@ class DB:
         :rtype: list[tuple[any]]
         """
         return self.execute_lookup_query_with_headers(
-            "SELECT FirstName, LastName,"
+            "SELECT FirstName AS 'Judge First Name', LastName AS 'Judge Last Name',"
             "SUM(CASE WHEN Color = 'Red' AND Infraction = '~' THEN 1 ELSE 0 END) AS `Red ~`,"
             "SUM(CASE WHEN Color = 'Red' AND Infraction = '<' THEN 1 ELSE 0 END) AS `Red <`,"
             "SUM(CASE WHEN Color = 'Yellow' AND Infraction = '~' THEN 1 ELSE 0 END) AS 'Yellow ~',"
@@ -161,7 +161,8 @@ class DB:
         :rtype: list[tuple[any]]
         """
         return self.execute_lookup_query_with_headers(
-            "SELECT B.BibNumber, A.FirstName , A.LastName, J.FirstName, J.LastName,"
+            "SELECT B.BibNumber AS 'Bib Number', A.FirstName AS 'Athlete First Name', A.LastName AS 'Athlete Last Name', "
+            "J.FirstName AS 'Judge First Name', J.LastName AS 'Judge Last Name', "
             "(CASE WHEN Color = 'Yellow' AND Infraction = '~' THEN 'x' ELSE NULL END) AS `Yellow ~`,"
             "(CASE WHEN Color = 'Red' AND Infraction = '~' THEN 'x' ELSE NULL END) AS `Red ~`,"
             "(CASE WHEN Color = 'Yellow' AND Infraction = '<' THEN 'x' ELSE NULL END) AS `Yellow <`,"
@@ -184,7 +185,7 @@ class DB:
         :rtype: list[tuple[any]]
         """
         return self.execute_lookup_query_with_headers(
-            "SELECT B.BibNumber, A.FirstName AS 'Athlete First Name', A.LastName AS 'Athlete First Name',"
+            "SELECT B.BibNumber AS 'Bib Number', A.FirstName AS 'Athlete First Name', A.LastName AS 'Athlete First Name',"
             "SUM(CASE WHEN Color = 'Yellow' AND Infraction = '~' THEN 1 ELSE 0 END) AS `Yellow ~`,"
             "SUM(CASE WHEN Color = 'Yellow' AND Infraction = '<' THEN 1 ELSE 0 END) AS `Yellow <`,"
             "SUM(CASE WHEN Color = 'Red' AND Infraction = '~' THEN 1 ELSE 0 END) AS `Red ~`,"
@@ -206,7 +207,7 @@ class DB:
         :rtype: list[tuple[any]]
         """
         return self.execute_lookup_query_with_headers(
-            "SELECT FirstName, LastName,"
+            "SELECT FirstName AS 'Judge First Name', LastName AS 'Judge Last Name', "
             "        SUM(CASE WHEN Color = 'Red' AND Infraction = '~' AND NOT EXISTS ("
             "                SELECT * FROM JudgeCall J2"
             "                WHERE J1.IDJudge = J2.IDJudge AND J1.IDRace = J2.IDRace AND J1.BibNumber = J2.BibNumber AND J2.Infraction = '~' AND J2.Color = 'Yellow' AND J2.TOD < J1.TOD LIMIT 1)"
@@ -231,7 +232,7 @@ class DB:
         :rtype: list[tuple[any]]
         """
         return self.execute_lookup_query_with_headers(
-            "SELECT FirstName, LastName,"
+            "SELECT FirstName AS 'Judge First Name', LastName AS 'Judge Last Name', "
             "        SUM(CASE WHEN Color = 'Yellow' AND Infraction = '~' AND NOT EXISTS ("
             "                SELECT * FROM JudgeCall J2"
             "                WHERE J1.IDJudge = J2.IDJudge AND J1.IDRace = J2.IDRace AND J1.BibNumber = J2.BibNumber AND J2.Infraction = '~' AND J2.Color = 'Red' AND J1.TOD < J2.TOD LIMIT 1)"
@@ -250,11 +251,11 @@ class DB:
 
     def get_judge_consistency_report_by_race(self, race_id):
         return self.execute_lookup_query_with_headers(
-            """SELECT Judge.FirstName, Judge.LastName, 
-     MAX(CASE WHEN Infraction='~' AND Color='Red' THEN MajorityNumber Else 0 END) MajorityMatchedLOCRed, 
-     MAX(CASE WHEN Infraction='<' AND Color='Red' THEN MajorityNumber Else 0 END) MajorityMatchedBentRed, 
-     MAX(CASE WHEN Infraction='~' AND Color='Yellow' THEN MajorityNumber Else 0 END) MajorityMatchedLOCYellow, 
-     MAX(CASE WHEN Infraction='<' AND Color='Yellow'THEN MajorityNumber Else 0 END) MajorityMatchedBentYellow 
+            """SELECT Judge.FirstName AS 'Judge First Name', Judge.LastName AS 'Judge Last Name', 
+     MAX(CASE WHEN Infraction='~' AND Color='Red' THEN MajorityNumber Else 0 END) 'Majority Matched Red ~', 
+     MAX(CASE WHEN Infraction='<' AND Color='Red' THEN MajorityNumber Else 0 END) 'Majority Matched Red <', 
+     MAX(CASE WHEN Infraction='~' AND Color='Yellow' THEN MajorityNumber Else 0 END) 'Majority Matched Yellow ~', 
+     MAX(CASE WHEN Infraction='<' AND Color='Yellow'THEN MajorityNumber Else 0 END) 'Majority Matched Yellow <' 
      FROM 
           (SELECT JudgeCall.IDJudge, COUNT(JudgeCall.BibNumber) AS MajorityNumber, 
           JudgeCall.Infraction, 
@@ -289,7 +290,7 @@ class DB:
         :rtype: list[tuple[any]]
         """
         return self.execute_lookup_query_with_headers(
-            "SELECT B.BibNumber, A.FirstName AS 'Athlete First Name', A.LastName AS 'Athlete First Name',"
+            "SELECT B.BibNumber AS 'Bib Number', A.FirstName AS 'Athlete First Name', A.LastName AS 'Athlete Last Name',"
             "SUM(CASE WHEN Color = 'Yellow' THEN 1 ELSE 0 END) AS '# of Yellow Paddles',"
             "SUM(CASE WHEN Color = 'Red' THEN 1 ELSE 0 END) AS '# of Red Cards' "
             "FROM JudgeCall JC "
