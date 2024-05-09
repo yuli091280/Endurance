@@ -194,7 +194,6 @@ class PlotWidget(QtWidgets.QWidget):
             parent, "Open Database", "", "db files (*.db)"
         )
         if not file_path:
-            QtWidgets.QMessageBox.critical(parent, "", "Invalid file")
             return None
 
         return DB(file_path)
