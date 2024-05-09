@@ -70,7 +70,7 @@ def get_proper_button_spacing(button_num, total_buttons):
             )
 
 
-def _button_factory(total_buttons, slide, button_place, text):
+def _button_factory(total_buttons, slide, button_place, text, color=None):
     """
     Generate a button shape using the specified parameters.
 
@@ -82,6 +82,8 @@ def _button_factory(total_buttons, slide, button_place, text):
     :type button_place: int
     :param text: Text content of button
     :type text: str
+    :param color: Optional color of button
+    :type color: pptx.enum.dml.MSO_THEME_COLOR_INDEX
     :return: Formatted button
     :rtype: pptx.shapes.autoshapes.Shape
     """
@@ -94,6 +96,13 @@ def _button_factory(total_buttons, slide, button_place, text):
     )
     shape.text_frame.text = text
     shape.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
+
+    if color:
+        shape.fill.gradient()
+        for gradient_stop in shape.fill.gradient_stops:
+            gradient_stop.color.theme_color = color
+        shape.line.color.theme_color = color
+
     return shape
 
 
@@ -175,17 +184,16 @@ def generate_powerpoint(selected_query, data, headers, file_path):
             continue
 
         # Create factory function with pre-filled slide and button info
-        create_button = lambda button_num, text: _button_factory(
-            min(num_buttons, MAX_BTNS_PER_SLIDE_WITH_ARROWS), slide, button_num, text
+        create_button = lambda button_num, text, color=None: _button_factory(
+            min(num_buttons, MAX_BTNS_PER_SLIDE_WITH_ARROWS),
+            slide,
+            button_num,
+            text,
+            color,
         )
 
         # Add previous slide button to slide
-        shape = create_button(1, "<")
-        shape.fill.gradient()
-        for gradient_stop in shape.fill.gradient_stops:
-            gradient_stop.color.theme_color = MSO_THEME_COLOR.ACCENT_6
-        shape.line.color.theme_color = MSO_THEME_COLOR.ACCENT_6
-        slide_buttons.append(shape)
+        slide_buttons.append(create_button(1, "<", MSO_THEME_COLOR.ACCENT_6))
 
         # Add numbered slide buttons to slide
         if num_buttons > MAX_BTNS_PER_SLIDE_WITH_ARROWS:
@@ -205,34 +213,35 @@ def generate_powerpoint(selected_query, data, headers, file_path):
             # Button position is decoupled from the number, skipping previous slide button
             button_pos = 2
             for button in button_range:
-                shape = create_button(button_pos, str(button))
                 # Add special formatting for selected slide
-                if button == current_slide:
-                    shape.fill.gradient()
-                    for gradient_stop in shape.fill.gradient_stops:
-                        gradient_stop.color.theme_color = MSO_THEME_COLOR.ACCENT_2
-                    shape.line.color.theme_color = MSO_THEME_COLOR.ACCENT_2
-                slide_buttons.append(shape)
+                slide_buttons.append(
+                    create_button(
+                        button_pos,
+                        str(button),
+                        MSO_THEME_COLOR.ACCENT_2 if button == current_slide else None,
+                    )
+                )
                 button_pos += 1
         else:
             # All the buttons will fit, we can use their number to decide their position
             for button in range(1, num_slides + 1):
-                shape = create_button(button + 1, str(button))
                 # Add special formatting for selected slide
-                if button == current_slide:
-                    shape.fill.gradient()
-                    for gradient_stop in shape.fill.gradient_stops:
-                        gradient_stop.color.theme_color = MSO_THEME_COLOR.ACCENT_2
-                    shape.line.color.theme_color = MSO_THEME_COLOR.ACCENT_2
-                slide_buttons.append(shape)
+                slide_buttons.append(
+                    create_button(
+                        button + 1,
+                        str(button),
+                        MSO_THEME_COLOR.ACCENT_2 if button == current_slide else None,
+                    )
+                )
 
         # Add next slide button to slide
-        shape = create_button(min(num_buttons, MAX_BTNS_PER_SLIDE_WITH_ARROWS), ">")
-        shape.fill.gradient()
-        for gradient_stop in shape.fill.gradient_stops:
-            gradient_stop.color.theme_color = MSO_THEME_COLOR.ACCENT_6
-        shape.line.color.theme_color = MSO_THEME_COLOR.ACCENT_6
-        slide_buttons.append(shape)
+        slide_buttons.append(
+            create_button(
+                min(num_buttons, MAX_BTNS_PER_SLIDE_WITH_ARROWS),
+                ">",
+                MSO_THEME_COLOR.ACCENT_6,
+            )
+        )
 
         all_buttons.append(slide_buttons)
 
