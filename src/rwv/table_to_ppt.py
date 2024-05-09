@@ -16,6 +16,16 @@ MAX_BTNS_PER_SLIDE_WITH_ARROWS = MAX_BUTTONS_PER_SLIDE + 2
 
 
 def get_proper_button_spacing(button_num, total_buttons):
+    """
+    Places a button according to the total number of buttons on the slide.
+
+    :param button_num: Number of button being placed
+    :type button_num: int
+    :param total_buttons: Total number of buttons on the slide
+    :type total_buttons: int
+    :return: Location to place button in Inches
+    :rtype: pptx.util.Inches
+    """
     if total_buttons % 2 == 0:
         # Even buttons, no center button
         middle_button = total_buttons // 2
@@ -54,6 +64,20 @@ def get_proper_button_spacing(button_num, total_buttons):
 
 
 def _button_factory(total_buttons, slide, button_place, text):
+    """
+    Generate a button shape using the specified parameters.
+
+    :param total_buttons: Total number of buttons on the slide
+    :type total_buttons: int
+    :param slide: Slide to place button on
+    :type slide: pptx.slide.Slide
+    :param button_place: Location on slide to put button
+    :type button_place: int
+    :param text: Text content of button
+    :type text: str
+    :return: Formatted button
+    :rtype: pptx.shapes.autoshapes.Shape
+    """
     shape = slide.shapes.add_shape(
         MSO_SHAPE.ROUNDED_RECTANGLE,
         get_proper_button_spacing(button_place, total_buttons),
@@ -67,6 +91,18 @@ def _button_factory(total_buttons, slide, button_place, text):
 
 
 def generate_powerpoint(selected_query, data, headers, file_path):
+    """
+    Generate a PowerPoint using the supplied header and table data, saving to the specified file path.
+
+    :param selected_query: The title of the query being displayed
+    :type selected_query: str
+    :param data: The data of the query being displayed
+    :type data: list[tuple]
+    :param headers: The headers of the data being displayed
+    :type headers: list[str]
+    :param file_path: The file path to save the PowerPoint to
+    :type file_path: str
+    """
     page_num = 1
     all_buttons = []
 
