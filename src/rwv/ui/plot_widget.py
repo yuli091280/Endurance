@@ -189,7 +189,7 @@ class PlotWidget(QtWidgets.QWidget):
         menu_bar.show()
 
     @staticmethod
-    def make_double_list_layout(label_text, comparison = None):
+    def make_double_list_layout(label_text, comparison=None):
         """
         Create a double list layout consist of the doubleList and a label on top.
 
