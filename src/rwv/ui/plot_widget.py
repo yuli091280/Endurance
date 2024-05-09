@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import QFileDialog
 from rwv.loc_graph import LocGraph, JudgeCallType
 from rwv.ui.double_list import DoubleListWidget
 from rwv.ui.graph_window import GraphWindow
+from rwv.ui.table_window import TableWindow
 
 from rwv.db import DB
 
@@ -26,6 +27,7 @@ class PlotWidget(QtWidgets.QWidget):
 
         self.bent_knee = None
         self.graph_window = None
+        self.table_window = None
         self.loc = None
 
         self.toolbar = None
@@ -84,6 +86,10 @@ class PlotWidget(QtWidgets.QWidget):
         self.show_graph_button = QtWidgets.QPushButton("Show Graph", self)
         self.show_graph_button.clicked.connect(lambda: self.create_graph_window())
 
+        # Create a button for showing the table
+        self.show_table_button = QtWidgets.QPushButton("Show Table", self)
+        self.show_table_button.clicked.connect(lambda: self.create_table_window())
+
         # widget layout
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.race_label)
@@ -92,6 +98,7 @@ class PlotWidget(QtWidgets.QWidget):
         layout.addWidget(self.max_loc_text_box)
         layout.addLayout(selector_layout)
         layout.addWidget(self.show_graph_button)
+        layout.addWidget(self.show_table_button)
 
         # Tell widget to use specified layout
         self.setLayout(layout)
@@ -119,7 +126,7 @@ class PlotWidget(QtWidgets.QWidget):
 
     def create_graph_window(self):
         """
-        Creates window that displays the generate chart.
+        Creates window that displays the generated chart.
         """
         if self.graph_window is None or not self.graph_window.isVisible():
             # Initialize toolbar for interacting with plot
@@ -130,12 +137,25 @@ class PlotWidget(QtWidgets.QWidget):
             self.show_graph_button.hide()
             self.graph_window.show_window()
 
+    def create_table_window(self):
+        """
+        Creates window that contains the data table for certain queries.
+        """
+        if self.table_window is None or not self.table_window.isVisible():
+            self.table_window = TableWindow(
+                self.show_table_button, self.db, self.get_selected_race_id()
+            )
+            self.show_table_button.hide()
+            self.table_window.show_window()
+
     def close_application(self):
         """
         Closes both of the windows once one is closed.
         """
         if self.graph_window is not None:
             self.graph_window.close_window()
+        if self.table_window is not None:
+            self.table_window.close_window()
         self.close()
 
     def create_menu_bar(self):
@@ -261,8 +281,11 @@ class PlotWidget(QtWidgets.QWidget):
         """
         Plots the data based on the current race selected.
         """
+        selected_race = self.get_selected_race_id()
+        if self.table_window is not None:
+            self.table_window.set_selected_race(selected_race)
         loc_values, judge_data, athletes, judges = self.init_data_for_race(
-            self.race_combo_box.currentData()
+            selected_race
         )
 
         # Clear old values
@@ -370,6 +393,15 @@ class PlotWidget(QtWidgets.QWidget):
                 self.canvas.save_figure_as_pdf(file_path)
             elif "JPEG" in save_choice:
                 self.canvas.save_figure_as_jpeg(file_path)
+
+    def get_selected_race_id(self):
+        """
+        Returns the ID for the currently selected race.
+
+        :return: ID of currently selected race
+        :rtype: int
+        """
+        return self.race_combo_box.currentData()
 
 
 class MplCanvas(mlp_backend.FigureCanvasQTAgg):
