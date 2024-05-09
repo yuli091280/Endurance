@@ -58,7 +58,7 @@ jobs:
     - name: Install Python dependencies
       run: poetry install
     - name: Test run
-      run: poetry run black .
+      run: poetry run black --check .
 
   doc_gen:
 
@@ -94,4 +94,3 @@ jobs:
           path: |
             docs/appmap.yml
             docs/_build
-

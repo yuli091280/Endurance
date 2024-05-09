@@ -11,13 +11,11 @@ class MainWindow(QtWidgets.QMainWindow):
     :type screen: PyQt6.QtGui.QScreen
     """
 
-    def __init__(self, screen):
+    def __init__(self):
         super().__init__()
 
-        self.screen = screen
-
         # Set window title
-        self.setWindowTitle("Race Walking Visualization")
+        self.setWindowTitle("Endurance")
 
         self.reset()
 
@@ -26,21 +24,16 @@ class MainWindow(QtWidgets.QMainWindow):
         Event handler for when the user opens a new database.
         """
 
-        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
-            self, "Open Database", "", "db files (*.db)"
-        )
-        if not file_path:
-            QtWidgets.QMessageBox.critical(self, "", "Invalid file")
+        db = PlotWidget.db_file_dialog(self)
+        if not db:
             return
-
-        db = DB(file_path)
+        plot_widget = PlotWidget(db)
         self.hide()
-        plot_widget = PlotWidget(self, db)
         self.setCentralWidget(plot_widget)
 
         # center this window
-        self.move(self.screen.geometry().center() - self.frameGeometry().center())
         self.show()
+        self.center()
 
     def reset(self):
         """
@@ -56,5 +49,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(db_button)
 
         # center this window
-        self.move(self.screen.geometry().center() - self.frameGeometry().center())
         self.show()
+        self.center()
+
+    def center(self):
+        """
+        Move this window to the center of the screen.
+        """
+        screen_center = self.screen().availableGeometry().center()
+        window_center = (
+            self.frameGeometry().bottomRight() - self.frameGeometry().topLeft()
+        ) / 2
+        self.move(screen_center - window_center)

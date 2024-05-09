@@ -176,9 +176,9 @@ class DoubleListWidget(QtWidgets.QWidget):
             for i in range(list_widget.count())
         ]
         items.sort(
-            key=lambda item: item[1]
-            if self._comparison is None
-            else self._comparison(item[1])
+            key=lambda item: (
+                item[1] if self._comparison is None else self._comparison(item[1])
+            )
         )
         list_widget.clear()
         for item in items:

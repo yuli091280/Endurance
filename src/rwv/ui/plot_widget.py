@@ -1,11 +1,16 @@
-import pandas as pd
-from PyQt6 import QtWidgets
-
 import matplotlib.backends.backend_qt5agg as mlp_backend
+import pandas as pd
+
+from PyQt6 import QtWidgets
+from PyQt6.QtGui import QIntValidator
+from PyQt6.QtWidgets import QFileDialog
 
 from rwv.loc_graph import LocGraph, JudgeCallType
 from rwv.ui.double_list import DoubleListWidget
-from PyQt6.QtWidgets import QFileDialog
+from rwv.ui.graph_window import GraphWindow
+from rwv.ui.table_window import TableWindow
+
+from rwv.db import DB
 
 
 class PlotWidget(QtWidgets.QWidget):
@@ -17,51 +22,51 @@ class PlotWidget(QtWidgets.QWidget):
     :type db: DB
     """
 
-    def __init__(self, window, db):
+    def __init__(self, db):
         super().__init__()
 
-        self.db = db
-        races = db.get_races()
+        self.bent_knee = None
+        self.graph_window = None
+        self.table_window = None
+        self.loc = None
 
-        close_db_button = QtWidgets.QPushButton("Close current DB")
-        close_db_button.clicked.connect(lambda: window.reset())
+        self.toolbar = None
 
-        # Initialize combo box for selecting which race to fetch data for
+        # Initialize the menu bar for the application
+        self.create_menu_bar()
+
         self.race_combo_box = QtWidgets.QComboBox(self)
-        for race in races:
-            # Add athletes in the form "Race IDRace - Gender Distance DistanceUnits (RaceDate @ StartTime)"
-            self.race_combo_box.addItem(
-                f"Race {race[0]} - {race[1]} {race[2]}{race[3]} ({race[4]} @ {race[5]})",
-                race[0],
-            )
+
         self.race_label = QtWidgets.QLabel("Race:")
         self.race_label.setBuddy(self.race_combo_box)
         self.race_combo_box.currentIndexChanged.connect(
             lambda: self.init_interface_for_race()
         )
 
-        self.max_loc_combo_box = QtWidgets.QComboBox(self)
-        self.max_loc_combo_box.addItem("60 ms", 60)
-        self.max_loc_combo_box.addItem("45 ms", 45)
-        self.max_loc_label = QtWidgets.QLabel("Max LOC:")
-        self.race_label.setBuddy(self.max_loc_combo_box)
-        self.max_loc_combo_box.currentIndexChanged.connect(
-            lambda: self.canvas.redraw_loc(self.max_loc_combo_box.currentData())
+        self.max_loc_text_box = QtWidgets.QLineEdit(self)
+        self.max_loc_text_box.setText("60")
+        self.max_loc_label = QtWidgets.QLabel("Max LOC (ms):")
+        self.max_loc_text_box.setValidator(QIntValidator(1, 999, self))
+        self.race_label.setBuddy(self.max_loc_text_box)
+
+        self.max_loc_text_box.textChanged.connect(
+            lambda: self.canvas.redraw_loc(
+                int(self.max_loc_text_box.text())
+                if self.max_loc_text_box.text().strip() != ""
+                else 0
+            )
         )
 
         # Set up graph
         self.graph = LocGraph(width=12, height=7, dpi=100)
         self.canvas = MplCanvas(self.graph)
 
-        # Initialize toolbar for interacting with plot
-        toolbar = mlp_backend.NavigationToolbar2QT(self.canvas, self)
-
-        runner_list_layout, self.runner_list = PlotWidget.make_double_list_layout(
-            "Runners"
+        walker_list_layout, self.walker_list = PlotWidget.make_double_list_layout(
+            "Walkers"
         )
         # Connect our redraw function to the selector
-        self.runner_list.item_moved.connect(
-            lambda: self.canvas.redraw_plot(self.runner_list.get_selected_items())
+        self.walker_list.item_moved.connect(
+            lambda: self.canvas.redraw_plot(self.walker_list.get_selected_items())
         )
 
         judge_list_layout, self.judge_list = PlotWidget.make_double_list_layout(
@@ -72,54 +77,136 @@ class PlotWidget(QtWidgets.QWidget):
         )
 
         selector_layout = QtWidgets.QHBoxLayout()
-        selector_layout.addLayout(runner_list_layout)
+        selector_layout.addLayout(walker_list_layout)
         selector_layout.addLayout(judge_list_layout)
 
-        # Initialize checkbox for choosing whether to draw bent knee points
-        self.bent_knee_checkbox = QtWidgets.QCheckBox("Bent Knee", self)
-        # Set default value to true
-        self.bent_knee_checkbox.setChecked(True)
-        # Connect our redraw function to the selector
-        self.bent_knee_checkbox.stateChanged.connect(
-            lambda checked: self.canvas.redraw_points(JudgeCallType.BENT_KNEE, checked)
-        )
+        self.set_db(db)
 
-        # Initialize checkbox for choosing whether to draw LOC points
-        self.loc_checkbox = QtWidgets.QCheckBox("LOC", self)
-        # Set default value to true
-        self.loc_checkbox.setChecked(True)
-        # Connect our redraw function to the selector
-        self.loc_checkbox.stateChanged.connect(
-            lambda checked: self.canvas.redraw_points(JudgeCallType.LOC, checked)
-        )
+        # Create a button for showing the graph
+        self.show_graph_button = QtWidgets.QPushButton("Show Graph", self)
+        self.show_graph_button.clicked.connect(lambda: self.create_graph_window())
 
-        # Initialize UI values and graph
-        self.init_interface_for_race()
+        # Create a button for showing the table
+        self.show_table_button = QtWidgets.QPushButton("Show Table", self)
+        self.show_table_button.clicked.connect(lambda: self.create_table_window())
 
         # widget layout
         layout = QtWidgets.QVBoxLayout()
-
-        # Checkbox layout
-        button_layout = QtWidgets.QHBoxLayout()
-        button_layout.addWidget(self.bent_knee_checkbox)
-        button_layout.addWidget(self.loc_checkbox)
-
-        layout.addWidget(close_db_button)
-        layout.addWidget(toolbar)
         layout.addWidget(self.race_label)
         layout.addWidget(self.race_combo_box)
         layout.addWidget(self.max_loc_label)
-        layout.addWidget(self.max_loc_combo_box)
+        layout.addWidget(self.max_loc_text_box)
         layout.addLayout(selector_layout)
-        layout.addLayout(button_layout)
-        layout.addWidget(self.canvas)
-
-        self.save_button = QtWidgets.QPushButton("Save Graph", self)
-        layout.addWidget(self.save_button)
-        self.save_button.clicked.connect(lambda: self.save_current_graph())
+        layout.addWidget(self.show_graph_button)
+        layout.addWidget(self.show_table_button)
 
         # Tell widget to use specified layout
         self.setLayout(layout)
+
+    def set_db(self, db):
+        """
+        Switch to a new db to visualize.
+
+        :param db: new db to switch to
+        :type db: DB
+        """
+        if not db:
+            return
+
+        self.db = db
+        races = db.get_races()
+
+        self.race_combo_box.clear()
+        for race in races:
+            # Add athletes in the form "Race IDRace - Gender Distance DistanceUnits (RaceDate @ StartTime)"
+            self.race_combo_box.addItem(
+                f"Race {race[0]} - {race[1]} {race[2]}{race[3]} ({race[4]} @ {race[5]})",
+                race[0],
+            )
+
+    def create_graph_window(self):
+        """
+        Creates window that displays the generated chart.
+        """
+        if self.graph_window is None or not self.graph_window.isVisible():
+            # Initialize toolbar for interacting with plot
+            self.toolbar = mlp_backend.NavigationToolbar2QT(self.canvas, self)
+            self.graph_window = GraphWindow(
+                self.toolbar, self.canvas, self.show_graph_button
+            )
+            self.show_graph_button.hide()
+            self.graph_window.show_window()
+
+    def create_table_window(self):
+        """
+        Creates window that contains the data table for certain queries.
+        """
+        if self.table_window is None or not self.table_window.isVisible():
+            self.table_window = TableWindow(
+                self.show_table_button, self.db, self.get_selected_race_id()
+            )
+            self.show_table_button.hide()
+            self.table_window.show_window()
+
+    def close_application(self):
+        """
+        Closes both of the windows once one is closed.
+        """
+        if self.graph_window is not None:
+            self.graph_window.close_window()
+        if self.table_window is not None:
+            self.table_window.close_window()
+        self.close()
+
+    def create_menu_bar(self):
+        """
+        Creates and shows the menu bar. This contains actions for users relating to saving, closing the DB, and
+        toggling the display of Bent Knee and LOC on the graph.
+        """
+        # Initialize the menu bar.
+        menu_bar = QtWidgets.QMenuBar(self)
+
+        # Initialize the File button on the menu bar.
+        file_menu = QtWidgets.QMenu("&File", self)
+        menu_bar.addMenu(file_menu)
+
+        # Action to close the database file.
+        open_db = file_menu.addAction("Open new database")
+        open_db.triggered.connect(lambda: self.set_db(PlotWidget.db_file_dialog(self)))
+        open_db.setShortcut("Ctrl+O")
+
+        # Action to save the graph.
+        save_graph = file_menu.addAction("Save Graph")
+        save_graph.triggered.connect(lambda: self.save_current_graph())
+        save_graph.setShortcut("Ctrl+S")
+
+        # Action to exit the application.
+        exit_action = file_menu.addAction("Exit")
+        exit_action.triggered.connect(lambda: self.close_application())
+        exit_action.setShortcut("Ctrl+Q")
+
+        # Initialize the Edit button on the meny bar.
+        edit_menu = QtWidgets.QMenu("&Edit", self)
+        menu_bar.addMenu(edit_menu)
+
+        # Action to toggle the display of Bent Knee.
+        self.bent_knee = edit_menu.addAction("Bent Knee")
+        self.bent_knee.setCheckable(True)
+        self.bent_knee.setChecked(True)
+        self.bent_knee.triggered.connect(
+            lambda checked: self.canvas.redraw_points(JudgeCallType.BENT_KNEE, checked)
+        )
+
+        # Action to toggle the display of LOC.
+        self.loc = edit_menu.addAction("LOC")
+        self.loc.setCheckable(True)
+        self.loc.setChecked(True)
+        self.loc.triggered.connect(
+            lambda checked: self.canvas.redraw_points(JudgeCallType.LOC, checked)
+        )
+
+        # Show the menu bar.
+        menu_bar.show()
 
     @staticmethod
     def make_double_list_layout(label_text):
@@ -137,6 +224,25 @@ class PlotWidget(QtWidgets.QWidget):
         layout.addWidget(label)
         layout.addWidget(double_list)
         return layout, double_list
+
+    @staticmethod
+    def db_file_dialog(parent):
+        """
+        Show a file dialog that prompts the user for a db file
+
+        :param parent: The parent window of the dialog
+        :type parent: QtWidgets.QWindow
+        :return: Opened DB object on success, none otherwise
+        :rtype: DB | None
+        """
+        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            parent, "Open Database", "", "db files (*.db)"
+        )
+        if not file_path:
+            QtWidgets.QMessageBox.critical(parent, "", "Invalid file")
+            return None
+
+        return DB(file_path)
 
     def init_data_for_race(self, race_id):
         """
@@ -175,30 +281,31 @@ class PlotWidget(QtWidgets.QWidget):
         """
         Plots the data based on the current race selected.
         """
+        selected_race = self.get_selected_race_id()
+        if self.table_window is not None:
+            self.table_window.set_selected_race(selected_race)
         loc_values, judge_data, athletes, judges = self.init_data_for_race(
-            self.race_combo_box.currentData()
+            selected_race
         )
 
         # Clear old values
-        self.runner_list.clear_items()
+        self.walker_list.clear_items()
 
         # Initialize combo box for selecting which athletes to draw
         # Add athletes in the form "LastName, FirstName (BibNumber)"
         items = [f"{athlete[0]}, {athlete[1]} ({athlete[2]})" for athlete in athletes]
         item_ids = [athlete[2] for athlete in athletes]
-        self.runner_list.add_items(items, item_ids)
+        self.walker_list.add_items(items, item_ids)
 
         self.judge_list.clear_items()
         items = [f"{judge[2]}, {judge[1]}" for judge in judges]
         item_ids = [judge[0] for judge in judges]
         judge_dict = dict(zip(item_ids, items))
-        self.judge_list.add_items(items, item_ids)
+        self.judge_list.add_items(items, items)
 
         self.canvas.plot_new_race(loc_values, judge_data, athletes, judge_dict)
-        self.canvas.redraw_points(JudgeCallType.LOC, self.loc_checkbox.isChecked())
-        self.canvas.redraw_points(
-            JudgeCallType.BENT_KNEE, self.bent_knee_checkbox.isChecked()
-        )
+        self.canvas.redraw_points(JudgeCallType.LOC, self.loc.isChecked())
+        self.canvas.redraw_points(JudgeCallType.BENT_KNEE, self.bent_knee.isChecked())
 
     def fetch_judge_data(self, judges, bibs, race_id):
         """
@@ -286,6 +393,15 @@ class PlotWidget(QtWidgets.QWidget):
                 self.canvas.save_figure_as_pdf(file_path)
             elif "JPEG" in save_choice:
                 self.canvas.save_figure_as_jpeg(file_path)
+
+    def get_selected_race_id(self):
+        """
+        Returns the ID for the currently selected race.
+
+        :return: ID of currently selected race
+        :rtype: int
+        """
+        return self.race_combo_box.currentData()
 
 
 class MplCanvas(mlp_backend.FigureCanvasQTAgg):
