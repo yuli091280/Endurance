@@ -58,6 +58,9 @@ class GraphWindow(QtWidgets.QWidget):
         layout.addWidget(canvas)
         self.setLayout(layout)
 
+        self.redraw_points(JudgeCallType.BENT_KNEE, self.bent_knee.isChecked())
+        self.redraw_points(JudgeCallType.LOC, self.loc.isChecked())
+
     def redraw_points(self, point_type, visible):
         """
         Redraws specific point types based on visibility toggle.
