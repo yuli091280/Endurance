@@ -68,7 +68,7 @@ class PlotWidget(QtWidgets.QWidget):
         )
 
         judge_list_layout, self.judge_list = PlotWidget.make_double_list_layout(
-            "Judges"
+            "Judges", lambda item: item[0]
         )
         self.judge_list.item_moved.connect(
             lambda: self.canvas.select_new_judges(self.judge_list.get_selected_items())
@@ -189,7 +189,7 @@ class PlotWidget(QtWidgets.QWidget):
         menu_bar.show()
 
     @staticmethod
-    def make_double_list_layout(label_text):
+    def make_double_list_layout(label_text, comparison = None):
         """
         Create a double list layout consist of the doubleList and a label on top.
 
@@ -197,7 +197,7 @@ class PlotWidget(QtWidgets.QWidget):
         :type label_text: str
         """
         layout = QtWidgets.QVBoxLayout()
-        double_list = DoubleListWidget()
+        double_list = DoubleListWidget(comparison)
         label = QtWidgets.QLabel(f"{label_text}:")
         label.setBuddy(double_list)
 
@@ -278,7 +278,7 @@ class PlotWidget(QtWidgets.QWidget):
         items = [f"{judge[2]}, {judge[1]}" for judge in judges]
         item_ids = [judge[0] for judge in judges]
         judge_dict = dict(zip(item_ids, items))
-        self.judge_list.add_items(items, items)
+        self.judge_list.add_items(items, item_ids)
 
         self.canvas.plot_new_race(loc_values, judge_data, athletes, judge_dict)
         self.canvas.redraw_points(JudgeCallType.LOC, self.loc.isChecked())
