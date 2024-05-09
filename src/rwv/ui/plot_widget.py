@@ -33,7 +33,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.toolbar = None
 
         # Initialize the menu bar for the application
-        self.create_menu_bar()
+        menu_bar = self.create_menu_bar()
 
         # Initialize combo box for selecting which race to fetch data for
         self.race_combo_box = QtWidgets.QComboBox(self)
@@ -95,6 +95,7 @@ class PlotWidget(QtWidgets.QWidget):
 
         # widget layout
         layout = QtWidgets.QVBoxLayout()
+        layout.setMenuBar(menu_bar)
         layout.addWidget(self.race_label)
         layout.addWidget(self.race_combo_box)
         layout.addWidget(self.max_loc_label)
@@ -172,8 +173,8 @@ class PlotWidget(QtWidgets.QWidget):
             lambda checked: self.canvas.redraw_points(JudgeCallType.LOC, checked)
         )
 
-        # Show the menu bar.
-        menu_bar.show()
+        return menu_bar
+
 
     @staticmethod
     def make_double_list_layout(label_text):
