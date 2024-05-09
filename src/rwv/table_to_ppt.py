@@ -1,55 +1,108 @@
-import pandas as pd
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE as MSO_SHAPE
+from pptx.enum.text import PP_PARAGRAPH_ALIGNMENT as PP_ALIGN
+from pptx.enum.dml import MSO_THEME_COLOR_INDEX as MSO_THEME_COLOR
 
-# Create a PowerPoint presentation
-presentation = Presentation()
+BUTTON_ROW_HEIGHT = Inches(6.75)
+BUTTON_SPACING = Inches(0.2)
+BUTTON_WIDTH = Inches(0.55)
+BUTTON_HEIGHT = Inches(0.5)
+MIDDLE_OF_SLIDE = Presentation().slide_width / 2
 
-max_rows_per_slide = 15
+MAX_ROWS_PER_SLIDE = 15
+MAX_BUTTONS_PER_SLIDE = 10
+MAX_BTNS_PER_SLIDE_WITH_ARROWS = MAX_BUTTONS_PER_SLIDE + 2
 
 
-def generate_powerpoint(selected_query, data, headers):
+def get_proper_button_spacing(button_num, total_buttons):
+    if total_buttons % 2 == 0:  # Even buttons, no center button
+        middle_button = total_buttons // 2
+        if button_num < middle_button:  # Button is on left side of the slide
+            return (
+                MIDDLE_OF_SLIDE
+                + (BUTTON_SPACING / 2)
+                + (button_num - middle_button - 1) * (BUTTON_WIDTH + BUTTON_SPACING)
+            )
+        else:  # Button is on the right side of the slide
+            return (
+                MIDDLE_OF_SLIDE
+                - (BUTTON_SPACING / 2)
+                - BUTTON_WIDTH
+                - (middle_button - button_num) * (BUTTON_WIDTH + BUTTON_SPACING)
+            )
+    else:  # Odd buttons, there is a middle button
+        middle_button = (total_buttons // 2) + 1
+        if button_num < middle_button:  # Button is on left side of the slide
+            return (
+                MIDDLE_OF_SLIDE
+                + (BUTTON_WIDTH / 2)
+                + BUTTON_SPACING
+                + (button_num - middle_button - 1) * (BUTTON_WIDTH + BUTTON_SPACING)
+            )
+        else:  # Button is on right side of the slide
+            return (
+                MIDDLE_OF_SLIDE
+                - (BUTTON_WIDTH / 2)
+                - (middle_button - button_num) * (BUTTON_WIDTH + BUTTON_SPACING)
+            )
 
-    data = pd.DataFrame(data=data, columns=headers)
 
-    slide_num = 1
-    page_count = 1
-    total_number_of_slides = 10
+def _button_factory(total_buttons, slide, button_place, text):
+    shape = slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE,
+        get_proper_button_spacing(button_place, total_buttons),
+        BUTTON_ROW_HEIGHT,
+        BUTTON_WIDTH,
+        BUTTON_HEIGHT,
+    )
+    shape.text_frame.text = text
+    shape.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
+    return shape
 
-    # TODO: THIS IS GARBAGE, THESE VALUES SHOULD NOT BE HARDCODED TO THE TYPE OF QUERY
-    # for query_title in selected_queries:
-    #     if query_title == "Athlete Infraction Summary":
-    #         total_number_of_slides = total_number_of_slides + 3
-    #     else:
-    #         total_number_of_slides = total_number_of_slides + 1
+
+def generate_powerpoint(selected_query, data, headers, file_path):
+    page_num = 1
+    all_buttons = []
+
+    # Create a PowerPoint presentation
+    presentation = Presentation()
 
     # Determine the number of chunks needed based on the maximum rows per slide
-    num_rows = data.shape[0]
+    num_rows = len(data)
     chunks = [
-        data.iloc[i : i + max_rows_per_slide]
-        for i in range(0, num_rows, max_rows_per_slide)
+        data[i : i + MAX_ROWS_PER_SLIDE] for i in range(0, num_rows, MAX_ROWS_PER_SLIDE)
     ]
 
-    for chunk in chunks:
-        slide_layout = presentation.slide_layouts[
-            5
-        ]  # Use the layout that supports title and content
+    num_slides = len(chunks)
+
+    # Number of slides plus forward/backward
+    num_buttons = num_slides + 2
+
+    slide_layout = presentation.slide_layouts[5]
+    for index, chunk in enumerate(chunks):
+        slide_buttons = []
+
+        # Use the layout that supports title and content
         slide = presentation.slides.add_slide(slide_layout)
+        current_slide = index + 1
         title = slide.placeholders[0]
 
         # Set table title
-        if len(chunks) > 1:
-            title.text = f"{selected_query} Page {slide_num}"
-            slide_num += 1
+        if num_slides > 1:
+            title.text = f"{selected_query} Page {page_num}"
         else:
             title.text = selected_query
 
+        # Add page number to slides
+        page_number_text = slide.shapes.add_textbox(0, 0, Inches(1), Inches(1))
+        page_number_text.text_frame.text = str(page_num)
+        page_num += 1
+
         # Add a table to the slide
-        rows, cols = chunk.shape
         table = slide.shapes.add_table(
-            rows=rows + 1,
-            cols=cols,
+            rows=len(chunk) + 1,
+            cols=len(headers),
             left=Inches(0.5),
             top=Inches(2),
             width=Inches(9),
@@ -57,235 +110,99 @@ def generate_powerpoint(selected_query, data, headers):
         ).table
 
         # Set column names as the first row of the table
-        for col_num, col_name in enumerate(chunk.columns):
+        for col_num, col_name in enumerate(headers):
             cell = table.cell(0, col_num)
             cell.text = col_name
             cell.text_frame.paragraphs[0].font.size = Pt(10)
 
         # Populate the table with data
-        for row_num in range(rows):
-            for col_num, value in enumerate(chunk.iloc[row_num]):
+        for row_num in range(len(chunk)):
+            for col_num, value in enumerate(chunk[row_num]):
                 cell = table.cell(row_num + 1, col_num)
                 cell.text = str(value)
                 cell.text_frame.paragraphs[0].font.size = Pt(10)
 
-        # add page number
-        page_number_text = slide.shapes.add_textbox(0, 0, Inches(1), Inches(1))
-        page_number_text.text_frame.text = str(page_count)
+        # If there's only one slide, skip buttons
+        if num_slides == 1:
+            continue
 
-        # add buttons (spacing and number of buttons change depending on the number of slides)
-        button_count = 1
+        # Create factory function with pre-filled slide and button info
+        create_button = lambda button_num, text: _button_factory(
+            min(num_buttons, MAX_BTNS_PER_SLIDE_WITH_ARROWS), slide, button_num, text
+        )
 
-        # TODO: THESE SHOULDN'T BE HARDCODED EITHER
-        if total_number_of_slides == 10:
-            button_spacing = 1.5
-        elif total_number_of_slides == 9:
-            button_spacing = 2
-        elif total_number_of_slides == 8:
-            button_spacing = 1.75
-        elif total_number_of_slides == 7:
-            button_spacing = 1.75
-        elif total_number_of_slides == 6:
-            button_spacing = 2
-        elif total_number_of_slides == 5:
-            button_spacing = 2.5
-        elif total_number_of_slides == 4:
-            button_spacing = 2.6
-        elif total_number_of_slides == 3:
-            button_spacing = 2.8
-        elif total_number_of_slides == 2:
-            button_spacing = 3.5
+        # Add previous slide button to slide
+        shape = create_button(1, "<")
+        shape.fill.gradient()
+        for gradient_stop in shape.fill.gradient_stops:
+            gradient_stop.color.theme_color = MSO_THEME_COLOR.ACCENT_6
+        shape.line.color.theme_color = MSO_THEME_COLOR.ACCENT_6
+        slide_buttons.append(shape)
 
-        while button_count <= total_number_of_slides:
-            if total_number_of_slides == 1:
-                # add "page 1" button when only 1 table is select
-                shape = slide.shapes.add_shape(
-                    MSO_SHAPE.ROUNDED_RECTANGLE,
-                    Inches(4.9),
-                    Inches(6.75),
-                    Inches(0.35),
-                    Inches(0.5),
+        # Add numbered slide buttons to slide
+        if (
+            num_buttons > MAX_BTNS_PER_SLIDE_WITH_ARROWS
+        ):  # Not all the buttons will fit, truncate
+            if (
+                current_slide <= 4
+            ):  # We're at the start of the list, include the first N slides
+                button_range = range(1, MAX_BUTTONS_PER_SLIDE + 1)
+            elif (
+                current_slide >= num_slides - 5
+            ):  # We're at the end of the list, include the last N slides
+                button_range = range(
+                    num_slides - MAX_BUTTONS_PER_SLIDE + 1, num_slides + 1
                 )
-                shape.text_frame.text = str(button_count)
-                button_count = button_count + 1
-            else:  # cases for any other amounts of pages
-                # TODO: THESE SHOULDN'T BE HARDCODED EITHER
-                if total_number_of_slides == 10:
-                    shape = slide.shapes.add_shape(
-                        MSO_SHAPE.ROUNDED_RECTANGLE,
-                        Inches(button_spacing),
-                        Inches(6.75),
-                        Inches(0.55),
-                        Inches(0.5),
-                    )
-                    shape.text_frame.text = str(button_count)
-                    button_spacing = button_spacing + 0.72
-                    button_count = button_count + 1
+            else:  # We're somewhere in the middle, include the 4 slides before and the 5 slides after this one
+                button_range = range(current_slide - 4, current_slide + 6)
 
-                elif total_number_of_slides == 9:
-                    shape = slide.shapes.add_shape(
-                        MSO_SHAPE.ROUNDED_RECTANGLE,
-                        Inches(button_spacing),
-                        Inches(6.75),
-                        Inches(0.55),
-                        Inches(0.5),
-                    )
-                    shape.text_frame.text = str(button_count)
-                    button_spacing = button_spacing + 0.72
-                    button_count = button_count + 1
+            button_pos = 2  # Button position is decoupled from the number, skipping previous slide button
+            for button in button_range:
+                shape = create_button(button_pos, str(button))
+                if button == current_slide:  # Add special formatting for selected slide
+                    shape.fill.gradient()
+                    for gradient_stop in shape.fill.gradient_stops:
+                        gradient_stop.color.theme_color = MSO_THEME_COLOR.ACCENT_2
+                    shape.line.color.theme_color = MSO_THEME_COLOR.ACCENT_2
+                slide_buttons.append(shape)
+                button_pos += 1
+        else:  # All the buttons will fit, we can use their number to decide their position
+            for button in range(1, num_slides + 1):
+                shape = create_button(button + 1, str(button))
+                if button == current_slide:  # Add special formatting for selected slide
+                    shape.fill.gradient()
+                    for gradient_stop in shape.fill.gradient_stops:
+                        gradient_stop.color.theme_color = MSO_THEME_COLOR.ACCENT_2
+                    shape.line.color.theme_color = MSO_THEME_COLOR.ACCENT_2
+                slide_buttons.append(shape)
 
-                elif total_number_of_slides == 8:
-                    shape = slide.shapes.add_shape(
-                        MSO_SHAPE.ROUNDED_RECTANGLE,
-                        Inches(button_spacing),
-                        Inches(6.75),
-                        Inches(0.55),
-                        Inches(0.5),
-                    )
-                    shape.text_frame.text = str(button_count)
-                    button_spacing = button_spacing + 0.85
-                    button_count = button_count + 1
+        # Add next slide button to slide
+        shape = create_button(min(num_buttons, MAX_BTNS_PER_SLIDE_WITH_ARROWS), ">")
+        shape.fill.gradient()
+        for gradient_stop in shape.fill.gradient_stops:
+            gradient_stop.color.theme_color = MSO_THEME_COLOR.ACCENT_6
+        shape.line.color.theme_color = MSO_THEME_COLOR.ACCENT_6
+        slide_buttons.append(shape)
 
-                elif total_number_of_slides == 7:
-                    shape = slide.shapes.add_shape(
-                        MSO_SHAPE.ROUNDED_RECTANGLE,
-                        Inches(button_spacing),
-                        Inches(6.75),
-                        Inches(0.55),
-                        Inches(0.5),
-                    )
-                    shape.text_frame.text = str(button_count)
-                    button_spacing = button_spacing + 1
-                    button_count = button_count + 1
+        all_buttons.append(slide_buttons)
 
-                elif total_number_of_slides == 6:
-                    shape = slide.shapes.add_shape(
-                        MSO_SHAPE.ROUNDED_RECTANGLE,
-                        Inches(button_spacing),
-                        Inches(6.75),
-                        Inches(0.55),
-                        Inches(0.5),
-                    )
-                    shape.text_frame.text = str(button_count)
-                    button_spacing = button_spacing + 1.15
-                    button_count = button_count + 1
+    # After our slides have been created, add functionality to buttons
+    for slide_index, slide_button_list in enumerate(all_buttons):
+        # Add functionality to previous slide button
+        previous_slide = presentation.slides[slide_index - 1]
+        slide_button_list[0].click_action.target_slide = previous_slide
 
-                elif total_number_of_slides == 5:
-                    shape = slide.shapes.add_shape(
-                        MSO_SHAPE.ROUNDED_RECTANGLE,
-                        Inches(button_spacing),
-                        Inches(6.75),
-                        Inches(0.55),
-                        Inches(0.5),
-                    )
-                    shape.text_frame.text = str(button_count)
-                    button_spacing = button_spacing + 1.2
-                    button_count = button_count + 1
-
-                elif total_number_of_slides == 4:
-                    shape = slide.shapes.add_shape(
-                        MSO_SHAPE.ROUNDED_RECTANGLE,
-                        Inches(button_spacing),
-                        Inches(6.75),
-                        Inches(0.55),
-                        Inches(0.5),
-                    )
-                    shape.text_frame.text = str(button_count)
-                    button_spacing = button_spacing + 1.5
-                    button_count = button_count + 1
-
-                elif total_number_of_slides == 3:
-                    shape = slide.shapes.add_shape(
-                        MSO_SHAPE.ROUNDED_RECTANGLE,
-                        Inches(button_spacing),
-                        Inches(6.75),
-                        Inches(0.55),
-                        Inches(0.5),
-                    )
-                    shape.text_frame.text = str(button_count)
-                    button_spacing = button_spacing + 2
-                    button_count = button_count + 1
-
-                elif total_number_of_slides == 2:
-                    shape = slide.shapes.add_shape(
-                        MSO_SHAPE.ROUNDED_RECTANGLE,
-                        Inches(button_spacing),
-                        Inches(6.75),
-                        Inches(0.55),
-                        Inches(0.5),
-                    )
-                    shape.text_frame.text = str(button_count)
-                    button_spacing = button_spacing + 2.5
-                    button_count = button_count + 1
-
-        # add "Previous Slide" button to each slide
-        shape = slide.shapes.add_shape(
-            MSO_SHAPE.ROUNDED_RECTANGLE,
-            Inches(0.25),
-            Inches(6.75),
-            Inches(1.0),
-            Inches(0.5),
-        )
-        shape.text_frame.text = "<"
-        shape.text_frame.fit_text("Calibri", 12, True, False, None)
-
-        # add "Next Slide" button to each slide
-        shape = slide.shapes.add_shape(
-            MSO_SHAPE.ROUNDED_RECTANGLE,
-            Inches(8.75),
-            Inches(6.75),
-            Inches(1.0),
-            Inches(0.5),
-        )
-        shape.text_frame.text = ">"
-        shape.text_frame.fit_text("Calibri", 12.5, True, False, None)
-
-        page_count = page_count + 1
-
-
-def add_button_functionality(file_path):
-    page_number = 0
-
-    total_number_of_slides = 10
-
-    while page_number < total_number_of_slides:
-
-        # add "next slide and previous slide" button functionality
-        this_slide, previous_slide = (
-            presentation.slides[page_number],
-            presentation.slides[page_number - 1],
-        )
-
-        if page_number != total_number_of_slides - 1:
-            try:
-                next_slide = presentation.slides[page_number + 1]
-            except:
-                # TODO: Temp fix, needs to be addressed
-                next_slide = presentation.slides[0]
-                break
-        else:  # last slide only
+        # Add functionality to next slide button
+        if slide_index == num_slides - 1:  # Last slide, loop back to the front
             next_slide = presentation.slides[0]
+        else:
+            next_slide = presentation.slides[slide_index + 1]
+        slide_button_list[-1].click_action.target_slide = next_slide
 
-        next_slide_button = this_slide.shapes[-1]
-        next_slide_button.click_action.target_slide = next_slide
-
-        previous_slide_button = this_slide.shapes[-2]
-        previous_slide_button.click_action.target_slide = previous_slide
-
-        # add functionality for page number buttons
-
-        button_number = 3
-        slide_number = 0
-
-        while button_number <= (total_number_of_slides + 2):
-            page_button = this_slide.shapes[button_number]
-            page = presentation.slides[slide_number]
-            page_button.click_action.target_slide = page
-
-            button_number = button_number + 1
-            slide_number = slide_number + 1
-
-        page_number = page_number + 1
+        # Add functionality to rest of buttons
+        for button in slide_button_list[1:-1]:
+            slide_num = int(button.text_frame.text) - 1
+            button.click_action.target_slide = presentation.slides[slide_num]
 
     # Save the PowerPoint presentation
     presentation.save(file_path)

@@ -1,5 +1,5 @@
 from PyQt6 import QtWidgets, QtCore, QtGui
-from rwv.table_to_ppt import generate_powerpoint, add_button_functionality
+from rwv.table_to_ppt import generate_powerpoint
 
 
 class TableWindow(QtWidgets.QWidget):
@@ -156,11 +156,9 @@ class TableWindow(QtWidgets.QWidget):
         if not file_path.endswith(".pptx"):
             file_path += ".pptx"
 
-        # TODO: Clean this up
         generate_powerpoint(
-            self.report_combo_box.currentData(), self._data, self._headers
+            self.report_combo_box.currentData(), self._data, self._headers, file_path
         )
-        add_button_functionality(file_path)
 
     def closeEvent(self, event):
         """
