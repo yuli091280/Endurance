@@ -67,9 +67,7 @@ class GraphWindow(QtWidgets.QWidget):
         :param visible: Determines if the points should be visible
         :type visible: bool
         """
-        if hasattr(self.canvas, "graph"):
-            self.canvas.graph.display_judge_call_by_type(point_type, visible)
-            self.canvas.draw_idle()
+        self.canvas.redraw_points(point_type, visible)
 
     def save_current_graph(self, checked=False):
         """

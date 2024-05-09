@@ -24,10 +24,7 @@ class PlotWidget(QtWidgets.QWidget):
     def __init__(self, db):
         super().__init__()
 
-        self.bent_knee = None
         self.graph_window = None
-        self.loc = None
-
         self.toolbar = None
 
         # Initialize the menu bar for the application
