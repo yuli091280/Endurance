@@ -163,7 +163,6 @@ class PlotWidget(QtWidgets.QWidget):
 
         return menu_bar
 
-
     @staticmethod
     def make_double_list_layout(label_text):
         """
