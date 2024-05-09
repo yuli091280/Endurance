@@ -129,7 +129,6 @@ class TableWindow(QtWidgets.QWidget):
                 items.append(QtGui.QStandardItem(str(col or " ")))
             self.model.insertRow(index, items)
 
-        # TODO: Find a less garbage way to pass data to ppt function
         self._data = data
         self._headers = headers
 
