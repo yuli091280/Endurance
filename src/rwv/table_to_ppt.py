@@ -8,6 +8,13 @@ BUTTON_ROW_HEIGHT = Inches(6.75)
 BUTTON_SPACING = Inches(0.2)
 BUTTON_WIDTH = Inches(0.55)
 BUTTON_HEIGHT = Inches(0.5)
+
+TABLE_ROW_HEIGHT = Inches(2)
+TABLE_LEFT_PADDING = Inches(0.5)
+TABLE_WIDTH = Inches(9)
+TABLE_HEIGHT = Inches(0.5)
+TABLE_FONT_SIZE = Pt(10)
+
 MIDDLE_OF_SLIDE = Presentation().slide_width / 2
 
 MAX_ROWS_PER_SLIDE = 15
@@ -144,24 +151,24 @@ def generate_powerpoint(selected_query, data, headers, file_path):
         table = slide.shapes.add_table(
             rows=len(chunk) + 1,
             cols=len(headers),
-            left=Inches(0.5),
-            top=Inches(2),
-            width=Inches(9),
-            height=Inches(0.5),
+            left=TABLE_LEFT_PADDING,
+            top=TABLE_ROW_HEIGHT,
+            width=TABLE_WIDTH,
+            height=TABLE_HEIGHT,
         ).table
 
         # Set column names as the first row of the table
         for col_num, col_name in enumerate(headers):
             cell = table.cell(0, col_num)
             cell.text = col_name
-            cell.text_frame.paragraphs[0].font.size = Pt(10)
+            cell.text_frame.paragraphs[0].font.size = TABLE_FONT_SIZE
 
         # Populate the table with data
         for row_num in range(len(chunk)):
             for col_num, value in enumerate(chunk[row_num]):
                 cell = table.cell(row_num + 1, col_num)
                 cell.text = str(value)
-                cell.text_frame.paragraphs[0].font.size = Pt(10)
+                cell.text_frame.paragraphs[0].font.size = TABLE_FONT_SIZE
 
         # If there's only one slide, skip buttons
         if num_slides == 1:
