@@ -22,7 +22,7 @@ MAX_BUTTONS_PER_SLIDE = 10
 MAX_BTNS_PER_SLIDE_WITH_ARROWS = MAX_BUTTONS_PER_SLIDE + 2
 
 
-def get_proper_button_spacing(button_num, total_buttons):
+def _get_proper_button_spacing(button_num, total_buttons):
     """
     Places a button according to the total number of buttons on the slide.
 
@@ -89,7 +89,7 @@ def _button_factory(total_buttons, slide, button_place, text, color=None):
     """
     shape = slide.shapes.add_shape(
         MSO_SHAPE.ROUNDED_RECTANGLE,
-        get_proper_button_spacing(button_place, total_buttons),
+        _get_proper_button_spacing(button_place, total_buttons),
         BUTTON_ROW_HEIGHT,
         BUTTON_WIDTH,
         BUTTON_HEIGHT,
