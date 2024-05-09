@@ -193,10 +193,7 @@ def generate_powerpoint(selected_query, data, headers, file_path):
         slide_button_list[0].click_action.target_slide = previous_slide
 
         # Add functionality to next slide button
-        if slide_index == num_slides - 1:  # Last slide, loop back to the front
-            next_slide = presentation.slides[0]
-        else:
-            next_slide = presentation.slides[slide_index + 1]
+        next_slide = presentation.slides[(slide_index + 1) % num_slides]
         slide_button_list[-1].click_action.target_slide = next_slide
 
         # Add functionality to rest of buttons
