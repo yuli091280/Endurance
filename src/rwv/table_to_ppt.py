@@ -16,22 +16,26 @@ MAX_BTNS_PER_SLIDE_WITH_ARROWS = MAX_BUTTONS_PER_SLIDE + 2
 
 
 def get_proper_button_spacing(button_num, total_buttons):
-    if total_buttons % 2 == 0:  # Even buttons, no center button
+    if total_buttons % 2 == 0:
+        # Even buttons, no center button
         middle_button = total_buttons // 2
-        if button_num < middle_button:  # Button is on left side of the slide
+        if button_num < middle_button:
+            # Button is on left side of the slide
             return (
                 MIDDLE_OF_SLIDE
                 + (BUTTON_SPACING / 2)
                 + (button_num - middle_button - 1) * (BUTTON_WIDTH + BUTTON_SPACING)
             )
-        else:  # Button is on the right side of the slide
+        else:
+            # Button is on the right side of the slide
             return (
                 MIDDLE_OF_SLIDE
                 - (BUTTON_SPACING / 2)
                 - BUTTON_WIDTH
                 - (middle_button - button_num) * (BUTTON_WIDTH + BUTTON_SPACING)
             )
-    else:  # Odd buttons, there is a middle button
+    else:
+        # Odd buttons, there is a middle button
         middle_button = (total_buttons // 2) + 1
         if button_num < middle_button:  # Button is on left side of the slide
             return (
@@ -40,7 +44,8 @@ def get_proper_button_spacing(button_num, total_buttons):
                 + BUTTON_SPACING
                 + (button_num - middle_button - 1) * (BUTTON_WIDTH + BUTTON_SPACING)
             )
-        else:  # Button is on right side of the slide
+        else:
+            # Button is on right side of the slide
             return (
                 MIDDLE_OF_SLIDE
                 - (BUTTON_WIDTH / 2)
@@ -140,36 +145,38 @@ def generate_powerpoint(selected_query, data, headers, file_path):
         slide_buttons.append(shape)
 
         # Add numbered slide buttons to slide
-        if (
-            num_buttons > MAX_BTNS_PER_SLIDE_WITH_ARROWS
-        ):  # Not all the buttons will fit, truncate
-            if (
-                current_slide <= 4
-            ):  # We're at the start of the list, include the first N slides
+        if num_buttons > MAX_BTNS_PER_SLIDE_WITH_ARROWS:
+            # Not all the buttons will fit, truncate
+            if current_slide <= 4:
+                # We're at the start of the list, include the first N slides
                 button_range = range(1, MAX_BUTTONS_PER_SLIDE + 1)
-            elif (
-                current_slide >= num_slides - 5
-            ):  # We're at the end of the list, include the last N slides
+            elif current_slide >= num_slides - 5:
+                # We're at the end of the list, include the last N slides
                 button_range = range(
                     num_slides - MAX_BUTTONS_PER_SLIDE + 1, num_slides + 1
                 )
-            else:  # We're somewhere in the middle, include the 4 slides before and the 5 slides after this one
+            else:
+                # We're somewhere in the middle, include the 4 slides before and the 5 slides after this one
                 button_range = range(current_slide - 4, current_slide + 6)
 
-            button_pos = 2  # Button position is decoupled from the number, skipping previous slide button
+            # Button position is decoupled from the number, skipping previous slide button
+            button_pos = 2
             for button in button_range:
                 shape = create_button(button_pos, str(button))
-                if button == current_slide:  # Add special formatting for selected slide
+                # Add special formatting for selected slide
+                if button == current_slide:
                     shape.fill.gradient()
                     for gradient_stop in shape.fill.gradient_stops:
                         gradient_stop.color.theme_color = MSO_THEME_COLOR.ACCENT_2
                     shape.line.color.theme_color = MSO_THEME_COLOR.ACCENT_2
                 slide_buttons.append(shape)
                 button_pos += 1
-        else:  # All the buttons will fit, we can use their number to decide their position
+        else:
+            # All the buttons will fit, we can use their number to decide their position
             for button in range(1, num_slides + 1):
                 shape = create_button(button + 1, str(button))
-                if button == current_slide:  # Add special formatting for selected slide
+                # Add special formatting for selected slide
+                if button == current_slide:
                     shape.fill.gradient()
                     for gradient_stop in shape.fill.gradient_stops:
                         gradient_stop.color.theme_color = MSO_THEME_COLOR.ACCENT_2
