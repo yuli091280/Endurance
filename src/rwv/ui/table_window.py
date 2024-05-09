@@ -96,12 +96,26 @@ class TableWindow(QtWidgets.QWidget):
         self.setLayout(total_layout)
 
     def set_selected_race(self, race_id):
+        """
+        Re-set table with data for currently selected race in main window.
+
+        :param race_id: ID of race to view data for
+        :type race_id: int
+        """
         self.selected_race = race_id
         self.initialize_table(
             *(self.summaries[self.report_combo_box.currentData()](race_id))
         )
 
     def initialize_table(self, headers, data):
+        """
+        Initialize the table with values from the database.
+
+        :param headers: The headers of the table
+        :type headers: list[str]
+        :param data: The data for the table
+        :type data: list[tuple]
+        """
         self.model.clear()
         self.column_combo_box.clear()
         self.line_edit.clear()
@@ -129,6 +143,9 @@ class TableWindow(QtWidgets.QWidget):
         )
 
     def export(self):
+        """
+        Export the current table in its entirety to PowerPoint
+        """
         file_path, save_choice = QtWidgets.QFileDialog.getSaveFileName(
             self, "Save Table", "", "Powerpoint (*.pptx)"
         )

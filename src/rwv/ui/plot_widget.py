@@ -126,7 +126,7 @@ class PlotWidget(QtWidgets.QWidget):
 
     def create_graph_window(self):
         """
-        Creates window that displays the generate chart.
+        Creates window that displays the generated chart.
         """
         if self.graph_window is None or not self.graph_window.isVisible():
             # Initialize toolbar for interacting with plot
@@ -138,6 +138,9 @@ class PlotWidget(QtWidgets.QWidget):
             self.graph_window.show_window()
 
     def create_table_window(self):
+        """
+        Creates window that contains the data table for certain queries.
+        """
         if self.table_window is None or not self.table_window.isVisible():
             self.table_window = TableWindow(
                 self.show_table_button, self.db, self.get_selected_race_id()
@@ -392,6 +395,12 @@ class PlotWidget(QtWidgets.QWidget):
                 self.canvas.save_figure_as_jpeg(file_path)
 
     def get_selected_race_id(self):
+        """
+        Returns the ID for the currently selected race.
+
+        :return: ID of currently selected race
+        :rtype: int
+        """
         return self.race_combo_box.currentData()
 
 
