@@ -1,4 +1,5 @@
 from PyQt6 import QtWidgets
+from PyQt6.QtGui import QCloseEvent
 
 from rwv.ui.plot_widget import PlotWidget
 from rwv.db import DB
@@ -66,3 +67,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self.frameGeometry().bottomRight() - self.frameGeometry().topLeft()
         ) / 2
         self.move(screen_center - window_center)
+
+    def closeEvent(self, event):
+        """
+        Overrides the closeEvent function to close the window and show the show graph button.
+        """
+        self.centralWidget().close_application()
+        self.close()
+        event.accept()

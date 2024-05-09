@@ -125,7 +125,7 @@ class PlotWidget(QtWidgets.QWidget):
         """
         if self.graph_window is not None:
             self.graph_window.close_window()
-        self.close()
+        self.window.close()
 
     def create_menu_bar(self):
         """
