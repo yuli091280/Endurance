@@ -143,13 +143,12 @@ def generate_powerpoint(selected_query, data, headers, file_path):
         # Use the layout that supports title and content
         slide = presentation.slides.add_slide(slide_layout)
         current_slide = index + 1
-        title = slide.placeholders[0]
 
         # Set table title
         if num_slides > 1:
-            title.text = f"{selected_query} Page {page_num}"
+            slide.shapes.title.text = f"{selected_query} Page {page_num}"
         else:
-            title.text = selected_query
+            slide.shapes.title.text = selected_query
 
         # Add page number to slides
         page_number_text = slide.shapes.add_textbox(0, 0, Inches(1), Inches(1))
@@ -248,17 +247,20 @@ def generate_powerpoint(selected_query, data, headers, file_path):
     # After our slides have been created, add functionality to buttons
     for slide_index, slide_button_list in enumerate(all_buttons):
         # Add functionality to previous slide button
-        previous_slide = presentation.slides[slide_index - 1]
-        slide_button_list[0].click_action.target_slide = previous_slide
+        slide_button_list[0].click_action.target_slide = presentation.slides[
+            slide_index - 1
+        ]
 
         # Add functionality to next slide button
-        next_slide = presentation.slides[(slide_index + 1) % num_slides]
-        slide_button_list[-1].click_action.target_slide = next_slide
+        slide_button_list[-1].click_action.target_slide = presentation.slides[
+            (slide_index + 1) % num_slides
+        ]
 
         # Add functionality to rest of buttons
         for button in slide_button_list[1:-1]:
-            slide_num = int(button.text_frame.text) - 1
-            button.click_action.target_slide = presentation.slides[slide_num]
+            button.click_action.target_slide = presentation.slides[
+                int(button.text_frame.text) - 1
+            ]
 
     # Save the PowerPoint presentation
     presentation.save(file_path)
