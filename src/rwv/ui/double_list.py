@@ -130,10 +130,7 @@ class DoubleListWidget(QtWidgets.QWidget):
         :rtype: list[int]
         """
         list_widget = self._right_list if list_side == Side.RIGHT else self._left_list
-        return [
-            list_widget.item(i).rwv_id
-            for i in range(list_widget.count())
-        ]
+        return [list_widget.item(i).rwv_id for i in range(list_widget.count())]
 
     def move_items(self, source, destination):
         """
