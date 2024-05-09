@@ -212,11 +212,11 @@ def generate_powerpoint(selected_query, data, headers, file_path):
             # Button position is decoupled from the number, skipping previous slide button
             button_pos = 2
             for button in button_range:
-                # Add special formatting for selected slide
                 slide_buttons.append(
                     create_button(
                         button_pos,
                         str(button),
+                        # Add special formatting for selected slide
                         MSO_THEME_COLOR.ACCENT_2 if button == current_slide else None,
                     )
                 )
@@ -224,11 +224,11 @@ def generate_powerpoint(selected_query, data, headers, file_path):
         else:
             # All the buttons will fit, we can use their number to decide their position
             for button in range(1, num_slides + 1):
-                # Add special formatting for selected slide
                 slide_buttons.append(
                     create_button(
                         button + 1,
                         str(button),
+                        # Add special formatting for selected slide
                         MSO_THEME_COLOR.ACCENT_2 if button == current_slide else None,
                     )
                 )
