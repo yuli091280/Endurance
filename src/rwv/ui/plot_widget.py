@@ -143,35 +143,10 @@ class PlotWidget(QtWidgets.QWidget):
         close_current_db = file_menu.addAction("Close Current DB")
         close_current_db.triggered.connect(lambda: self.window.reset())
 
-        # Action to save the graph.
-        save_graph = file_menu.addAction("Save Graph")
-        save_graph.triggered.connect(lambda: self.save_current_graph())
-        save_graph.setShortcut("Ctrl+S")
-
         # Action to exit the application.
         exit_action = file_menu.addAction("Exit")
         exit_action.triggered.connect(lambda: self.close_application())
         exit_action.setShortcut("Ctrl+Q")
-
-        # Initialize the Edit button on the meny bar.
-        edit_menu = QtWidgets.QMenu("&Edit", self)
-        menu_bar.addMenu(edit_menu)
-
-        # Action to toggle the display of Bent Knee.
-        self.bent_knee = edit_menu.addAction("Bent Knee")
-        self.bent_knee.setCheckable(True)
-        self.bent_knee.setChecked(True)
-        self.bent_knee.triggered.connect(
-            lambda checked: self.canvas.redraw_points(JudgeCallType.LOC, checked)
-        )
-
-        # Action to toggle the display of LOC.
-        self.loc = edit_menu.addAction("LOC")
-        self.loc.setCheckable(True)
-        self.loc.setChecked(True)
-        self.loc.triggered.connect(
-            lambda checked: self.canvas.redraw_points(JudgeCallType.LOC, checked)
-        )
 
         return menu_bar
 
@@ -250,8 +225,6 @@ class PlotWidget(QtWidgets.QWidget):
         self.judge_list.add_items(items, item_ids)
 
         self.canvas.plot_new_race(loc_values, judge_data, athletes, judge_dict)
-        self.canvas.redraw_points(JudgeCallType.LOC, self.loc.isChecked())
-        self.canvas.redraw_points(JudgeCallType.BENT_KNEE, self.bent_knee.isChecked())
 
     def fetch_judge_data(self, judges, bibs, race_id):
         """
