@@ -9,6 +9,8 @@ from rwv.loc_graph import LocGraph, JudgeCallType
 from rwv.ui.double_list import DoubleListWidget
 from rwv.ui.graph_window import GraphWindow
 
+from rwv.db import DB
+
 
 class PlotWidget(QtWidgets.QWidget):
     """A widget containing the plot and its controls.
@@ -19,30 +21,20 @@ class PlotWidget(QtWidgets.QWidget):
     :type db: DB
     """
 
-    def __init__(self, window, db):
+    def __init__(self, db):
         super().__init__()
 
         self.bent_knee = None
         self.graph_window = None
         self.loc = None
 
-        self.window = window
-        self.db = db
-        races = db.get_races()
-
         self.toolbar = None
 
         # Initialize the menu bar for the application
         menu_bar = self.create_menu_bar()
 
-        # Initialize combo box for selecting which race to fetch data for
         self.race_combo_box = QtWidgets.QComboBox(self)
-        for race in races:
-            # Add athletes in the form "Race IDRace - Gender Distance DistanceUnits (RaceDate @ StartTime)"
-            self.race_combo_box.addItem(
-                f"Race {race[0]} - {race[1]} {race[2]}{race[3]} ({race[4]} @ {race[5]})",
-                race[0],
-            )
+
         self.race_label = QtWidgets.QLabel("Race:")
         self.race_label.setBuddy(self.race_combo_box)
         self.race_combo_box.currentIndexChanged.connect(
@@ -67,12 +59,12 @@ class PlotWidget(QtWidgets.QWidget):
         self.graph = LocGraph(width=12, height=7, dpi=100)
         self.canvas = MplCanvas(self.graph)
 
-        runner_list_layout, self.runner_list = PlotWidget.make_double_list_layout(
-            "Runners"
+        walker_list_layout, self.walker_list = PlotWidget.make_double_list_layout(
+            "Walkers"
         )
         # Connect our redraw function to the selector
-        self.runner_list.item_moved.connect(
-            lambda: self.canvas.redraw_plot(self.runner_list.get_selected_items())
+        self.walker_list.item_moved.connect(
+            lambda: self.canvas.redraw_plot(self.walker_list.get_selected_items())
         )
 
         judge_list_layout, self.judge_list = PlotWidget.make_double_list_layout(
@@ -83,11 +75,10 @@ class PlotWidget(QtWidgets.QWidget):
         )
 
         selector_layout = QtWidgets.QHBoxLayout()
-        selector_layout.addLayout(runner_list_layout)
+        selector_layout.addLayout(walker_list_layout)
         selector_layout.addLayout(judge_list_layout)
 
-        # Initialize UI values and graph
-        self.init_interface_for_race()
+        self.set_db(db)
 
         # Create a button for showing the graph
         self.show_graph_button = QtWidgets.QPushButton("Show Graph", self)
@@ -105,6 +96,27 @@ class PlotWidget(QtWidgets.QWidget):
 
         # Tell widget to use specified layout
         self.setLayout(layout)
+
+    def set_db(self, db):
+        """
+        Switch to a new db to visualize.
+
+        :param db: new db to switch to
+        :type db: DB
+        """
+        if not db:
+            return
+
+        self.db = db
+        races = db.get_races()
+
+        self.race_combo_box.clear()
+        for race in races:
+            # Add athletes in the form "Race IDRace - Gender Distance DistanceUnits (RaceDate @ StartTime)"
+            self.race_combo_box.addItem(
+                f"Race {race[0]} - {race[1]} {race[2]}{race[3]} ({race[4]} @ {race[5]})",
+                race[0],
+            )
 
     def create_graph_window(self):
         """
@@ -140,8 +152,9 @@ class PlotWidget(QtWidgets.QWidget):
         menu_bar.addMenu(file_menu)
 
         # Action to close the database file.
-        close_current_db = file_menu.addAction("Close Current DB")
-        close_current_db.triggered.connect(lambda: self.window.reset())
+        open_db = file_menu.addAction("Open new database")
+        open_db.triggered.connect(lambda: self.set_db(PlotWidget.db_file_dialog(self)))
+        open_db.setShortcut("Ctrl+O")
 
         # Action to exit the application.
         exit_action = file_menu.addAction("Exit")
@@ -167,6 +180,25 @@ class PlotWidget(QtWidgets.QWidget):
         layout.addWidget(label)
         layout.addWidget(double_list)
         return layout, double_list
+
+    @staticmethod
+    def db_file_dialog(parent):
+        """
+        Show a file dialog that prompts the user for a db file
+
+        :param parent: The parent window of the dialog
+        :type parent: QtWidgets.QWindow
+        :return: Opened DB object on success, none otherwise
+        :rtype: DB | None
+        """
+        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            parent, "Open Database", "", "db files (*.db)"
+        )
+        if not file_path:
+            QtWidgets.QMessageBox.critical(parent, "", "Invalid file")
+            return None
+
+        return DB(file_path)
 
     def init_data_for_race(self, race_id):
         """
@@ -210,19 +242,19 @@ class PlotWidget(QtWidgets.QWidget):
         )
 
         # Clear old values
-        self.runner_list.clear_items()
+        self.walker_list.clear_items()
 
         # Initialize combo box for selecting which athletes to draw
         # Add athletes in the form "LastName, FirstName (BibNumber)"
         items = [f"{athlete[0]}, {athlete[1]} ({athlete[2]})" for athlete in athletes]
         item_ids = [athlete[2] for athlete in athletes]
-        self.runner_list.add_items(items, item_ids)
+        self.walker_list.add_items(items, item_ids)
 
         self.judge_list.clear_items()
         items = [f"{judge[2]}, {judge[1]}" for judge in judges]
         item_ids = [judge[0] for judge in judges]
         judge_dict = dict(zip(item_ids, items))
-        self.judge_list.add_items(items, item_ids)
+        self.judge_list.add_items(items, items)
 
         self.canvas.plot_new_race(loc_values, judge_data, athletes, judge_dict)
 

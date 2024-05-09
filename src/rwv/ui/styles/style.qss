@@ -1,0 +1,152 @@
+* {
+    font-family: Arial;
+    font-size: 14px;
+    background-color: #f0f0f0;
+}
+
+QLabel {
+    color: #333;
+    padding: 2px;
+}
+
+QPushButton {
+    background-color: #2456A7;
+    color: #fff;
+    border: none;
+    padding: 5px;
+    min-width: 70px;
+    min-height: 25px;
+}
+
+QPushButton:hover {
+    background-color: #005999;
+}
+
+QPushButton:pressed {
+    background-color: #003366;
+}
+
+QToolBar {
+    border: none;
+    background-color: #f0f0f0;
+}
+
+QToolBar QToolButton {
+    background-color: #2456A7;
+    color: #fff;
+    border: none;
+    padding: 5px;
+    min-width: 70px;
+    min-height: 25px;
+}
+
+QToolBar QToolButton:hover {
+    background-color: #005999;
+}
+
+QToolBar QToolButton:pressed {
+    background-color: #003366;
+}
+
+QToolTip {
+    color: #000;
+    background-color: #fff;
+    border: 1px solid #888;
+}
+
+QComboBox {
+    border: 1px solid #888;
+    padding: 3px;
+    background-color: #fff;
+    color: #000;
+}
+
+QComboBox::drop-down {
+    width: 20px;
+    border: none;
+}
+
+/* Style the QLineEdit widgets */
+QLineEdit {
+    border: 1px solid #888;
+    padding: 3px;
+    background-color: #fff;
+    color: #000;
+}
+
+QListWidget {
+    border: 1px solid #888;
+    show-decoration-selected: 1;
+}
+
+QListWidget::item {
+    padding: 2px;
+    color: #000;
+}
+
+QListWidget::item:selected {
+    background-color: #2456A7;
+    color: #fff;
+}
+
+QScrollBar:vertical {
+    background: #f0f0f0;
+    width: 15px;
+    margin: 15px 0 15px 0;
+}
+
+QScrollBar::handle:vertical {
+    background: #888;
+    min-height: 20px;
+}
+
+QScrollBar::add-line:vertical {
+    background: #ccc;
+    height: 15px;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:vertical {
+    background: #ccc;
+    height: 15px;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+    background: #000;
+    width: 3px;
+    height: 3px;
+}
+
+QScrollBar:horizontal {
+    background: #f0f0f0;
+    height: 15px;
+    margin: 0 15px 0 15px;
+}
+
+QScrollBar::handle:horizontal {
+    background: #888;
+    min-width: 20px;
+}
+
+QScrollBar::add-line:horizontal {
+    background: #ccc;
+    width: 15px;
+    subcontrol-position: right;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:horizontal {
+    background: #ccc;
+    width: 15px;
+    subcontrol-position: left;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal {
+    background: #000;
+    width: 3px;
+    height: 3px;
+}

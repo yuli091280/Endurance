@@ -25,16 +25,11 @@ class MainWindow(QtWidgets.QMainWindow):
         Event handler for when the user opens a new database.
         """
 
-        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
-            self, "Open Database", "", "db files (*.db)"
-        )
-        if not file_path:
-            QtWidgets.QMessageBox.critical(self, "", "Invalid file")
+        db = PlotWidget.db_file_dialog(self)
+        if not db:
             return
-
-        db = DB(file_path)
+        plot_widget = PlotWidget(db)
         self.hide()
-        plot_widget = PlotWidget(self, db)
         self.setCentralWidget(plot_widget)
 
         # center this window

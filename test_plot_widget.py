@@ -13,7 +13,7 @@ def test_plot_widget_user_interaction(qtbot):
     # Create a real DB object with the database file
     db = DB("test.db")
     # Create the PlotWidget with the real DB
-    widget = PlotWidget(window, db)
+    widget = PlotWidget(db)
     qtbot.addWidget(widget)
 
     # Simulate selecting the first race
@@ -26,7 +26,7 @@ def test_plot_widget_user_interaction(qtbot):
 
     # Simulate double clicking on the first item of the left list of the runner list
     qtbot.mouseDClick(
-        widget.runner_list._left_list.viewport(), QtCore.Qt.MouseButton.LeftButton
+        widget.walker_list._left_list.viewport(), QtCore.Qt.MouseButton.LeftButton
     )
 
     # Simulate double clicking on the first item of the left list of the judge list
