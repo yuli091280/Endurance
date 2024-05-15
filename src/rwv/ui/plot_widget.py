@@ -25,15 +25,13 @@ class PlotWidget(QtWidgets.QWidget):
     def __init__(self, db):
         super().__init__()
 
-        self.bent_knee = None
         self.graph_window = None
         self.table_window = None
-        self.loc = None
 
         self.toolbar = None
 
         # Initialize the menu bar for the application
-        self.create_menu_bar()
+        menu_bar = self.create_menu_bar()
 
         self.race_combo_box = QtWidgets.QComboBox(self)
 
@@ -92,6 +90,7 @@ class PlotWidget(QtWidgets.QWidget):
 
         # widget layout
         layout = QtWidgets.QVBoxLayout()
+        layout.setMenuBar(menu_bar)
         layout.addWidget(self.race_label)
         layout.addWidget(self.race_combo_box)
         layout.addWidget(self.max_loc_label)
@@ -156,7 +155,7 @@ class PlotWidget(QtWidgets.QWidget):
             self.graph_window.close_window()
         if self.table_window is not None:
             self.table_window.close_window()
-        self.close()
+        self.window().close()
 
     def create_menu_bar(self):
         """
@@ -175,38 +174,12 @@ class PlotWidget(QtWidgets.QWidget):
         open_db.triggered.connect(lambda: self.set_db(PlotWidget.db_file_dialog(self)))
         open_db.setShortcut("Ctrl+O")
 
-        # Action to save the graph.
-        save_graph = file_menu.addAction("Save Graph")
-        save_graph.triggered.connect(lambda: self.save_current_graph())
-        save_graph.setShortcut("Ctrl+S")
-
         # Action to exit the application.
         exit_action = file_menu.addAction("Exit")
         exit_action.triggered.connect(lambda: self.close_application())
         exit_action.setShortcut("Ctrl+Q")
 
-        # Initialize the Edit button on the meny bar.
-        edit_menu = QtWidgets.QMenu("&Edit", self)
-        menu_bar.addMenu(edit_menu)
-
-        # Action to toggle the display of Bent Knee.
-        self.bent_knee = edit_menu.addAction("Bent Knee")
-        self.bent_knee.setCheckable(True)
-        self.bent_knee.setChecked(True)
-        self.bent_knee.triggered.connect(
-            lambda checked: self.canvas.redraw_points(JudgeCallType.BENT_KNEE, checked)
-        )
-
-        # Action to toggle the display of LOC.
-        self.loc = edit_menu.addAction("LOC")
-        self.loc.setCheckable(True)
-        self.loc.setChecked(True)
-        self.loc.triggered.connect(
-            lambda checked: self.canvas.redraw_points(JudgeCallType.LOC, checked)
-        )
-
-        # Show the menu bar.
-        menu_bar.show()
+        return menu_bar
 
     @staticmethod
     def make_double_list_layout(label_text):
@@ -239,7 +212,6 @@ class PlotWidget(QtWidgets.QWidget):
             parent, "Open Database", "", "db files (*.db)"
         )
         if not file_path:
-            QtWidgets.QMessageBox.critical(parent, "", "Invalid file")
             return None
 
         return DB(file_path)
@@ -304,8 +276,6 @@ class PlotWidget(QtWidgets.QWidget):
         self.judge_list.add_items(items, items)
 
         self.canvas.plot_new_race(loc_values, judge_data, athletes, judge_dict)
-        self.canvas.redraw_points(JudgeCallType.LOC, self.loc.isChecked())
-        self.canvas.redraw_points(JudgeCallType.BENT_KNEE, self.bent_knee.isChecked())
 
     def fetch_judge_data(self, judges, bibs, race_id):
         """
