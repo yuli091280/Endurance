@@ -58,6 +58,12 @@ class GraphWindow(QtWidgets.QWidget):
         layout.addWidget(canvas)
         self.setLayout(layout)
 
+        self.apply_judge_call_selection()
+
+    def apply_judge_call_selection(self):
+        """
+        Applies current judge call display selection to graph
+        """
         self.redraw_points(JudgeCallType.BENT_KNEE, self.bent_knee.isChecked())
         self.redraw_points(JudgeCallType.LOC, self.loc.isChecked())
 
