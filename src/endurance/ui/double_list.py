@@ -102,7 +102,7 @@ class DoubleListWidget(QtWidgets.QWidget):
         :type list_side: Side
         """
         new_item = QListWidgetItem(item)
-        new_item.rwv_id = item_id
+        new_item.endurance_id = item_id
         if list_side == Side.LEFT:
             self._left_list.addItem(new_item)
         else:
@@ -130,7 +130,7 @@ class DoubleListWidget(QtWidgets.QWidget):
         :rtype: list[int]
         """
         list_widget = self._right_list if list_side == Side.RIGHT else self._left_list
-        return [list_widget.item(i).rwv_id for i in range(list_widget.count())]
+        return [list_widget.item(i).endurance_id for i in range(list_widget.count())]
 
     def move_items(self, source, destination):
         """
@@ -149,7 +149,7 @@ class DoubleListWidget(QtWidgets.QWidget):
         for item in items:
             source.takeItem(source.row(item))
             destination.addItem(item)
-            moved_ids.append(item.rwv_id)
+            moved_ids.append(item.endurance_id)
 
         destination_side = Side.RIGHT if source is self._left_list else Side.LEFT
         self.item_moved.emit(destination_side, moved_ids)
@@ -168,7 +168,7 @@ class DoubleListWidget(QtWidgets.QWidget):
         items = [
             (
                 list_widget.item(i).text(),
-                list_widget.item(i).rwv_id,
+                list_widget.item(i).endurance_id,
             )
             for i in range(list_widget.count())
         ]
@@ -180,5 +180,5 @@ class DoubleListWidget(QtWidgets.QWidget):
         list_widget.clear()
         for item in items:
             new_item = QListWidgetItem(item[0])
-            new_item.rwv_id = item[1]
+            new_item.endurance_id = item[1]
             list_widget.addItem(new_item)

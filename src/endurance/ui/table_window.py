@@ -1,5 +1,5 @@
 from PyQt6 import QtWidgets, QtCore, QtGui
-from rwv.table_to_ppt import generate_powerpoint
+from endurance.table_to_ppt import generate_powerpoint
 
 
 class TableWindow(QtWidgets.QWidget):

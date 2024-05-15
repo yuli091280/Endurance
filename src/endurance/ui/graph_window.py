@@ -1,7 +1,7 @@
 from PyQt6 import QtWidgets
 from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtWidgets import QFileDialog
-from rwv.loc_graph import LocGraph, JudgeCallType
+from endurance.loc_graph import LocGraph, JudgeCallType
 
 
 class GraphWindow(QtWidgets.QWidget):
