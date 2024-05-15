@@ -1,0 +1,26 @@
+name: Documentation Uploading
+
+on:
+  push:
+    branches: [ "main" ]
+  #pull_request:
+  #  branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  PR-check:
+    uses: ./.github/workflows/PR-check.yml
+
+  doc_upload:
+    runs-on: ubuntu-22.04
+    needs: PR-check
+    steps:
+    - name: Get docs
+      uses: actions/download-artifact@v4
+      with:
+        name: docs
+    - name: do something
+      run: ls
+

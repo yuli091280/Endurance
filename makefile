@@ -2,7 +2,7 @@ PYINSTALLER_ENTRY = src/rwv/main.py
 EXE_NAME = Endurance
 EXECUTABLE_OUT = dist/${EXE_NAME}
 
-.PHONY: build clean
+.PHONY: build clean docs-clean docs-clean-appmap docs-build docs-appmap docs-all
 
 build: ${EXECUTABLE_OUT}
 
