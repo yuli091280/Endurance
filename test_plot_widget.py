@@ -1,8 +1,8 @@
 from PyQt6 import QtCore
 from PyQt6.QtWidgets import QApplication
-from rwv.ui.plot_widget import PlotWidget
-from rwv.db import DB
-from rwv.ui.main_window import MainWindow
+from endurance.ui.plot_widget import PlotWidget
+from endurance.db import DB
+from endurance.ui.main_window import MainWindow
 
 
 def test_plot_widget_user_interaction(qtbot):
