@@ -276,6 +276,8 @@ class PlotWidget(QtWidgets.QWidget):
         self.judge_list.add_items(items, item_ids)
 
         self.canvas.plot_new_race(loc_values, judge_data, athletes, judge_dict)
+        if self.graph_window is not None:
+            self.graph_window.apply_judge_call_selection()
 
     def fetch_judge_data(self, judges, bibs, race_id):
         """
