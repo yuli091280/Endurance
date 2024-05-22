@@ -5,12 +5,12 @@ from PyQt6 import QtWidgets
 from PyQt6.QtGui import QIntValidator
 from PyQt6.QtWidgets import QFileDialog
 
-from rwv.loc_graph import LocGraph, JudgeCallType
-from rwv.ui.double_list import DoubleListWidget
-from rwv.ui.graph_window import GraphWindow
-from rwv.ui.table_window import TableWindow
+from endurance.loc_graph import LocGraph, JudgeCallType
+from endurance.ui.double_list import DoubleListWidget
+from endurance.ui.graph_window import GraphWindow
+from endurance.ui.table_window import TableWindow
 
-from rwv.db import DB
+from endurance.db import DB
 
 
 class PlotWidget(QtWidgets.QWidget):
@@ -276,6 +276,8 @@ class PlotWidget(QtWidgets.QWidget):
         self.judge_list.add_items(items, item_ids)
 
         self.canvas.plot_new_race(loc_values, judge_data, athletes, judge_dict)
+        if self.graph_window is not None:
+            self.graph_window.apply_judge_call_selection()
 
     def fetch_judge_data(self, judges, bibs, race_id):
         """

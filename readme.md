@@ -24,7 +24,7 @@ then do these for python dependencies:
 ## Running the project
 
 - get in the shell by `poetry shell`
-- run the program with `rwv`
+- run the program with `endurance`
 
 ## Building the project
 

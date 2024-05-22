@@ -1,4 +1,4 @@
-PYINSTALLER_ENTRY = src/rwv/main.py
+PYINSTALLER_ENTRY = src/endurance/main.py
 EXE_NAME = Endurance
 EXECUTABLE_OUT = dist/${EXE_NAME}
 
@@ -11,8 +11,8 @@ clean:
 
 docs-clean:
 	rm -rf docs/_build
-	rm -f docs/rwv.rst
-	rm -f docs/rwv.ui.rst
+	rm -f docs/endurance.rst
+	rm -f docs/endurance.ui.rst
 
 docs-clean-appmap:
 	rm -rf tmp

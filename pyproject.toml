@@ -1,12 +1,15 @@
 [tool.poetry]
-name = "rwv"
+name = "Endurance"
 version = "0.0.1"
-description = "Race walking visualizer"
+description = "A race walking data visualizer"
 license = "MIT"
 authors = [
 	"Yuchao Li <ycl25@drexel.edu>",
 	"Ethan Harriz <ejh336@drexel.edu>",
 	"Manish Patel <mtp75@drexel.edu>",
+	"Mathew Cerny <mbc88@drexel.edu>",
+	"Caraton Dixon <cd3258@drexel.edu>",
+	"Andrew Rodebaugh <ajr439@drexel.edu>"
 ]
 
 [tool.poetry.dependencies]
@@ -26,7 +29,7 @@ pytest-qt = "^4.4.0"
 pyarrow = "^15.0.0"
 
 [tool.poetry.scripts]
-rwv = "rwv.main:main"
+endurance = "endurance.main:main"
 
 [tool.black]
-max-line-length = 100
+line-length = 88

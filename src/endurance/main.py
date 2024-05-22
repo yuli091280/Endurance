@@ -6,7 +6,7 @@ import os
 import matplotlib
 from PyQt6.QtWidgets import QApplication
 
-from rwv.ui.main_window import MainWindow
+from endurance.ui.main_window import MainWindow
 
 matplotlib.use("QtAgg")
 

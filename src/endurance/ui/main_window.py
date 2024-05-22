@@ -1,8 +1,8 @@
 from PyQt6 import QtWidgets
 from PyQt6.QtGui import QCloseEvent
 
-from rwv.ui.plot_widget import PlotWidget
-from rwv.db import DB
+from endurance.ui.plot_widget import PlotWidget
+from endurance.db import DB
 
 
 class MainWindow(QtWidgets.QMainWindow):

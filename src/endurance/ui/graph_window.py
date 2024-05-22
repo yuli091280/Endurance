@@ -1,10 +1,9 @@
 from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import QFileDialog
-from rwv.loc_graph import JudgeCallType
+from endurance.loc_graph import LocGraph, JudgeCallType
 
 # Necessary for pyinstaller to enable pdf saving for some reason
 import matplotlib.backends.backend_pdf
-
 
 class GraphWindow(QtWidgets.QWidget):
     """A window that displays a generated chart.
@@ -60,6 +59,12 @@ class GraphWindow(QtWidgets.QWidget):
         layout.addWidget(canvas)
         self.setLayout(layout)
 
+        self.apply_judge_call_selection()
+
+    def apply_judge_call_selection(self):
+        """
+        Applies current judge call display selection to graph
+        """
         self.redraw_points(JudgeCallType.BENT_KNEE, self.bent_knee.isChecked())
         self.redraw_points(JudgeCallType.LOC, self.loc.isChecked())
 
