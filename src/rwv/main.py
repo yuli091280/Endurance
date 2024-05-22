@@ -21,7 +21,10 @@ def main():
 
     script_dir = os.path.dirname(__file__)
     rel_path = "ui/styles/style.qss"
-    abs_file_path = os.path.join(script_dir, rel_path)
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        abs_file_path = os.path.join(sys._MEIPASS, rel_path)
+    else:
+        abs_file_path = os.path.join(script_dir, rel_path)
     with open(abs_file_path, "r") as f:
         stylesheet = f.read()
         app.setStyleSheet(stylesheet)
