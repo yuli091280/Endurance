@@ -150,3 +150,11 @@ QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal {
     width: 3px;
     height: 3px;
 }
+
+QTableView {
+    color: black;
+}
+
+QHeaderView::section {
+    color: black;
+}
