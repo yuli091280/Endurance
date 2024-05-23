@@ -166,8 +166,9 @@ class TableWindow(QtWidgets.QWidget):
             QtWidgets.QMessageBox.critical(
                 self,
                 "Error when saving presentation",
-                "We could not save the presentation, please make sure that if you're saving over a prior file "
-                "that it is closed, and that you have access to the specified save path.",
+                "We could not save the presentation, please make sure that if "
+                "you're saving over a prior file that it is closed, and that you "
+                "have access to the specified save path.",
             )
 
     def closeEvent(self, event):

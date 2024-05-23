@@ -5,6 +5,7 @@ from endurance.loc_graph import LocGraph, JudgeCallType
 # Necessary for pyinstaller to enable pdf saving for some reason
 import matplotlib.backends.backend_pdf
 
+
 class GraphWindow(QtWidgets.QWidget):
     """A window that displays a generated chart.
 
