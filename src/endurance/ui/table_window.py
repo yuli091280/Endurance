@@ -155,9 +155,20 @@ class TableWindow(QtWidgets.QWidget):
         if not file_path.endswith(".pptx"):
             file_path += ".pptx"
 
-        generate_powerpoint(
-            self.report_combo_box.currentData(), self._data, self._headers, file_path
-        )
+        try:
+            generate_powerpoint(
+                self.report_combo_box.currentData(),
+                self._data,
+                self._headers,
+                file_path,
+            )
+        except PermissionError:
+            QtWidgets.QMessageBox.critical(
+                self,
+                "Error when saving presentation",
+                "We could not save the presentation, please make sure that if you're saving over a prior file "
+                "that it is closed, and that you have access to the specified save path.",
+            )
 
     def closeEvent(self, event):
         """
