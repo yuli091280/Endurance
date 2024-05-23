@@ -27,4 +27,4 @@ docs-appmap: docs-clean-appmap
 docs-all: docs-appmap docs-build
 
 ${EXECUTABLE_OUT}: ${PYINSTALLER_ENTRY}
-	poetry run pyinstaller -n ${EXE_NAME} --onefile ${PYINSTALLER_ENTRY} --add-data "src/endurance/ui/styles/style.qss:ui/styles"
+	poetry run pyinstaller -n ${EXE_NAME} --onefile ${PYINSTALLER_ENTRY} --add-data "src/endurance/ui/styles/style.qss:ui/styles" --noconsole
