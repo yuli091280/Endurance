@@ -1,7 +1,9 @@
 from PyQt6 import QtWidgets
-from PyQt6.QtGui import QCloseEvent
 from PyQt6.QtWidgets import QFileDialog
 from endurance.loc_graph import LocGraph, JudgeCallType
+
+# Necessary for pyinstaller to enable pdf saving for some reason
+import matplotlib.backends.backend_pdf
 
 
 class GraphWindow(QtWidgets.QWidget):

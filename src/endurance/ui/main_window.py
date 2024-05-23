@@ -17,6 +17,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Set window title
         self.setWindowTitle("Endurance")
+        self.plot_widget = None
 
         self.reset()
 
@@ -28,9 +29,9 @@ class MainWindow(QtWidgets.QMainWindow):
         db = PlotWidget.db_file_dialog(self)
         if not db:
             return
-        plot_widget = PlotWidget(db)
+        self.plot_widget = PlotWidget(db)
         self.hide()
-        self.setCentralWidget(plot_widget)
+        self.setCentralWidget(self.plot_widget)
 
         # center this window
         self.show()
@@ -67,6 +68,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         Overrides the closeEvent function to close the window and show the show graph button.
         """
-        self.centralWidget().close_application()
+        if self.plot_widget:
+            self.plot_widget.close_application()
         self.close()
         event.accept()
